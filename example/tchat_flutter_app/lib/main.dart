@@ -31,6 +31,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late Discussion _discussion;
+  final TextEditingController _messageController = TextEditingController();
 
   @override
   void initState() {
@@ -44,17 +45,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
+    _messageController.dispose();
     _discussion.dispose();
     super.dispose();
   }
 
-  void _addMessage() {
-    setState(() {
-      _discussion.addMessage(
-        'user1',
-        'Message ${_discussion.messages.length + 1}',
-      );
-    });
+  void _sendMessage() {
+    final text = _messageController.text.trim();
+    if (text.isNotEmpty) {
+      setState(() {
+        _discussion.addMessage('user1', text);
+        _messageController.clear();
+      });
+    }
   }
 
   @override
@@ -62,10 +65,10 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-
         title: Text(widget.title),
       ),
-      body: Column(
+      body: SafeArea(
+        child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -89,16 +92,35 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             ),
           ),
-          Padding(
+          Container(
             padding: const EdgeInsets.all(8.0),
-            child: Text('Messages: ${_discussion.messages.length}'),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.grey.shade300)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    decoration: const InputDecoration(
+                      hintText: 'Type a message...',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    onSubmitted: (_) => _sendMessage(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: _sendMessage,
+                  icon: const Icon(Icons.send),
+                  tooltip: 'Send Message',
+                ),
+              ],
+            ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addMessage,
-        tooltip: 'Add Message',
-        child: const Icon(Icons.message),
+        ),
       ),
     );
   }
