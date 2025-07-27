@@ -1,0 +1,38 @@
+# https://dart.dev/guides/libraries/private-files
+# Created by `dart pub`
+.dart_tool/
+
+# Avoid committing pubspec.lock for library packages; see
+# https://dart.dev/guides/libraries/private-files#pubspeclock.
+pubspec.lock
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Build outputs
+build/
+dist/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Code generation
+*.g.dart
+*.freezed.dart
+*.config.dart
+
+# Coverage
+coverage/
+
+# Test outputs
+.test_coverage.dart
