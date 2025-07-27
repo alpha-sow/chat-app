@@ -4,6 +4,9 @@ import 'package:tchat_app/src/src.dart';
 
 class Discussion {
   DiscussionState _state;
+  final bool _persistToDatabase;
+  DatabaseService? _databaseService;
+  final Map<String, User> _users = {};
 
   // Stream controllers for real-time events
   final StreamController<MapEntry<DiscussionEvent, dynamic>>
@@ -13,17 +16,26 @@ class Discussion {
 
   Discussion._({
     required DiscussionState initialState,
+    bool persistToDatabase = false,
   }) : _state = initialState,
+       _persistToDatabase = persistToDatabase,
+       _databaseService = persistToDatabase ? DatabaseService.instance : null,
        _messageStreamController =
            StreamController<MapEntry<DiscussionEvent, dynamic>>.broadcast(),
        _participantStreamController =
-           StreamController<MapEntry<ParticipantEvent, String>>.broadcast();
+           StreamController<MapEntry<ParticipantEvent, String>>.broadcast() {
+    // Save initial state to database if persistence is enabled
+    if (_persistToDatabase && _databaseService != null) {
+      _databaseService!.saveDiscussion(_state);
+    }
+  }
 
   // Factory constructors
   factory Discussion({
     String? id,
     required String title,
     List<String>? participants,
+    bool persistToDatabase = false,
   }) {
     return Discussion._(
       initialState: DiscussionState.initial(
@@ -31,15 +43,63 @@ class Discussion {
         title: title,
         participants: participants,
       ),
+      persistToDatabase: persistToDatabase,
     );
   }
 
-  factory Discussion.fromState(DiscussionState state) {
-    return Discussion._(initialState: state);
+  factory Discussion.fromState(DiscussionState state, {bool persistToDatabase = false}) {
+    return Discussion._(initialState: state, persistToDatabase: persistToDatabase);
   }
 
-  factory Discussion.fromJson(Map<String, dynamic> json) {
-    return Discussion._(initialState: DiscussionState.fromJson(json));
+  factory Discussion.fromJson(Map<String, dynamic> json, {bool persistToDatabase = false}) {
+    return Discussion._(initialState: DiscussionState.fromJson(json), persistToDatabase: persistToDatabase);
+  }
+
+  // Factory constructor with User objects
+  factory Discussion.withUsers({
+    String? id,
+    required String title,
+    List<User>? users,
+    bool persistToDatabase = false,
+  }) {
+    final discussion = Discussion._(
+      initialState: DiscussionState.initial(
+        id: id ?? DiscussionState.generateId(),
+        title: title,
+        participants: users?.map((u) => u.id).toList(),
+      ),
+      persistToDatabase: persistToDatabase,
+    );
+    
+    if (users != null) {
+      for (final user in users) {
+        discussion._users[user.id] = user;
+        // Save user to database if persistence is enabled
+        if (persistToDatabase && discussion._databaseService != null) {
+          discussion._databaseService!.saveUser(user);
+        }
+      }
+    }
+    
+    return discussion;
+  }
+
+  // Factory constructor to load from database
+  static Future<Discussion?> loadFromDatabase(String discussionId) async {
+    final databaseService = DatabaseService.instance;
+    final discussionState = await databaseService.getDiscussion(discussionId);
+    
+    if (discussionState == null) return null;
+    
+    final discussion = Discussion._(
+      initialState: discussionState,
+      persistToDatabase: true,
+    );
+
+    // Load users from database
+    await discussion.loadUsersFromDatabase();
+    
+    return discussion;
   }
 
   // Getters
@@ -56,6 +116,17 @@ class Discussion {
       _messageStreamController.stream;
   Stream<MapEntry<ParticipantEvent, String>> get participantStream =>
       _participantStreamController.stream;
+
+  // User management getters
+  Map<String, User> get users => Map.unmodifiable(_users);
+  List<User> get userList => _users.values.toList();
+  
+  User? getUser(String userId) => _users[userId];
+  
+  String getUserDisplayName(String userId) {
+    final user = _users[userId];
+    return user?.displayName ?? 'User $userId';
+  }
 
   // Message Management
   Message addMessage(
@@ -77,6 +148,12 @@ class Discussion {
       messages: [..._state.messages, message],
       lastActivity: DateTime.now(),
     );
+
+    // Persist to database if enabled
+    if (_persistToDatabase && _databaseService != null) {
+      _databaseService!.saveMessage(message, _state.id);
+      _databaseService!.saveDiscussion(_state);
+    }
 
     _messageStreamController.add(
       MapEntry(DiscussionEvent.messageAdded, message),
@@ -131,6 +208,13 @@ class Discussion {
     final deletedMessage = updatedMessages.removeAt(messageIndex);
 
     _state = _state.copyWith(messages: updatedMessages);
+
+    // Persist deletion to database if enabled
+    if (_persistToDatabase && _databaseService != null) {
+      _databaseService!.deleteMessage(deletedMessage.id);
+      _databaseService!.saveDiscussion(_state);
+    }
+
     _messageStreamController.add(
       MapEntry(DiscussionEvent.messageDeleted, deletedMessage),
     );
@@ -243,6 +327,62 @@ class Discussion {
 
   List<String> getParticipants() {
     return _state.participants.toList();
+  }
+
+  // User-aware participant management
+  bool addUser(User user) {
+    final added = addParticipant(user.id);
+    if (added) {
+      _users[user.id] = user;
+      // Save user to database if persistence is enabled
+      if (_persistToDatabase && _databaseService != null) {
+        _databaseService!.saveUser(user);
+      }
+    }
+    return added;
+  }
+
+  bool removeUser(String userId) {
+    final removed = removeParticipant(userId);
+    if (removed) {
+      _users.remove(userId);
+      // Note: We don't delete the user from database as they might be in other discussions
+    }
+    return removed;
+  }
+
+  void updateUser(User user) {
+    if (_state.participants.contains(user.id)) {
+      _users[user.id] = user;
+      // Save updated user to database if persistence is enabled
+      if (_persistToDatabase && _databaseService != null) {
+        _databaseService!.saveUser(user);
+      }
+    }
+  }
+
+  List<User> getActiveUsers() {
+    return _users.values.where((user) => user.isOnline).toList();
+  }
+
+  List<User> getUsersInDiscussion() {
+    return _users.values.toList();
+  }
+
+  int getOnlineUserCount() {
+    return _users.values.where((user) => user.isOnline).length;
+  }
+
+  // Load users from database for existing discussions
+  Future<void> loadUsersFromDatabase() async {
+    if (_databaseService != null) {
+      for (final participantId in _state.participants) {
+        final user = await _databaseService!.getUser(participantId);
+        if (user != null) {
+          _users[participantId] = user;
+        }
+      }
+    }
   }
 
   // Message Retrieval
@@ -359,6 +499,28 @@ class Discussion {
 
   // Serialization
   Map<String, dynamic> toJson() => _state.toJson();
+
+  // Database operations
+  Future<void> saveToDatabase() async {
+    if (_databaseService != null) {
+      await _databaseService!.saveDiscussion(_state);
+      // Save all messages
+      for (final message in _state.messages) {
+        await _databaseService!.saveMessage(message, _state.id);
+      }
+    }
+  }
+
+  // Static database utility methods
+  static Future<List<DiscussionState>> getAllDiscussionsFromDatabase() async {
+    final databaseService = DatabaseService.instance;
+    return await databaseService.getAllDiscussions();
+  }
+
+  static Future<void> deleteFromDatabase(String discussionId) async {
+    final databaseService = DatabaseService.instance;
+    await databaseService.deleteDiscussion(discussionId);
+  }
 
   // Cleanup
   void dispose() {
