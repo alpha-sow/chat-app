@@ -1,0 +1,45 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:tchat_app/src/src.dart';
+import 'package:uuid/uuid.dart';
+
+part 'message.g.dart';
+part 'message.freezed.dart';
+
+@freezed
+sealed class Message with _$Message {
+  const factory Message({
+    required String id,
+    required String senderId,
+    required String content,
+    @Default(MessageType.text) MessageType type,
+    required DateTime timestamp,
+    @Default(false) bool edited,
+    DateTime? editedAt,
+    @Default(<String, Set<String>>{}) Map<String, Set<String>> reactions,
+    @Default(<Message>[]) List<Message> replies,
+    Set<String>? readBy,
+  }) = _Message;
+
+  factory Message.fromJson(Map<String, dynamic> json) =>
+      _$MessageFromJson(json);
+
+  // Custom method to create a new message with generated ID
+  factory Message.create({
+    required String senderId,
+    required String content,
+    MessageType type = MessageType.text,
+  }) {
+    return Message(
+      id: _generateMessageId(),
+      senderId: senderId,
+      content: content,
+      type: type,
+      timestamp: DateTime.now(),
+    );
+  }
+
+  static String _generateMessageId() {
+    const uuid = Uuid();
+    return uuid.v4();
+  }
+}
