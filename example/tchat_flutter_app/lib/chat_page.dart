@@ -22,6 +22,8 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   User? _currentUser;
   bool _isLoading = true;
+  bool _isSelectionMode = false;
+  final Set<String> _selectedMessages = {};
 
   @override
   void initState() {
@@ -74,6 +76,41 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  void _toggleMessageSelection(String messageId) {
+    setState(() {
+      if (_selectedMessages.contains(messageId)) {
+        _selectedMessages.remove(messageId);
+        if (_selectedMessages.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedMessages.add(messageId);
+        _isSelectionMode = true;
+      }
+    });
+  }
+
+  void _exitSelectionMode() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedMessages.clear();
+    });
+  }
+
+  Future<void> _deleteSelectedMessages() async {
+    if (_selectedMessages.isEmpty) return;
+
+    final shouldDelete = await _showBulkDeleteConfirmation(_selectedMessages.length);
+    if (shouldDelete == true && _discussion != null && _currentUser != null) {
+      setState(() {
+        for (final messageId in _selectedMessages) {
+          _discussion!.deleteMessage(messageId, _currentUser!.id);
+        }
+        _exitSelectionMode();
+      });
+    }
+  }
+
   Future<bool?> _showDeleteConfirmation() {
     return showDialog<bool>(
       context: context,
@@ -97,6 +134,29 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  Future<bool?> _showBulkDeleteConfirmation(int messageCount) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Messages'),
+          content: Text('Are you sure you want to delete $messageCount selected messages?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete All'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading || _currentUser == null || _discussion == null) {
@@ -111,8 +171,27 @@ class _ChatPageState extends State<ChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(_discussion!.title),
+        backgroundColor: _isSelectionMode 
+            ? Colors.red[100] 
+            : Theme.of(context).colorScheme.inversePrimary,
+        title: _isSelectionMode 
+            ? Text('${_selectedMessages.length} selected')
+            : Text(_discussion!.title),
+        leading: _isSelectionMode 
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _exitSelectionMode,
+              )
+            : null,
+        actions: _isSelectionMode 
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: _deleteSelectedMessages,
+                  tooltip: 'Delete selected messages',
+                ),
+              ]
+            : null,
       ),
       body: SafeArea(
         child: Column(
@@ -147,6 +226,7 @@ class _ChatPageState extends State<ChatPage> {
                   final message = _discussion!.messages[index];
                   final user = _discussion!.getUser(message.senderId);
                   final isCurrentUser = message.senderId == _currentUser!.id;
+                  final isSelected = _selectedMessages.contains(message.id);
 
                   return Container(
                     margin: const EdgeInsets.symmetric(
@@ -158,8 +238,11 @@ class _ChatPageState extends State<ChatPage> {
                           ? Alignment.centerRight
                           : Alignment.centerLeft,
                       child: GestureDetector(
+                        onTap: _isSelectionMode && isCurrentUser
+                            ? () => _toggleMessageSelection(message.id)
+                            : null,
                         onLongPress: isCurrentUser
-                            ? () => _deleteMessage(message.id)
+                            ? () => _toggleMessageSelection(message.id)
                             : null,
                         child: Container(
                           constraints: const BoxConstraints(maxWidth: 280),
@@ -168,10 +251,15 @@ class _ChatPageState extends State<ChatPage> {
                             horizontal: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: isCurrentUser
-                                ? Colors.blue[100]
-                                : Colors.grey[200],
+                            color: isSelected
+                                ? Colors.red[200]
+                                : isCurrentUser
+                                    ? Colors.blue[100]
+                                    : Colors.grey[200],
                             borderRadius: BorderRadius.circular(12),
+                            border: isSelected
+                                ? Border.all(color: Colors.red[400]!, width: 2)
+                                : null,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,6 +268,15 @@ class _ChatPageState extends State<ChatPage> {
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  if (isSelected)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: Icon(
+                                        Icons.check_circle,
+                                        size: 16,
+                                        color: Colors.red[600],
+                                      ),
+                                    ),
                                   Expanded(
                                     child: Text(
                                       user?.displayName ?? message.senderId,
@@ -189,7 +286,7 @@ class _ChatPageState extends State<ChatPage> {
                                       ),
                                     ),
                                   ),
-                                  if (isCurrentUser)
+                                  if (isCurrentUser && !_isSelectionMode)
                                     GestureDetector(
                                       onTap: () => _deleteMessage(message.id),
                                       child: Icon(
@@ -213,10 +310,21 @@ class _ChatPageState extends State<ChatPage> {
                                       color: Colors.grey[600],
                                     ),
                                   ),
-                                  if (isCurrentUser) ...[
+                                  if (isCurrentUser && !_isSelectionMode) ...[
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Long press to delete',
+                                      'Long press to select',
+                                      style: TextStyle(
+                                        fontSize: 8,
+                                        color: Colors.grey[500],
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  ],
+                                  if (isCurrentUser && _isSelectionMode) ...[
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Tap to toggle',
                                       style: TextStyle(
                                         fontSize: 8,
                                         color: Colors.grey[500],
