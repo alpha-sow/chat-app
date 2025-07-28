@@ -276,22 +276,9 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                           ),
                         ],
                       ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              Icons.delete_outline,
-                              color: Colors.red[400],
-                            ),
-                            onPressed: () => _deleteDiscussion(discussion),
-                            tooltip: 'Delete Discussion',
-                          ),
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            color: Colors.grey[400],
-                          ),
-                        ],
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.grey[400],
                       ),
                       onTap: () {
                         Navigator.of(context).push(
