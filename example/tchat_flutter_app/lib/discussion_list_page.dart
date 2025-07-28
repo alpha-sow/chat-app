@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tchat_app/tchat_app.dart';
 
 import 'chat_page.dart';
-import 'create_discussion_page.dart';
+import 'contact_page.dart';
 import 'utils/utils.dart';
 
 class DiscussionListPage extends StatefulWidget {
@@ -27,10 +27,10 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
     try {
       // Load existing discussions
       _discussions = await Discussion.getAllDiscussionsFromDatabase();
-      
+
       // Load available users or create some sample users
       _availableUsers = await DatabaseService.instance.getAllUsers();
-      
+
       if (_availableUsers.isEmpty) {
         // Create realistic sample users if none exist
         _availableUsers = List.generate(10, (index) {
@@ -48,10 +48,12 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
               keywords: ['person', 'avatar'],
               random: true,
             ),
-            lastSeen: isOnline ? null : faker.date.dateTime(minYear: 2024, maxYear: 2025),
+            lastSeen: isOnline
+                ? null
+                : faker.date.dateTime(minYear: 2024, maxYear: 2025),
           );
         });
-        
+
         // Save sample users to database
         for (final user in _availableUsers) {
           await DatabaseService.instance.saveUser(user);
@@ -66,59 +68,15 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
     });
   }
 
-  Future<void> _createNewDiscussion() async {
-    final result = await Navigator.of(context).push<Map<String, dynamic>>(
-      MaterialPageRoute(
-        builder: (context) => CreateDiscussionPage(
-          availableUsers: _availableUsers,
-          currentUser: _availableUsers.first, // Use first user as current user
-        ),
-      ),
-    );
-
-    if (result != null) {
-      final title = result['title'] as String;
-      final selectedUsers = result['users'] as List<User>;
-      
-      // Create new discussion
-      logger.i('Creating new discussion: $title with ${selectedUsers.length} users');
-      final discussion = Discussion.withUsers(
-        title: title,
-        users: selectedUsers,
-        persistToDatabase: true,
-      );
-
-      // Add welcome message with variety
-      if (selectedUsers.isNotEmpty) {
-        final welcomeMessages = [
-          'Welcome to $title! 👋',
-          'Hello everyone! 🎉 Welcome to $title',
-          'Great to have you all here in $title! ✨',
-          'Welcome to our new discussion: $title 🚀',
-          'Hey team! Welcome to $title 💬',
-          '${faker.lorem.sentence()} Welcome to $title!',
-        ];
-        
-        final welcomeMessage = faker.randomGenerator.element(welcomeMessages);
-        discussion.addMessage(
-          selectedUsers.first.id,
-          welcomeMessage,
-        );
-        logger.d('Added welcome message to discussion: ${discussion.id}');
-      }
-
-      // Refresh the list
-      await _loadData();
-    }
-  }
-
   Future<void> _deleteDiscussion(DiscussionState discussion) async {
-    final shouldDelete = await _showDeleteDiscussionConfirmation(discussion.title);
+    final shouldDelete = await _showDeleteDiscussionConfirmation(
+      discussion.title,
+    );
     if (shouldDelete == true) {
       try {
         logger.w('Deleting discussion: ${discussion.title} (${discussion.id})');
         await Discussion.deleteFromDatabase(discussion.id);
-        
+
         // Show success message
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -128,7 +86,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
             ),
           );
         }
-        
+
         // Refresh the list
         await _loadData();
       } catch (e) {
@@ -201,6 +159,15 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
+            icon: const Icon(Icons.contacts),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const ContactPage()),
+              );
+            },
+            tooltip: 'Contacts',
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadData,
             tooltip: 'Refresh',
@@ -221,15 +188,15 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                   Text(
                     'No discussions yet',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                      color: Colors.grey[600],
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Create a new discussion to get started',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[500],
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
                   ),
                   const SizedBox(height: 16),
                   Container(
@@ -242,10 +209,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                     ),
                     child: Text(
                       '💡 Tips:\n• You are automatically included in all discussions\n• Select other participants to auto-generate titles\n• Example: "Chat with Alice" or "Alice & Bob"\n• Edit title manually for custom names\n• Tap to open chat, swipe left to delete',
-                      style: TextStyle(
-                        color: Colors.blue[700],
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.blue[700], fontSize: 12),
                       textAlign: TextAlign.left,
                     ),
                   ),
@@ -257,7 +221,10 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
               itemBuilder: (context, index) {
                 final discussion = _discussions[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   child: Dismissible(
                     key: Key(discussion.id),
                     direction: DismissDirection.endToStart,
@@ -275,23 +242,29 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                       ),
                     ),
                     confirmDismiss: (direction) async {
-                      return await _showDeleteDiscussionConfirmation(discussion.title);
+                      return await _showDeleteDiscussionConfirmation(
+                        discussion.title,
+                      );
                     },
                     onDismissed: (direction) async {
                       try {
-                        logger.w('Deleting discussion: ${discussion.title} (${discussion.id})');
+                        logger.w(
+                          'Deleting discussion: ${discussion.title} (${discussion.id})',
+                        );
                         await Discussion.deleteFromDatabase(discussion.id);
-                        
+
                         // Show success message
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Discussion "${discussion.title}" deleted'),
+                              content: Text(
+                                'Discussion "${discussion.title}" deleted',
+                              ),
                               backgroundColor: Colors.green,
                             ),
                           );
                         }
-                        
+
                         // Refresh the list
                         await _loadData();
                       } catch (e) {
@@ -364,11 +337,6 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _createNewDiscussion,
-        tooltip: 'Create New Discussion',
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }
