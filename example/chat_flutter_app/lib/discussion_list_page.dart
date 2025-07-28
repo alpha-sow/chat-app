@@ -124,7 +124,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('chat App - Discussions'),
+        title: const Text('Discussions'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(

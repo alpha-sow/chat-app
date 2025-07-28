@@ -42,11 +42,15 @@ class _ChatPageState extends State<ChatPage> {
 
       // Load the discussion
       _discussion = await Discussion.loadFromDatabase(widget.discussionId);
-      
+
       // Add initial message if provided
-      if (widget.initialMessage != null && widget.initialMessage!.isNotEmpty && _currentUser != null) {
+      if (widget.initialMessage != null &&
+          widget.initialMessage!.isNotEmpty &&
+          _currentUser != null) {
         _discussion!.addMessage(_currentUser!.id, widget.initialMessage!);
-        logger.d('Added initial message to discussion: ${widget.initialMessage}');
+        logger.d(
+          'Added initial message to discussion: ${widget.initialMessage}',
+        );
       }
     } catch (e) {
       logger.e('Error loading chat', error: e);
@@ -74,18 +78,6 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<void> _deleteMessage(String messageId) async {
-    if (_discussion != null && _currentUser != null) {
-      // Show confirmation dialog
-      final shouldDelete = await _showDeleteConfirmation();
-      if (shouldDelete == true) {
-        setState(() {
-          _discussion!.deleteMessage(messageId, _currentUser!.id);
-        });
-      }
-    }
-  }
-
   void _toggleMessageSelection(String messageId) {
     setState(() {
       if (_selectedMessages.contains(messageId)) {
@@ -98,6 +90,55 @@ class _ChatPageState extends State<ChatPage> {
         _isSelectionMode = true;
       }
     });
+  }
+
+  void _showMessageContextMenu(BuildContext context, String messageId) {
+    showMenu(
+      context: context,
+      position: const RelativeRect.fromLTRB(100, 100, 100, 100),
+      items: [
+        PopupMenuItem(
+          value: 'reply',
+          child: const Row(
+            children: [
+              Icon(Icons.reply, size: 18),
+              SizedBox(width: 8),
+              Text('Reply'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: const Row(
+            children: [
+              Icon(Icons.delete, size: 18, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Delete', style: TextStyle(color: Colors.red)),
+            ],
+          ),
+        ),
+      ],
+    ).then((value) {
+      if (value == 'reply') {
+        _replyToMessage(messageId);
+      } else if (value == 'delete') {
+        _toggleMessageSelection(messageId);
+      }
+    });
+  }
+
+  void _replyToMessage(String messageId) {
+    final message = _discussion?.messages.firstWhere((m) => m.id == messageId);
+    if (message != null) {
+      final user = _discussion!.getUser(message.senderId);
+      final replyText =
+          'Replying to ${user?.displayName ?? message.senderId}: ${message.content}';
+
+      _messageController.text = replyText;
+      _messageController.selection = TextSelection.fromPosition(
+        TextPosition(offset: replyText.length),
+      );
+    }
   }
 
   void _exitSelectionMode() {
@@ -121,29 +162,6 @@ class _ChatPageState extends State<ChatPage> {
         _exitSelectionMode();
       });
     }
-  }
-
-  Future<bool?> _showDeleteConfirmation() {
-    return showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Message'),
-          content: const Text('Are you sure you want to delete this message?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<bool?> _showBulkDeleteConfirmation(int messageCount) {
@@ -232,9 +250,8 @@ class _ChatPageState extends State<ChatPage> {
                         onTap: _isSelectionMode && isCurrentUser
                             ? () => _toggleMessageSelection(message.id)
                             : null,
-                        onLongPress: isCurrentUser
-                            ? () => _toggleMessageSelection(message.id)
-                            : null,
+                        onLongPress: () =>
+                            _showMessageContextMenu(context, message.id),
                         child: Container(
                           constraints: const BoxConstraints(maxWidth: 280),
                           padding: const EdgeInsets.symmetric(
@@ -277,15 +294,6 @@ class _ChatPageState extends State<ChatPage> {
                                       ),
                                     ),
                                   ),
-                                  if (isCurrentUser && !_isSelectionMode)
-                                    GestureDetector(
-                                      onTap: () => _deleteMessage(message.id),
-                                      child: Icon(
-                                        Icons.delete_outline,
-                                        size: 16,
-                                        color: Colors.red[400],
-                                      ),
-                                    ),
                                 ],
                               ),
                               const SizedBox(height: 4),
@@ -304,7 +312,7 @@ class _ChatPageState extends State<ChatPage> {
                                   if (isCurrentUser && !_isSelectionMode) ...[
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Long press to select',
+                                      'Long press for options',
                                       style: TextStyle(
                                         fontSize: 8,
                                         color: Colors.grey[500],
