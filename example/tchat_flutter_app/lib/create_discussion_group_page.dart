@@ -299,68 +299,6 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
-            if (_selectedUsers.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue[200]!),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Selected Participants (${_selectedUsers.length})',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: _selectedUsers.map((user) {
-                        final isCurrentUser = user.id == widget.currentUser.id;
-                        return Chip(
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(user.displayName),
-                              if (isCurrentUser) ...[
-                                const SizedBox(width: 4),
-                                Text(
-                                  '(You)',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.green[700],
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          onDeleted: isCurrentUser
-                              ? null
-                              : () {
-                                  setState(() {
-                                    _selectedUsers.remove(user);
-                                    _updateTitle();
-                                  });
-                                },
-                          backgroundColor: isCurrentUser
-                              ? Colors.green[50]
-                              : null,
-                          side: isCurrentUser
-                              ? BorderSide(color: Colors.green[300]!)
-                              : null,
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
           ],
         ),
       ),
