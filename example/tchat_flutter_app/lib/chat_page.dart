@@ -6,11 +6,13 @@ import 'utils/utils.dart';
 class ChatPage extends StatefulWidget {
   final String discussionId;
   final String currentUserId;
+  final String? initialMessage;
 
   const ChatPage({
     super.key,
     required this.discussionId,
     required this.currentUserId,
+    this.initialMessage,
   });
 
   @override
@@ -40,6 +42,12 @@ class _ChatPageState extends State<ChatPage> {
 
       // Load the discussion
       _discussion = await Discussion.loadFromDatabase(widget.discussionId);
+      
+      // Add initial message if provided
+      if (widget.initialMessage != null && widget.initialMessage!.isNotEmpty && _currentUser != null) {
+        _discussion!.addMessage(_currentUser!.id, widget.initialMessage!);
+        logger.d('Added initial message to discussion: ${widget.initialMessage}');
+      }
     } catch (e) {
       logger.e('Error loading chat', error: e);
     }

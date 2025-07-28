@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tchat_app/tchat_app.dart';
+import 'package:tchat_flutter_app/chat_page.dart';
+
+import 'utils/utils.dart';
 
 class TempChatPage extends StatefulWidget {
   final Discussion discussion;
@@ -21,12 +24,14 @@ class _TempChatPageState extends State<TempChatPage> {
   late Discussion _discussion;
   final TextEditingController _messageController = TextEditingController();
   User? _currentUser;
+  User? _otherUser;
 
   @override
   void initState() {
     super.initState();
     _discussion = widget.discussion;
     _currentUser = widget.currentUser;
+    _otherUser = widget.otherUser;
   }
 
   @override
@@ -38,6 +43,30 @@ class _TempChatPageState extends State<TempChatPage> {
 
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
+    if (text.isEmpty) return;
+    
+    // Persist the discussion to database without adding the message yet
+    final discussion = Discussion.withUsers(
+      id: _discussion.id,
+      title: _discussion.title,
+      users: [_currentUser!, _otherUser!],
+      persistToDatabase: true,
+    );
+    
+    logger.i('Discussion persisted to database: ${discussion.id}');
+    
+    // Navigate to ChatPage and pass the message to be added after navigation
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => ChatPage(
+            discussionId: discussion.id,
+            currentUserId: _currentUser!.id,
+            initialMessage: text, // Pass the message to be added after loading
+          ),
+        ),
+      );
+    }
   }
 
   @override
