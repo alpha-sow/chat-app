@@ -21,23 +21,29 @@ void main() async {
   logger.w('Clearing all database data for fresh start');
   await DatabaseService.instance.clearAllData();
 
-  runApp(const MyApp());
+  // Create and save current user
+  final currentUser = User.create(name: 'You', email: 'you@example.com');
+
+  logger.i(
+    'Created current user: ${currentUser.displayName} (${currentUser.id})',
+  );
+
+  runApp(MyApp(currentUser: currentUser));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final User currentUser;
+
+  const MyApp({super.key, required this.currentUser});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'TChat App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const DiscussionListPage(),
+      home: DiscussionListPage(currentUser: currentUser),
     );
   }
 }
-
-
-

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:tchat_app/tchat_app.dart';
-import 'package:tchat_flutter_app/create_discussion_page.dart';
+import 'package:tchat_flutter_app/create_discussion_group_page.dart';
 
 import 'utils/utils.dart';
 
 class ContactPage extends StatefulWidget {
-  const ContactPage({super.key});
+  const ContactPage({required this.currentUser, super.key});
+
+  final User currentUser;
 
   @override
   State<ContactPage> createState() => _ContactPageState();
@@ -14,10 +16,12 @@ class ContactPage extends StatefulWidget {
 class _ContactPageState extends State<ContactPage> {
   List<User> _users = [];
   bool _isLoading = true;
+  User? _currentUser;
 
   @override
   void initState() {
     super.initState();
+    _currentUser = widget.currentUser;
     _loadUsers();
   }
 
@@ -37,12 +41,7 @@ class _ContactPageState extends State<ContactPage> {
             email: faker.internet.email(),
             isOnline: isOnline,
             status: isOnline ? 'Available' : 'Away',
-            avatarUrl: faker.image.image(
-              width: 100,
-              height: 100,
-              keywords: ['person', 'avatar'],
-              random: true,
-            ),
+            avatarUrl: faker.image.loremPicsum(width: 100, height: 100),
             lastSeen: isOnline
                 ? null
                 : faker.date.dateTime(minYear: 2024, maxYear: 2025),
@@ -63,12 +62,12 @@ class _ContactPageState extends State<ContactPage> {
     });
   }
 
-  Future<void> _createNewDiscussion() async {
+  Future<void> _createGroupDiscussion() async {
     final result = await Navigator.of(context).push<Map<String, dynamic>>(
       MaterialPageRoute(
-        builder: (context) => CreateDiscussionPage(
+        builder: (context) => CreateDiscussionGroupPage(
           availableUsers: _users,
-          currentUser: _users.first, // Use first user as current user
+          currentUser: _currentUser!, // Use first user as current user
         ),
       ),
     );
@@ -129,8 +128,8 @@ class _ContactPageState extends State<ContactPage> {
               },
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _createNewDiscussion,
-        tooltip: 'Create New Discussion',
+        onPressed: _createGroupDiscussion,
+        tooltip: 'Create Group Discussion',
         child: const Icon(Icons.add),
       ),
     );
@@ -248,12 +247,11 @@ class _ContactPageState extends State<ContactPage> {
 
   void _startChatWithUser(User user) async {
     // Get current user (using first available user as current user for now)
-    final currentUser = _users.isNotEmpty ? _users.first : User.guest('Me');
 
     // Create a temporary discussion that won't be persisted until first message
     final tempDiscussion = Discussion.withUsers(
       title: 'Chat with ${user.displayName}',
-      users: [currentUser, user],
+      users: [_currentUser!, user],
       persistToDatabase: false, // Don't persist yet
     );
 
@@ -262,7 +260,7 @@ class _ContactPageState extends State<ContactPage> {
       MaterialPageRoute(
         builder: (context) => _TempChatPage(
           discussion: tempDiscussion,
-          currentUserId: currentUser.id,
+          currentUser: _currentUser!,
           otherUser: user,
         ),
       ),
@@ -287,12 +285,12 @@ class _ContactPageState extends State<ContactPage> {
 
 class _TempChatPage extends StatefulWidget {
   final Discussion discussion;
-  final String currentUserId;
+  final User currentUser;
   final User otherUser;
 
   const _TempChatPage({
     required this.discussion,
-    required this.currentUserId,
+    required this.currentUser,
     required this.otherUser,
   });
 
@@ -304,33 +302,13 @@ class _TempChatPageState extends State<_TempChatPage> {
   late Discussion _discussion;
   final TextEditingController _messageController = TextEditingController();
   User? _currentUser;
-  bool _isLoading = true;
   bool _isPersisted = false;
 
   @override
   void initState() {
     super.initState();
     _discussion = widget.discussion;
-    _initializeChat();
-  }
-
-  Future<void> _initializeChat() async {
-    try {
-      // Get current user
-      _currentUser = await DatabaseService.instance.getUser(
-        widget.currentUserId,
-      );
-      // If user doesn't exist in database, use the one from the discussion
-      _currentUser ??= _discussion.getUser(widget.currentUserId);
-    } catch (e) {
-      logger.e('Error loading chat', error: e);
-      // Fallback to guest user
-      _currentUser = User.guest('Me');
-    }
-
-    setState(() {
-      _isLoading = false;
-    });
+    _currentUser = widget.currentUser;
   }
 
   @override
@@ -429,16 +407,6 @@ class _TempChatPageState extends State<_TempChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading || _currentUser == null) {
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text('Chat with ${widget.otherUser.displayName}'),
-        ),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,

@@ -6,7 +6,9 @@ import 'contact_page.dart';
 import 'utils/utils.dart';
 
 class DiscussionListPage extends StatefulWidget {
-  const DiscussionListPage({super.key});
+  final User currentUser;
+
+  const DiscussionListPage({super.key, required this.currentUser});
 
   @override
   State<DiscussionListPage> createState() => _DiscussionListPageState();
@@ -14,7 +16,6 @@ class DiscussionListPage extends StatefulWidget {
 
 class _DiscussionListPageState extends State<DiscussionListPage> {
   List<DiscussionState> _discussions = [];
-  List<User> _availableUsers = [];
   bool _isLoading = true;
 
   @override
@@ -27,38 +28,6 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
     try {
       // Load existing discussions
       _discussions = await Discussion.getAllDiscussionsFromDatabase();
-
-      // Load available users or create some sample users
-      _availableUsers = await DatabaseService.instance.getAllUsers();
-
-      if (_availableUsers.isEmpty) {
-        // Create realistic sample users if none exist
-        _availableUsers = List.generate(10, (index) {
-          final id = (index + 1).toString();
-          final isOnline = faker.randomGenerator.boolean();
-          return User(
-            id: id,
-            name: faker.person.name(),
-            email: faker.internet.email(),
-            isOnline: isOnline,
-            status: isOnline ? 'Available' : 'Away',
-            avatarUrl: faker.image.image(
-              width: 100,
-              height: 100,
-              keywords: ['person', 'avatar'],
-              random: true,
-            ),
-            lastSeen: isOnline
-                ? null
-                : faker.date.dateTime(minYear: 2024, maxYear: 2025),
-          );
-        });
-
-        // Save sample users to database
-        for (final user in _availableUsers) {
-          await DatabaseService.instance.saveUser(user);
-        }
-      }
     } catch (e) {
       logger.e('Error loading data', error: e);
     }
@@ -162,7 +131,10 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
             icon: const Icon(Icons.contacts),
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const ContactPage()),
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ContactPage(currentUser: widget.currentUser),
+                ),
               );
             },
             tooltip: 'Contacts',
@@ -326,7 +298,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                           MaterialPageRoute(
                             builder: (context) => ChatPage(
                               discussionId: discussion.id,
-                              currentUserId: _availableUsers.first.id,
+                              currentUserId: widget.currentUser.id,
                             ),
                           ),
                         );
