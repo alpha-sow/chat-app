@@ -34,8 +34,10 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _initializeChat() async {
     try {
       // Get current user
-      _currentUser = await DatabaseService.instance.getUser(widget.currentUserId);
-      
+      _currentUser = await DatabaseService.instance.getUser(
+        widget.currentUserId,
+      );
+
       // Load the discussion
       _discussion = await Discussion.loadFromDatabase(widget.discussionId);
     } catch (e) {
@@ -100,7 +102,9 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _deleteSelectedMessages() async {
     if (_selectedMessages.isEmpty) return;
 
-    final shouldDelete = await _showBulkDeleteConfirmation(_selectedMessages.length);
+    final shouldDelete = await _showBulkDeleteConfirmation(
+      _selectedMessages.length,
+    );
     if (shouldDelete == true && _discussion != null && _currentUser != null) {
       setState(() {
         for (final messageId in _selectedMessages) {
@@ -140,7 +144,9 @@ class _ChatPageState extends State<ChatPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Delete Messages'),
-          content: Text('Are you sure you want to delete $messageCount selected messages?'),
+          content: Text(
+            'Are you sure you want to delete $messageCount selected messages?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -171,19 +177,19 @@ class _ChatPageState extends State<ChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: _isSelectionMode 
-            ? Colors.red[100] 
+        backgroundColor: _isSelectionMode
+            ? Colors.red[100]
             : Theme.of(context).colorScheme.inversePrimary,
-        title: _isSelectionMode 
+        title: _isSelectionMode
             ? Text('${_selectedMessages.length} selected')
             : Text(_discussion!.title),
-        leading: _isSelectionMode 
+        leading: _isSelectionMode
             ? IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: _exitSelectionMode,
               )
             : null,
-        actions: _isSelectionMode 
+        actions: _isSelectionMode
             ? [
                 IconButton(
                   icon: const Icon(Icons.delete),
@@ -196,29 +202,6 @@ class _ChatPageState extends State<ChatPage> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Text(
-                    'Discussion: ${_discussion?.title ?? 'Loading...'}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Current User: ${_currentUser!.displayName}',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  Text(
-                    'Messages: ${_discussion?.messages.length ?? 0} (Persisted)',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             Expanded(
               child: ListView.builder(
                 itemCount: _discussion?.messages.length ?? 0,
@@ -254,8 +237,8 @@ class _ChatPageState extends State<ChatPage> {
                             color: isSelected
                                 ? Colors.red[200]
                                 : isCurrentUser
-                                    ? Colors.blue[100]
-                                    : Colors.grey[200],
+                                ? Colors.blue[100]
+                                : Colors.grey[200],
                             borderRadius: BorderRadius.circular(12),
                             border: isSelected
                                 ? Border.all(color: Colors.red[400]!, width: 2)
