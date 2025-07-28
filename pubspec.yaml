@@ -5,9 +5,12 @@ version: 1.0.0
 
 environment:
   sdk: ^3.8.1
+  flutter: ">=3.24.0"
 
 # Add regular dependencies here.
 dependencies:
+  flutter:
+    sdk: flutter
   freezed_annotation: ^2.4.4
   isar:
     hosted: https://pub.isar-community.dev
