@@ -26,6 +26,7 @@ class _ChatPageState extends State<ChatPage> {
   bool _isLoading = true;
   bool _isSelectionMode = false;
   final Set<String> _selectedMessages = {};
+  String? _replyToMessageId;
 
   @override
   void initState() {
@@ -72,8 +73,13 @@ class _ChatPageState extends State<ChatPage> {
     final text = _messageController.text.trim();
     if (text.isNotEmpty && _discussion != null && _currentUser != null) {
       setState(() {
-        _discussion!.addMessage(_currentUser!.id, text);
+        _discussion!.addMessage(
+          _currentUser!.id, 
+          text,
+          replyToId: _replyToMessageId,
+        );
         _messageController.clear();
+        _replyToMessageId = null;
       });
     }
   }
@@ -128,16 +134,113 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _replyToMessage(String messageId) {
-    final message = _discussion?.messages.firstWhere((m) => m.id == messageId);
-    if (message != null) {
-      final user = _discussion!.getUser(message.senderId);
-      final replyText =
-          'Replying to ${user?.displayName ?? message.senderId}: ${message.content}';
+    setState(() {
+      _replyToMessageId = messageId;
+    });
+    
+    // Focus the text field for reply
+    FocusScope.of(context).requestFocus(FocusNode());
+  }
 
-      _messageController.text = replyText;
-      _messageController.selection = TextSelection.fromPosition(
-        TextPosition(offset: replyText.length),
+  Widget _buildReplyContext(String replyToId) {
+    try {
+      final replyToMessage = _discussion?.messages.firstWhere(
+        (m) => m.id == replyToId,
       );
+      
+      if (replyToMessage == null) return const SizedBox.shrink();
+    
+      final replyToUser = _discussion!.getUser(replyToMessage.senderId);
+      
+      return Container(
+        margin: const EdgeInsets.only(bottom: 4),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(6),
+          border: Border(left: BorderSide(color: Colors.blue[300]!, width: 3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Replying to ${replyToUser?.displayName ?? replyToMessage.senderId}',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[600],
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              replyToMessage.content,
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildReplyPreview() {
+    try {
+      final replyToMessage = _discussion?.messages.firstWhere(
+        (m) => m.id == _replyToMessageId,
+      );
+      
+      if (replyToMessage == null) return const SizedBox.shrink();
+    
+      final replyToUser = _discussion!.getUser(replyToMessage.senderId);
+    
+      return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.reply, size: 16, color: Colors.blue[600]),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Replying to ${replyToUser?.displayName ?? replyToMessage.senderId}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[600],
+                  ),
+                ),
+                Text(
+                  replyToMessage.content,
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _replyToMessageId = null;
+              });
+            },
+            icon: const Icon(Icons.close, size: 18),
+            tooltip: 'Cancel reply',
+          ),
+        ],
+      ),
+    );
+    } catch (e) {
+      return const SizedBox.shrink();
     }
   }
 
@@ -273,6 +376,9 @@ class _ChatPageState extends State<ChatPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // Show reply context if this message is a reply
+                              if (message.replyToId != null)
+                                _buildReplyContext(message.replyToId!),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -342,35 +448,43 @@ class _ChatPageState extends State<ChatPage> {
                 },
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.grey.shade300)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      decoration: const InputDecoration(
-                        hintText: 'Type a message...',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+            Column(
+              children: [
+                // Reply preview bar
+                if (_replyToMessageId != null) _buildReplyPreview(),
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: Colors.grey.shade300)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          decoration: InputDecoration(
+                            hintText: _replyToMessageId != null 
+                                ? 'Reply to message...' 
+                                : 'Type a message...',
+                            border: const OutlineInputBorder(),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                          onSubmitted: (_) => _sendMessage(),
                         ),
                       ),
-                      onSubmitted: (_) => _sendMessage(),
-                    ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: _sendMessage,
+                        icon: const Icon(Icons.send),
+                        tooltip: 'Send Message',
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: _sendMessage,
-                    icon: const Icon(Icons.send),
-                    tooltip: 'Send Message',
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),

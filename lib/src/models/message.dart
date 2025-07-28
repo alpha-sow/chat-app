@@ -18,6 +18,7 @@ sealed class Message with _$Message {
     @Default(<String, Set<String>>{}) Map<String, Set<String>> reactions,
     @Default(<Message>[]) List<Message> replies,
     Set<String>? readBy,
+    String? replyToId,
   }) = _Message;
 
   factory Message.fromJson(Map<String, dynamic> json) =>
@@ -28,6 +29,7 @@ sealed class Message with _$Message {
     required String senderId,
     required String content,
     MessageType type = MessageType.text,
+    String? replyToId,
   }) {
     return Message(
       id: _generateMessageId(),
@@ -35,6 +37,7 @@ sealed class Message with _$Message {
       content: content,
       type: type,
       timestamp: DateTime.now(),
+      replyToId: replyToId,
     );
   }
 

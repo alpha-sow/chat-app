@@ -133,6 +133,7 @@ class Discussion {
     String senderId,
     String content, {
     MessageType type = MessageType.text,
+    String? replyToId,
   }) {
     if (!_state.participants.contains(senderId)) {
       throw ArgumentError('Sender is not a participant in this discussion');
@@ -142,6 +143,7 @@ class Discussion {
       senderId: senderId,
       content: content,
       type: type,
+      replyToId: replyToId,
     );
 
     _state = _state.copyWith(
