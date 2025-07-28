@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Dart package project called `tchat_app` - a starting point for Dart libraries or applications. The project uses standard Dart package structure and is currently in early development with placeholder implementations.
+This is a Dart package project called `chat_app_package` - a starting point for Dart libraries or applications. The project uses standard Dart package structure and is currently in early development with placeholder implementations.
 
 ## Development Commands
 
@@ -12,9 +12,9 @@ This is a Dart package project called `tchat_app` - a starting point for Dart li
 
 - `dart pub get` - Install dependencies
 - `dart test` - Run all tests  
-- `dart test test/tchat_app_test.dart` - Run specific test file
+- `dart test test/chat_app_test.dart` - Run specific test file
 - `dart analyze` - Run static analysis
-- `dart run example/tchat_app_example.dart` - Run the example
+- `dart run example/chat_app_example.dart` - Run the example
 
 ### Code Generation
 
@@ -31,8 +31,8 @@ This is a Dart package project called `tchat_app` - a starting point for Dart li
 
 ### Package Structure
 
-- `lib/tchat_app.dart` - Main library export file
-- `lib/src/tchat_app_base.dart` - Core implementation classes
+- `lib/chat_app_package.dart` - Main library export file
+- `lib/src/chat_app_base.dart` - Core implementation classes
 - `lib/src/models/` - Data models (currently empty, intended for freezed models)
 - `test/` - Unit tests using the `test` package
 - `example/` - Usage examples

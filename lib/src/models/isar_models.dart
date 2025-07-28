@@ -1,5 +1,5 @@
 import 'package:isar/isar.dart';
-import 'package:tchat_app/src/src.dart';
+import 'package:chat_app_package/src/src.dart';
 
 part 'isar_models.g.dart';
 

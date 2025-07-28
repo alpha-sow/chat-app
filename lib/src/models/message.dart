@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:tchat_app/src/src.dart';
+import 'package:chat_app_package/src/src.dart';
 import 'package:uuid/uuid.dart';
 
 part 'message.g.dart';

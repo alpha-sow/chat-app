@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:isar/isar.dart';
-import 'package:tchat_app/src/src.dart';
+import 'package:chat_app_package/src/src.dart';
 
 class DatabaseService {
   static DatabaseService? _instance;
