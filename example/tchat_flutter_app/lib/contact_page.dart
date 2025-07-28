@@ -30,9 +30,9 @@ class _ContactPageState extends State<ContactPage> {
       // Load available users or create some sample users
       _users = await DatabaseService.instance.getAllUsers();
 
-      if (_users.isEmpty) {
+      if (_users.length <= 1) {
         // Create realistic sample users if none exist
-        _users = List.generate(10, (index) {
+        final usersGenerated = List.generate(10, (index) {
           final id = (index + 1).toString();
           final isOnline = faker.randomGenerator.boolean();
           return User(
@@ -41,7 +41,11 @@ class _ContactPageState extends State<ContactPage> {
             email: faker.internet.email(),
             isOnline: isOnline,
             status: isOnline ? 'Available' : 'Away',
-            avatarUrl: faker.image.loremPicsum(width: 100, height: 100),
+            avatarUrl: faker.image.loremPicsum(
+              width: 100,
+              height: 100,
+              seed: '$index',
+            ),
             lastSeen: isOnline
                 ? null
                 : faker.date.dateTime(minYear: 2024, maxYear: 2025),
@@ -49,9 +53,10 @@ class _ContactPageState extends State<ContactPage> {
         });
 
         // Save sample users to database
-        for (final user in _users) {
+        for (final user in usersGenerated) {
           await DatabaseService.instance.saveUser(user);
         }
+        _users.addAll(usersGenerated);
       }
     } catch (e) {
       logger.e('Error loading data', error: e);
@@ -111,7 +116,7 @@ class _ContactPageState extends State<ContactPage> {
         title: const Text('Contacts'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadUsers),
         ],
       ),
       body: _isLoading

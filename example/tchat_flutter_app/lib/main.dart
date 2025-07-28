@@ -23,7 +23,7 @@ void main() async {
 
   // Create and save current user
   final currentUser = User.create(name: 'You', email: 'you@example.com');
-
+  await DatabaseService.instance.saveUser(currentUser);
   logger.i(
     'Created current user: ${currentUser.displayName} (${currentUser.id})',
   );
