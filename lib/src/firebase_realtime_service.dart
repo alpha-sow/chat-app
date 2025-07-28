@@ -124,12 +124,12 @@ class FirebaseRealtimeService {
     });
   }
 
-  // Batch operations
+  /// Batch operations
   Future<void> batch(Map<String, dynamic> updates) async {
     await _database.ref().update(updates);
   }
 
-  // Check connection status
+  /// Check connection status
   Stream<bool> get connectionState {
     return _database
         .ref('.info/connected')
@@ -139,7 +139,10 @@ class FirebaseRealtimeService {
         );
   }
 
-  // Go offline/online
+  /// Go offline/online
   void goOffline() => _database.goOffline();
+  
+  /// Go online
   void goOnline() => _database.goOnline();
 }
+
