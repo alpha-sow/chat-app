@@ -22,7 +22,11 @@ void main() async {
   await DatabaseService.instance.clearAllData();
 
   // Create and save current user
-  final currentUser = User.create(name: 'You', email: 'you@example.com');
+  final currentUser = User.create(
+    name: 'You',
+    email: 'you@example.com',
+    avatarUrl: faker.image.loremPicsum(width: 100, height: 100),
+  );
   await DatabaseService.instance.saveUser(currentUser);
   logger.i(
     'Created current user: ${currentUser.displayName} (${currentUser.id})',

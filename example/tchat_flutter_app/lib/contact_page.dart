@@ -460,14 +460,19 @@ class _TempChatPageState extends State<_TempChatPage> {
                             backgroundColor: Theme.of(
                               context,
                             ).colorScheme.primary,
-                            child: Text(
-                              widget.otherUser.initials,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            backgroundImage: widget.otherUser.avatarUrl != null
+                                ? NetworkImage(widget.otherUser.avatarUrl!)
+                                : null,
+                            child: widget.otherUser.avatarUrl == null
+                                ? Text(
+                                    widget.otherUser.initials,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                : null,
                           ),
                           const SizedBox(height: 16),
                           Text(

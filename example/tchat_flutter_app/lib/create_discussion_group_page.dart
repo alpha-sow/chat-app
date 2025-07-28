@@ -347,15 +347,20 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
                         backgroundColor: isCurrentUser
                             ? Colors.green[100]
                             : Colors.blue[100],
-                        child: Text(
-                          user.initials,
-                          style: TextStyle(
-                            color: isCurrentUser
-                                ? Colors.green[800]
-                                : Colors.blue[800],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        backgroundImage: user.avatarUrl != null
+                            ? NetworkImage(user.avatarUrl!)
+                            : null,
+                        child: user.avatarUrl == null
+                            ? Text(
+                                user.initials,
+                                style: TextStyle(
+                                  color: isCurrentUser
+                                      ? Colors.green[800]
+                                      : Colors.blue[800],
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : null,
                       ),
                     ),
                   );
