@@ -37,6 +37,31 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
     super.dispose();
   }
 
+  String _generateRandomGroupName() {
+    final adjectives = [
+      faker.lorem.word(),
+      faker.color.commonColor(),
+      faker.animal.name(),
+    ];
+    final nouns = [
+      'Squad',
+      'Team',
+      'Group',
+      'Circle',
+      'Crew',
+      'Gang',
+      'Club',
+      'Alliance',
+      'Collective',
+      'Network',
+    ];
+    
+    final adjective = adjectives[faker.randomGenerator.integer(adjectives.length)];
+    final noun = nouns[faker.randomGenerator.integer(nouns.length)];
+    
+    return '${adjective.substring(0, 1).toUpperCase()}${adjective.substring(1)} $noun';
+  }
+
   String _generateDefaultTitle(Set<User> users) {
     if (users.isEmpty) return '';
 
@@ -69,9 +94,9 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
 
   void _updateTitle() {
     if (!_isCustomTitle && _selectedUsers.isNotEmpty) {
-      final defaultTitle = _generateDefaultTitle(_selectedUsers);
+      final defaultTitle = _generateRandomGroupName();
       _titleController.text = defaultTitle;
-      logger.d('Generated default title: $defaultTitle');
+      logger.d('Generated random group title: $defaultTitle');
     }
   }
 
@@ -135,39 +160,62 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                labelText: 'Discussion Title',
-                border: const OutlineInputBorder(),
-                hintText: _selectedUsers.isEmpty
-                    ? 'Enter a title for your discussion'
-                    : 'Auto-generated from participants',
-                suffixIcon: _isCustomTitle
-                    ? IconButton(
-                        icon: const Icon(Icons.refresh),
-                        onPressed: () {
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Discussion Title',
+                      border: const OutlineInputBorder(),
+                      hintText: _selectedUsers.isEmpty
+                          ? 'Enter a title for your discussion'
+                          : 'Auto-generated from participants',
+                      suffixIcon: _isCustomTitle
+                          ? IconButton(
+                              icon: const Icon(Icons.refresh),
+                              onPressed: () {
+                                setState(() {
+                                  _isCustomTitle = false;
+                                  _updateTitle();
+                                });
+                              },
+                              tooltip: 'Reset to auto-generated title',
+                            )
+                          : null,
+                    ),
+                    onChanged: (value) {
+                      // Mark as custom title if user manually types
+                      if (!_isCustomTitle) {
+                        final expectedTitle = _generateDefaultTitle(_selectedUsers);
+                        if (value != expectedTitle && value.isNotEmpty) {
                           setState(() {
-                            _isCustomTitle = false;
-                            _updateTitle();
+                            _isCustomTitle = true;
                           });
-                        },
-                        tooltip: 'Reset to auto-generated title',
-                      )
-                    : null,
-              ),
-              onChanged: (value) {
-                // Mark as custom title if user manually types
-                if (!_isCustomTitle) {
-                  final expectedTitle = _generateDefaultTitle(_selectedUsers);
-                  if (value != expectedTitle && value.isNotEmpty) {
+                          logger.d('User created custom title: $value');
+                        }
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.casino),
+                  onPressed: () {
+                    final randomName = _generateRandomGroupName();
                     setState(() {
+                      _titleController.text = randomName;
                       _isCustomTitle = true;
                     });
-                    logger.d('User created custom title: $value');
-                  }
-                }
-              },
+                    logger.d('Generated random group name: $randomName');
+                  },
+                  tooltip: 'Generate random group name',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.purple[50],
+                    foregroundColor: Colors.purple[700],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             if (_selectedUsers.isNotEmpty)
