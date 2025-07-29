@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:chat_app_package/src/src.dart';
 
 /// Service class for managing discussions with real-time messaging capabilities.
-/// 
+///
 /// This class provides functionality for creating, managing, and interacting with
-/// discussions including message handling, participant management, and data 
-/// persistence. It supports both local database storage and remote 
+/// discussions including message handling, participant management, and data
+/// persistence. It supports both local database storage and remote
 /// synchronization through SyncService.
 class DiscussionService {
   /// Creates a new discussion service with the specified parameters.
-  /// 
+  ///
   /// [title] The title of the discussion.
   /// [id] Optional discussion ID. If not provided, a UUID will be generated.
   /// [participants] List of participant IDs. Can be empty initially.
@@ -32,7 +32,7 @@ class DiscussionService {
   }
 
   /// Creates a discussion service with User objects instead of just IDs.
-  /// 
+  ///
   /// This is useful when you have full User objects and want to cache them
   /// in the discussion for efficient display.
   factory DiscussionService.withUsers({
@@ -65,7 +65,7 @@ class DiscussionService {
   }
 
   /// Creates a discussion service from a JSON representation.
-  /// 
+  ///
   /// Used for deserializing discussions from storage or network.
   factory DiscussionService.fromJson(
     Map<String, dynamic> json, {
@@ -78,7 +78,7 @@ class DiscussionService {
   }
 
   /// Creates a discussion service from an existing Discussion state.
-  /// 
+  ///
   /// Useful for wrapping existing discussion data with service capabilities.
   factory DiscussionService.fromState(
     Discussion state, {
@@ -118,7 +118,7 @@ class DiscussionService {
   _participantStreamController;
 
   /// Loads a discussion service from the database by ID.
-  /// 
+  ///
   /// Returns null if the discussion is not found. Automatically loads
   /// associated users from the database.
   static Future<DiscussionService?> loadFromDatabase(
@@ -179,16 +179,16 @@ class DiscussionService {
   List<User> get userList => _users.values.toList();
 
   /// Gets a cached User object by ID.
-  /// 
+  ///
   /// [userId] The ID of the user to retrieve.
-  /// 
+  ///
   /// Returns the User object if cached, null otherwise.
   User? getUser(String userId) => _users[userId];
 
   /// Gets the display name for a user.
-  /// 
+  ///
   /// [userId] The ID of the user.
-  /// 
+  ///
   /// Returns the user's display name if cached, otherwise a fallback.
   String getUserDisplayName(String userId) {
     final user = _users[userId];
@@ -196,12 +196,12 @@ class DiscussionService {
   }
 
   /// Adds a new message to the discussion.
-  /// 
+  ///
   /// [senderId] ID of the user sending the message.
   /// [content] The message content.
   /// [type] Type of message (text, image, etc.). Defaults to text.
   /// [replyToId] Optional ID of message being replied to.
-  /// 
+  ///
   /// Throws [ArgumentError] if sender is not a participant.
   Message addMessage(
     String senderId,
@@ -238,11 +238,11 @@ class DiscussionService {
   }
 
   /// Edits an existing message in the discussion.
-  /// 
+  ///
   /// [messageId] ID of the message to edit.
   /// [newContent] New content for the message.
   /// [editorId] ID of the user making the edit.
-  /// 
+  ///
   /// Throws [ArgumentError] if message not found or editor is not the sender.
   Message editMessage(String messageId, String newContent, String editorId) {
     final messageIndex = _state.messages.indexWhere(
@@ -266,7 +266,17 @@ class DiscussionService {
     final updatedMessages = [..._state.messages];
     updatedMessages[messageIndex] = editedMessage;
 
-    _state = _state.copyWith(messages: updatedMessages);
+    _state = _state.copyWith(
+      messages: updatedMessages,
+      lastActivity: DateTime.now(),
+    );
+
+    /// Persist to database if enabled
+    if (_persistToDatabase && _syncService != null) {
+      _syncService!.updateMessage(editedMessage, _state.id);
+      _syncService!.saveDiscussion(_state);
+    }
+
     _messageStreamController.add(
       MapEntry(DiscussionEvent.messageEdited, editedMessage),
     );
@@ -275,10 +285,10 @@ class DiscussionService {
   }
 
   /// Deletes a message from the discussion.
-  /// 
+  ///
   /// [messageId] ID of the message to delete.
   /// [deleterId] ID of the user requesting deletion.
-  /// 
+  ///
   /// Throws [ArgumentError] if message not found or deleter is not the sender.
   Message deleteMessage(String messageId, String deleterId) {
     final messageIndex = _state.messages.indexWhere(
@@ -296,7 +306,10 @@ class DiscussionService {
     final updatedMessages = [..._state.messages];
     final deletedMessage = updatedMessages.removeAt(messageIndex);
 
-    _state = _state.copyWith(messages: updatedMessages);
+    _state = _state.copyWith(
+      messages: updatedMessages,
+      lastActivity: DateTime.now(),
+    );
 
     /// Persist deletion to database if enabled
     if (_persistToDatabase && _syncService != null) {
@@ -312,11 +325,11 @@ class DiscussionService {
   }
 
   /// Adds an emoji reaction to a message.
-  /// 
+  ///
   /// [messageId] ID of the message to react to.
   /// [userId] ID of the user adding the reaction.
   /// [emoji] The emoji to add as a reaction.
-  /// 
+  ///
   /// Throws [ArgumentError] if message not found or user not a participant.
   void addReaction(String messageId, String userId, String emoji) {
     final messageIndex = _state.messages.indexWhere(
@@ -340,7 +353,16 @@ class DiscussionService {
     final updatedMessages = [..._state.messages];
     updatedMessages[messageIndex] = updatedMessage;
 
-    _state = _state.copyWith(messages: updatedMessages);
+    _state = _state.copyWith(
+      messages: updatedMessages,
+      lastActivity: DateTime.now(),
+    );
+
+    /// Persist to database if enabled
+    if (_persistToDatabase && _syncService != null) {
+      _syncService!.updateMessage(updatedMessage, _state.id);
+      _syncService!.saveDiscussion(_state);
+    }
 
     _messageStreamController.add(
       MapEntry(DiscussionEvent.reactionAdded, {
@@ -352,7 +374,7 @@ class DiscussionService {
   }
 
   /// Removes an emoji reaction from a message.
-  /// 
+  ///
   /// [messageId] ID of the message to remove reaction from.
   /// [userId] ID of the user removing the reaction.
   /// [emoji] The emoji reaction to remove.
@@ -380,7 +402,16 @@ class DiscussionService {
     final updatedMessages = [..._state.messages];
     updatedMessages[messageIndex] = updatedMessage;
 
-    _state = _state.copyWith(messages: updatedMessages);
+    _state = _state.copyWith(
+      messages: updatedMessages,
+      lastActivity: DateTime.now(),
+    );
+
+    /// Persist to database if enabled
+    if (_persistToDatabase && _syncService != null) {
+      _syncService!.updateMessage(updatedMessage, _state.id);
+      _syncService!.saveDiscussion(_state);
+    }
 
     _messageStreamController.add(
       MapEntry(DiscussionEvent.reactionRemoved, {
@@ -392,9 +423,9 @@ class DiscussionService {
   }
 
   /// Adds a participant to the discussion.
-  /// 
+  ///
   /// [userId] ID of the user to add as a participant.
-  /// 
+  ///
   /// Returns true if the user was added, false if already a participant.
   bool addParticipant(String userId) {
     if (_state.participants.contains(userId)) {
@@ -414,9 +445,9 @@ class DiscussionService {
   }
 
   /// Removes a participant from the discussion.
-  /// 
+  ///
   /// [userId] ID of the user to remove from participants.
-  /// 
+  ///
   /// Returns true if the user was removed, false if not a participant.
   bool removeParticipant(String userId) {
     if (!_state.participants.contains(userId)) {
@@ -436,25 +467,25 @@ class DiscussionService {
   }
 
   /// Checks if a user is a participant in the discussion.
-  /// 
+  ///
   /// [userId] ID of the user to check.
-  /// 
+  ///
   /// Returns true if the user is a participant.
   bool isParticipant(String userId) {
     return _state.participants.contains(userId);
   }
 
   /// Gets a list of all participant IDs in the discussion.
-  /// 
+  ///
   /// Returns a list of participant user IDs.
   List<String> getParticipants() {
     return _state.participants.toList();
   }
 
   /// Adds a user as a participant with full user information cached.
-  /// 
+  ///
   /// [user] The User object to add as a participant.
-  /// 
+  ///
   /// Returns true if the user was added, false if already a participant.
   bool addUser(User user) {
     final added = addParticipant(user.id);
@@ -470,9 +501,9 @@ class DiscussionService {
   }
 
   /// Removes a user from the discussion and clears cached user data.
-  /// 
+  ///
   /// [userId] ID of the user to remove.
-  /// 
+  ///
   /// Returns true if the user was removed, false if not a participant.
   bool removeUser(String userId) {
     final removed = removeParticipant(userId);
@@ -485,7 +516,7 @@ class DiscussionService {
   }
 
   /// Updates cached information for a user in the discussion.
-  /// 
+  ///
   /// [user] Updated User object with new information.
   void updateUser(User user) {
     if (_state.participants.contains(user.id)) {
@@ -499,28 +530,28 @@ class DiscussionService {
   }
 
   /// Gets a list of currently online users in the discussion.
-  /// 
+  ///
   /// Returns a list of User objects for participants who are online.
   List<User> getActiveUsers() {
     return _users.values.where((user) => user.isOnline).toList();
   }
 
   /// Gets all users in the discussion regardless of online status.
-  /// 
+  ///
   /// Returns a list of all cached User objects for participants.
   List<User> getUsersInDiscussion() {
     return _users.values.toList();
   }
 
   /// Gets the count of currently online users in the discussion.
-  /// 
+  ///
   /// Returns the number of participants who are currently online.
   int getOnlineUserCount() {
     return _users.values.where((user) => user.isOnline).length;
   }
 
   /// Loads user information from database for all participants.
-  /// 
+  ///
   /// This method fetches and caches User objects for all participants
   /// in the discussion from the database.
   Future<void> loadUsersFromDatabase() async {
@@ -535,10 +566,10 @@ class DiscussionService {
   }
 
   /// Retrieves messages from the discussion with pagination.
-  /// 
+  ///
   /// [limit] Maximum number of messages to return (default: 50).
   /// [offset] Number of messages to skip from the beginning (default: 0).
-  /// 
+  ///
   /// Returns a list of Message objects.
   List<Message> getMessages({int limit = 50, int offset = 0}) {
     final startIndex = offset.clamp(0, _state.messages.length);
@@ -547,9 +578,9 @@ class DiscussionService {
   }
 
   /// Gets all messages sent after a specific timestamp.
-  /// 
+  ///
   /// [timestamp] The cutoff time - only messages after this will be returned.
-  /// 
+  ///
   /// Returns a list of Message objects sent after the timestamp.
   List<Message> getMessagesSince(DateTime timestamp) {
     return _state.messages
@@ -558,10 +589,10 @@ class DiscussionService {
   }
 
   /// Gets messages from a specific user with optional limit.
-  /// 
+  ///
   /// [userId] ID of the user whose messages to retrieve.
   /// [limit] Maximum number of messages to return (default: 20).
-  /// 
+  ///
   /// Returns a list of Message objects from the specified user.
   List<Message> getMessagesFromUser(String userId, {int limit = 20}) {
     return _state.messages
@@ -575,10 +606,10 @@ class DiscussionService {
   }
 
   /// Searches for messages containing specific text.
-  /// 
+  ///
   /// [query] The text to search for in message content.
   /// [limit] Maximum number of results to return (default: 20).
-  /// 
+  ///
   /// Returns a list of Message objects containing the search query.
   List<Message> searchMessages(String query, {int limit = 20}) {
     final lowerQuery = query.toLowerCase();
@@ -597,7 +628,7 @@ class DiscussionService {
   }
 
   /// Marks messages as read by a user up to a specific message.
-  /// 
+  ///
   /// [userId] ID of the user marking messages as read.
   /// [messageId] Optional specific message ID. If not provided, marks
   /// all messages as read.
@@ -624,10 +655,10 @@ class DiscussionService {
   }
 
   /// Gets the count of unread messages for a user.
-  /// 
+  ///
   /// [userId] ID of the user to check unread count for.
   /// [lastReadTimestamp] Timestamp of when user last read messages.
-  /// 
+  ///
   /// Returns the number of unread messages for the user.
   int getUnreadCount(String userId, DateTime lastReadTimestamp) {
     if (!_state.participants.contains(userId)) {
@@ -677,7 +708,7 @@ class DiscussionService {
   }
 
   /// Updates the discussion title.
-  /// 
+  ///
   /// [newTitle] The new title for the discussion.
   void updateTitle(String newTitle) {
     _state = _state.copyWith(title: newTitle);
@@ -699,7 +730,7 @@ class DiscussionService {
   }
 
   /// Watches all discussions for real-time updates.
-  /// 
+  ///
   /// Returns a stream that emits the current list of discussions
   /// whenever they change.
   static Stream<List<Discussion>> watchAllDiscussions() {
@@ -708,7 +739,7 @@ class DiscussionService {
   }
 
   /// Deletes a discussion from the database permanently.
-  /// 
+  ///
   /// [discussionId] The ID of the discussion to delete.
   static Future<void> deleteFromDatabase(String discussionId) async {
     final syncService = SyncService.instance;
@@ -716,7 +747,7 @@ class DiscussionService {
   }
 
   /// Disposes of the discussion service and closes streams.
-  /// 
+  ///
   /// Call this when the discussion service is no longer needed
   /// to prevent memory leaks.
   void dispose() {
