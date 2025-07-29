@@ -1,17 +1,18 @@
+import 'package:chat_flutter_app/chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 
 import 'utils/utils.dart';
 
 class CreateDiscussionGroupPage extends StatefulWidget {
-  final List<User> availableUsers;
-  final User currentUser;
-
   const CreateDiscussionGroupPage({
     super.key,
     required this.availableUsers,
     required this.currentUser,
   });
+
+  final List<User> availableUsers;
+  final User currentUser;
 
   @override
   State<CreateDiscussionGroupPage> createState() =>
@@ -20,6 +21,7 @@ class CreateDiscussionGroupPage extends StatefulWidget {
 
 class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
   final _titleController = TextEditingController();
+  User? _currentUser;
   final Set<User> _selectedUsers = {};
   bool _isCustomTitle = false;
 
@@ -27,7 +29,8 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
   void initState() {
     super.initState();
     // Automatically include current user
-    _selectedUsers.add(widget.currentUser);
+    _currentUser = widget.currentUser;
+    _selectedUsers.add(_currentUser!);
     _updateTitle();
   }
 
@@ -102,12 +105,13 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
   }
 
   void _createDiscussion() {
+    final title = _titleController.text.trim();
     // Auto-generate title if empty and users are selected
-    if (_titleController.text.trim().isEmpty && _selectedUsers.isNotEmpty) {
+    if (title.isEmpty && _selectedUsers.isNotEmpty) {
       _updateTitle();
     }
 
-    if (_titleController.text.trim().isEmpty) {
+    if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -130,10 +134,40 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
     logger.i(
       'Creating discussion: ${_titleController.text.trim()} (${_isCustomTitle ? "custom" : "auto-generated"})',
     );
-    Navigator.of(context).pop({
-      'title': _titleController.text.trim(),
-      'users': _selectedUsers.toList(),
-    });
+
+    // Create new discussion
+    logger.i(
+      'Creating new discussion: $title with ${_selectedUsers.toList().length} users',
+    );
+    final discussion = DiscussionService.withUsers(
+      title: title,
+      users: _selectedUsers.toList(),
+      persistToDatabase: true,
+    );
+
+    // Add welcome message with variety
+
+    final welcomeMessages = [
+      'Welcome to $title! 👋',
+      'Hello everyone! 🎉 Welcome to $title',
+      'Great to have you all here in $title! ✨',
+      'Welcome to our new discussion: $title 🚀',
+      'Hey team! Welcome to $title 💬',
+      '${faker.lorem.sentence()} Welcome to $title!',
+    ];
+
+    final welcomeMessage = faker.randomGenerator.element(welcomeMessages);
+    logger.d('Added welcome message to discussion: ${discussion.id}');
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => ChatPage(
+          discussionId: discussion.id,
+          currentUserId: _currentUser!.id,
+          initialMessage: welcomeMessage,
+        ),
+      ),
+    );
   }
 
   @override
