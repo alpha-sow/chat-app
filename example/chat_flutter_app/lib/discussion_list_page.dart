@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 
 import 'chat_page.dart';
-import 'contact_page.dart';
+import 'discussion_new_page.dart';
 import 'connectivity_handler.dart';
 import 'utils/utils.dart';
 
@@ -117,12 +117,12 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         actions: [
           // Sync status indicator
           IconButton(
-            icon: const Icon(Icons.contacts),
+            icon: const Icon(Icons.add_circle),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) =>
-                      ContactPage(currentUser: widget.currentUser),
+                      DiscussionNewPage(currentUser: widget.currentUser),
                 ),
               );
             },

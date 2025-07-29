@@ -6,16 +6,16 @@ import 'package:chat_app_package/chat_app_package.dart';
 
 import 'utils/utils.dart';
 
-class ContactPage extends StatefulWidget {
-  const ContactPage({required this.currentUser, super.key});
+class DiscussionNewPage extends StatefulWidget {
+  const DiscussionNewPage({required this.currentUser, super.key});
 
   final User currentUser;
 
   @override
-  State<ContactPage> createState() => _ContactPageState();
+  State<DiscussionNewPage> createState() => _DiscussionNewPageState();
 }
 
-class _ContactPageState extends State<ContactPage> {
+class _DiscussionNewPageState extends State<DiscussionNewPage> {
   List<User> _users = [];
   bool _isLoading = true;
   User? _currentUser;
@@ -41,14 +41,85 @@ class _ContactPageState extends State<ContactPage> {
 
   Future<void> _addContact() async {
     final result = await Navigator.of(context).push<User>(
-      MaterialPageRoute(
-        builder: (context) => const ContactAddPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const ContactAddPage()),
     );
 
     if (result != null) {
       // Refresh the contacts list
       _loadUsers();
+    }
+  }
+
+  Future<bool?> _showDeleteContactConfirmation(String contactName) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Contact'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Are you sure you want to delete "$contactName"?'),
+              const SizedBox(height: 8),
+              const Text(
+                'This will permanently remove the contact from your list.',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteContact(User user) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    try {
+      logger.w('Deleting contact: ${user.displayName} (${user.id})');
+      await SyncService.instance.deleteUser(user.id);
+
+      // Remove from local list and refresh UI
+      setState(() {
+        _users.removeWhere((u) => u.id == user.id);
+      });
+
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text('Contact "${user.displayName}" deleted'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      logger.e('Error deleting contact', error: e);
+      // Refresh the list to restore the item if deletion failed
+      _loadUsers();
+
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete contact: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -98,7 +169,7 @@ class _ContactPageState extends State<ContactPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contacts'),
+        title: const Text('New Discussion'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
@@ -132,29 +203,42 @@ class _ContactPageState extends State<ContactPage> {
   Widget _buildUserTile(User user) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        leading: _buildAvatar(user),
-        title: Text(
-          user.displayName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+      child: Dismissible(
+        key: Key(user.id),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20),
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(Icons.delete, color: Colors.white, size: 32),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (user.email != null && user.email!.isNotEmpty) Text(user.email!),
-            if (user.status.isNotEmpty)
-              Text(
-                user.status,
-                style: TextStyle(
-                  color: _getStatusColor(user),
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-          ],
+        confirmDismiss: (direction) async {
+          return await _showDeleteContactConfirmation(user.displayName);
+        },
+        onDismissed: (direction) async {
+          await _deleteContact(user);
+        },
+        child: ListTile(
+          leading: _buildAvatar(user),
+          title: Text(
+            user.displayName,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (user.email != null && user.email!.isNotEmpty)
+                Text(user.email!),
+              if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty)
+                Text(user.phoneNumber!),
+            ],
+          ),
+          onTap: () => _starChatWithUser(user),
+          onLongPress: () => _showUserDetails(user),
         ),
-        trailing: _buildOnlineIndicator(user),
-        onTap: () => _starChatWithUser(user),
-        onLongPress: () => _showUserDetails(user),
       ),
     );
   }
@@ -175,32 +259,6 @@ class _ContactPageState extends State<ContactPage> {
             )
           : null,
     );
-  }
-
-  Widget _buildOnlineIndicator(User user) {
-    return Container(
-      width: 12,
-      height: 12,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: user.isOnline ? Colors.green : Colors.grey,
-      ),
-    );
-  }
-
-  Color _getStatusColor(User user) {
-    if (!user.isOnline) return Colors.grey;
-
-    switch (user.status.toLowerCase()) {
-      case 'busy':
-        return Colors.red;
-      case 'available':
-        return Colors.green;
-      case 'away':
-        return Colors.orange;
-      default:
-        return Colors.blue;
-    }
   }
 
   void _showUserDetails(User user) {
