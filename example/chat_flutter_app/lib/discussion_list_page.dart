@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 
@@ -16,40 +18,23 @@ class DiscussionListPage extends StatefulWidget {
 }
 
 class _DiscussionListPageState extends State<DiscussionListPage> {
-  List<DiscussionState> _discussions = [];
-  bool _isLoading = true;
-  SyncStatus _syncStatus = const SyncStatus(
-    isOnline: false,
-    pendingOperations: 0,
-    syncInProgress: false,
-  );
-
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _initSync();
   }
 
-  Future<void> _loadData() async {
-    try {
-      // Load existing discussions from local database
-      _discussions = await Discussion.getAllDiscussionsFromDatabase();
-      
-      // Trigger sync to get latest data from remote
-      await SyncService.instance.syncAll();
-      
-      // Reload after sync
-      _discussions = await Discussion.getAllDiscussionsFromDatabase();
-      
-      // Update sync status
-      _syncStatus = SyncService.instance.syncStatus;
-    } catch (e) {
-      logger.e('Error loading data', error: e);
-    }
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
-    setState(() {
-      _isLoading = false;
-    });
+  Future<void> _initSync() async {
+    try {
+      await SyncService.instance.syncAll();
+    } catch (e) {
+      logger.e('Error during initial sync', error: e);
+    }
   }
 
   Future<void> _deleteDiscussion(DiscussionState discussion) async {
@@ -70,9 +55,6 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
             ),
           );
         }
-
-        // Refresh the list
-        await _loadData();
       } catch (e) {
         logger.e('Error deleting discussion', error: e);
         if (mounted) {
@@ -127,30 +109,12 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('chat App'),
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        ),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Discussions'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           // Sync status indicator
-          IconButton(
-            icon: Icon(
-              _syncStatus.isOnline ? Icons.cloud_done : Icons.cloud_off,
-              color: _syncStatus.isOnline ? Colors.green : Colors.red,
-            ),
-            onPressed: () => _showSyncStatus(),
-            tooltip: _syncStatus.isOnline ? 'Online' : 'Offline',
-          ),
           IconButton(
             icon: const Icon(Icons.contacts),
             onPressed: () {
@@ -163,15 +127,46 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
             },
             tooltip: 'Contacts',
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
-            tooltip: 'Refresh',
-          ),
         ],
       ),
-      body: _discussions.isEmpty
-          ? Center(
+      body: StreamBuilder<List<DiscussionState>>(
+        stream: Discussion.watchAllDiscussions(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error loading discussions',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    snapshot.error.toString(),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => SyncService.instance.syncAll(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final discussions = snapshot.data ?? [];
+
+          if (discussions.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -211,170 +206,116 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                   ),
                 ],
               ),
-            )
-          : ListView.builder(
-              itemCount: _discussions.length,
-              itemBuilder: (context, index) {
-                final discussion = _discussions[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  child: Dismissible(
-                    key: Key(discussion.id),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.delete,
-                        color: Colors.white,
-                        size: 32,
-                      ),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: discussions.length,
+            itemBuilder: (context, index) {
+              final discussion = discussions[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Dismissible(
+                  key: Key(discussion.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    confirmDismiss: (direction) async {
-                      return await _showDeleteDiscussionConfirmation(
-                        discussion.title,
+                    child: const Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                  confirmDismiss: (direction) async {
+                    return await _showDeleteDiscussionConfirmation(
+                      discussion.title,
+                    );
+                  },
+                  onDismissed: (direction) async {
+                    try {
+                      logger.w(
+                        'Deleting discussion: ${discussion.title} (${discussion.id})',
                       );
-                    },
-                    onDismissed: (direction) async {
-                      try {
-                        logger.w(
-                          'Deleting discussion: ${discussion.title} (${discussion.id})',
-                        );
-                        await SyncService.instance.deleteDiscussion(discussion.id);
+                      await SyncService.instance.deleteDiscussion(
+                        discussion.id,
+                      );
 
-                        // Show success message
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Discussion "${discussion.title}" deleted',
-                              ),
-                              backgroundColor: Colors.green,
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Discussion "${discussion.title}" deleted',
                             ),
-                          );
-                        }
-
-                        // Refresh the list
-                        await _loadData();
-                      } catch (e) {
-                        logger.e('Error deleting discussion', error: e);
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Failed to delete discussion: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      }
-                    },
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.blue[100],
-                        child: Text(
-                          discussion.title[0].toUpperCase(),
-                          style: TextStyle(
-                            color: Colors.blue[800],
-                            fontWeight: FontWeight.bold,
+                            backgroundColor: Colors.green,
                           ),
+                        );
+                      }
+                    } catch (e) {
+                      logger.e('Error deleting discussion', error: e);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to delete discussion: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue[100],
+                      child: Text(
+                        discussion.title[0].toUpperCase(),
+                        style: TextStyle(
+                          color: Colors.blue[800],
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      title: Text(discussion.title),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('${discussion.participantCount} participants'),
-                          Text(
-                            '${discussion.messageCount} messages',
-                            style: TextStyle(
-                              color: Colors.green[600],
-                              fontSize: 12,
+                    ),
+                    title: Text(discussion.title),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${discussion.participantCount} participants'),
+                        Text(
+                          '${discussion.messageCount} messages',
+                          style: TextStyle(
+                            color: Colors.green[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.grey[400],
+                    ),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => ConnectionStatusWidget(
+                            child: ChatPage(
+                              discussionId: discussion.id,
+                              currentUserId: widget.currentUser.id,
                             ),
                           ),
-                        ],
-                      ),
-                      trailing: Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.grey[400],
-                      ),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => ConnectionStatusWidget(
-                              child: ChatPage(
-                                discussionId: discussion.id,
-                                currentUserId: widget.currentUser.id,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      onLongPress: () => _deleteDiscussion(discussion),
-                    ),
+                        ),
+                      );
+                    },
+                    onLongPress: () => _deleteDiscussion(discussion),
                   ),
-                );
-              },
-            ),
-    );
-  }
-
-  void _showSyncStatus() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Sync Status'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    _syncStatus.isOnline ? Icons.cloud_done : Icons.cloud_off,
-                    color: _syncStatus.isOnline ? Colors.green : Colors.red,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _syncStatus.isOnline ? 'Online' : 'Offline',
-                    style: TextStyle(
-                      color: _syncStatus.isOnline ? Colors.green : Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text('Pending operations: ${_syncStatus.pendingOperations}'),
-              const SizedBox(height: 4),
-              Text(
-                'Sync in progress: ${_syncStatus.syncInProgress ? "Yes" : "No"}',
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-            if (!_syncStatus.isOnline)
-              TextButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  await _loadData();
-                },
-                child: const Text('Retry Sync'),
-              ),
-          ],
-        );
-      },
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

@@ -680,6 +680,10 @@ class SyncService {
     return _localDb.getAllDiscussions();
   }
 
+  Stream<List<DiscussionState>> watchAllDiscussions() {
+    return _localDb.watchAllDiscussions();
+  }
+
   /// Get sync status
   SyncStatus get syncStatus => SyncStatus(
     isOnline: _isOnline,

@@ -2,38 +2,12 @@ import 'dart:async';
 
 import 'package:chat_app_package/src/src.dart';
 
+/// Discussion
 class Discussion {
-  DiscussionState _state;
-  final bool _persistToDatabase;
-  SyncService? _syncService;
-  final Map<String, User> _users = {};
-
-  /// Stream controllers for real-time events
-  final StreamController<MapEntry<DiscussionEvent, dynamic>>
-  _messageStreamController;
-  final StreamController<MapEntry<ParticipantEvent, String>>
-  _participantStreamController;
-
-  Discussion._({
-    required DiscussionState initialState,
-    bool persistToDatabase = false,
-  }) : _state = initialState,
-       _persistToDatabase = persistToDatabase,
-       _syncService = persistToDatabase ? SyncService.instance : null,
-       _messageStreamController =
-           StreamController<MapEntry<DiscussionEvent, dynamic>>.broadcast(),
-       _participantStreamController =
-           StreamController<MapEntry<ParticipantEvent, String>>.broadcast() {
-    /// Save initial state to database if persistence is enabled
-    if (_persistToDatabase && _syncService != null) {
-      _syncService!.saveDiscussion(_state);
-    }
-  }
-
   /// Factory constructors
   factory Discussion({
-    String? id,
     required String title,
+    String? id,
     List<String>? participants,
     bool persistToDatabase = false,
   }) {
@@ -47,30 +21,10 @@ class Discussion {
     );
   }
 
-  factory Discussion.fromState(
-    DiscussionState state, {
-    bool persistToDatabase = false,
-  }) {
-    return Discussion._(
-      initialState: state,
-      persistToDatabase: persistToDatabase,
-    );
-  }
-
-  factory Discussion.fromJson(
-    Map<String, dynamic> json, {
-    bool persistToDatabase = false,
-  }) {
-    return Discussion._(
-      initialState: DiscussionState.fromJson(json),
-      persistToDatabase: persistToDatabase,
-    );
-  }
-
   /// Factory constructor with User objects
   factory Discussion.withUsers({
-    String? id,
     required String title,
+    String? id,
     List<User>? users,
     bool persistToDatabase = false,
   }) {
@@ -97,11 +51,59 @@ class Discussion {
     return discussion;
   }
 
+  /// from Json
+  factory Discussion.fromJson(
+    Map<String, dynamic> json, {
+    bool persistToDatabase = false,
+  }) {
+    return Discussion._(
+      initialState: DiscussionState.fromJson(json),
+      persistToDatabase: persistToDatabase,
+    );
+  }
+
+  /// from state
+  factory Discussion.fromState(
+    DiscussionState state, {
+    bool persistToDatabase = false,
+  }) {
+    return Discussion._(
+      initialState: state,
+      persistToDatabase: persistToDatabase,
+    );
+  }
+
+  /// Internal Constructor
+  Discussion._({
+    required DiscussionState initialState,
+    bool persistToDatabase = false,
+  }) : _state = initialState,
+       _persistToDatabase = persistToDatabase,
+       _syncService = persistToDatabase ? SyncService.instance : null,
+       _messageStreamController =
+           StreamController<MapEntry<DiscussionEvent, dynamic>>.broadcast(),
+       _participantStreamController =
+           StreamController<MapEntry<ParticipantEvent, String>>.broadcast() {
+    /// Save initial state to database if persistence is enabled
+    if (_persistToDatabase && _syncService != null) {
+      _syncService!.saveDiscussion(_state);
+    }
+  }
+  DiscussionState _state;
+  final bool _persistToDatabase;
+  SyncService? _syncService;
+  final Map<String, User> _users = {};
+
+  /// Stream controllers for real-time events
+  final StreamController<MapEntry<DiscussionEvent, dynamic>>
+  _messageStreamController;
+  final StreamController<MapEntry<ParticipantEvent, String>>
+  _participantStreamController;
+
   /// Factory constructor to load from database
   static Future<Discussion?> loadFromDatabase(String discussionId) async {
     final syncService = SyncService.instance;
-    final discussionState = 
-        await syncService.getDiscussion(discussionId);
+    final discussionState = await syncService.getDiscussion(discussionId);
 
     if (discussionState == null) return null;
 
@@ -116,27 +118,48 @@ class Discussion {
     return discussion;
   }
 
-  /// Getters
+  /// state
   DiscussionState get state => _state;
+
+  /// id
   String get id => _state.id;
+
+  /// title
   String get title => _state.title;
+
+  /// participants
   Set<String> get participants => _state.participants;
+
+  /// message
   List<Message> get messages => _state.messages;
+
+  /// created at
   DateTime get createdAt => _state.createdAt;
+
+  /// last activity
   DateTime get lastActivity => _state.lastActivity;
+
+  /// Is active
   bool get isActive => _state.isActive;
 
+  /// Message Watcher
   Stream<MapEntry<DiscussionEvent, dynamic>> get messageStream =>
       _messageStreamController.stream;
+
+  /// Participant Watcher
   Stream<MapEntry<ParticipantEvent, String>> get participantStream =>
       _participantStreamController.stream;
 
   /// User management getters
   Map<String, User> get users => Map.unmodifiable(_users);
+
+  /// User List
   List<User> get userList => _users.values.toList();
 
+  /// User
   User? getUser(String userId) => _users[userId];
 
+  /// Display Name
   String getUserDisplayName(String userId) {
     final user = _users[userId];
     return user?.displayName ?? 'User $userId';
@@ -535,12 +558,13 @@ class Discussion {
     }
   }
 
-  /// Static database utility methods
-  static Future<List<DiscussionState>> getAllDiscussionsFromDatabase() async {
+  /// Static Watch discussion state
+  static Stream<List<DiscussionState>> watchAllDiscussions() {
     final syncService = SyncService.instance;
-    return syncService.getAllDiscussions();
+    return syncService.watchAllDiscussions();
   }
 
+  /// Static delete from data
   static Future<void> deleteFromDatabase(String discussionId) async {
     final syncService = SyncService.instance;
     await syncService.deleteDiscussion(discussionId);

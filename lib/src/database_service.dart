@@ -59,6 +59,7 @@ class DatabaseService {
     return discussionState.copyWith(messages: messages);
   }
 
+  /// Get All Discussions
   Future<List<DiscussionState>> getAllDiscussions() async {
     final isarDiscussions = await isar.isarDiscussions.where().findAll();
     final discussions = <DiscussionState>[];

@@ -1,19 +1,20 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:chat_app_package/src/src.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 part 'discussion_state.freezed.dart';
 part 'discussion_state.g.dart';
 
+/// Discussion Model
 @freezed
 sealed class DiscussionState with _$DiscussionState {
   const factory DiscussionState({
     required String id,
     required String title,
     required Set<String> participants,
-    @Default([]) List<Message> messages,
     required DateTime createdAt,
     required DateTime lastActivity,
+    @Default([]) List<Message> messages,
     @Default(true) bool isActive,
   }) = _DiscussionState;
 
@@ -32,26 +33,27 @@ sealed class DiscussionState with _$DiscussionState {
       id: id,
       title: title,
       participants: Set<String>.from(participants ?? []),
-      messages: const <Message>[],
       createdAt: now,
       lastActivity: now,
     );
   }
 
-  // Helper method to generate discussion ID
+  /// Helper method to generate discussion ID
   static String generateId() {
     const uuid = Uuid();
     return uuid.v4();
   }
 
-  // Computed properties for lightweight info access
+  /// Computed properties for lightweight info access
   int get participantCount => participants.length;
+
+  /// Message count
   int get messageCount => messages.length;
 
-  // Get the last message if available
+  /// Get the last message if available
   Message? get lastMessage => messages.isNotEmpty ? messages.last : null;
 
-  // Get summary info without creating a separate class
+  /// Get summary info without creating a separate class
   Map<String, dynamic> get summaryInfo => {
     'id': id,
     'title': title,
@@ -63,7 +65,7 @@ sealed class DiscussionState with _$DiscussionState {
     'lastMessage': lastMessage?.content,
   };
 
-  // Check if user has unread messages
+  /// Check if user has unread messages
   bool hasUnreadMessages(String userId, DateTime lastReadTimestamp) {
     return messages.any(
       (msg) =>
@@ -71,7 +73,7 @@ sealed class DiscussionState with _$DiscussionState {
     );
   }
 
-  // Get preview text for UI lists
+  /// Get preview text for UI lists
   String get previewText {
     if (messages.isEmpty) return 'No messages yet';
     final lastMsg = messages.last;
