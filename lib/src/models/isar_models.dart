@@ -1,41 +1,41 @@
-import 'package:isar/isar.dart';
 import 'package:chat_app_package/src/src.dart';
+import 'package:isar/isar.dart';
 
 part 'isar_models.g.dart';
 
 @collection
 class IsarMessage {
   Id id = Isar.autoIncrement;
-  
+
   @Index()
   String? messageId;
-  
+
   @Index()
   String? discussionId;
-  
+
   @Index()
   String? senderId;
-  
+
   String? content;
-  
+
   @Enumerated(EnumType.name)
   MessageType type = MessageType.text;
-  
+
   @Index()
   DateTime? timestamp;
-  
+
   bool edited = false;
   DateTime? editedAt;
-  
+
   // Store reactions as JSON string since Isar doesn't support nested maps
   String? reactionsJson;
-  
+
   // Store reply message IDs as list
   List<String> replyIds = [];
-  
+
   // Store read by user IDs
   List<String> readByIds = [];
-  
+
   // Convert from Message model
   static IsarMessage fromMessage(Message message, String discussionId) {
     return IsarMessage()
@@ -51,7 +51,7 @@ class IsarMessage {
       ..replyIds = message.replies.map((r) => r.id).toList()
       ..readByIds = message.readBy?.toList() ?? [];
   }
-  
+
   // Convert to Message model
   Message toMessage() {
     return Message(
@@ -67,14 +67,16 @@ class IsarMessage {
       readBy: readByIds.isNotEmpty ? readByIds.toSet() : null,
     );
   }
-  
+
   static String? _encodeReactions(Map<String, Set<String>> reactions) {
     if (reactions.isEmpty) return null;
     // Convert Set<String> to List<String> for JSON serialization
-    final jsonMap = reactions.map((key, value) => MapEntry(key, value.toList()));
+    final jsonMap = reactions.map(
+      (key, value) => MapEntry(key, value.toList()),
+    );
     return jsonMap.toString(); // Simple string encoding for now
   }
-  
+
   static Map<String, Set<String>> _decodeReactions(String? reactionsJson) {
     if (reactionsJson == null || reactionsJson.isEmpty) return {};
     // This is a simplified decoder - in production you'd use proper JSON
@@ -85,27 +87,27 @@ class IsarMessage {
 @collection
 class IsarDiscussion {
   Id id = Isar.autoIncrement;
-  
+
   @Index(unique: true)
   String? discussionId;
-  
+
   String? title;
-  
+
   List<String> participantIds = [];
-  
+
   @Index()
   DateTime? createdAt;
-  
+
   @Index()
   DateTime? lastActivity;
-  
+
   bool isActive = true;
-  
+
   // Metadata as JSON string
   String? metadataJson;
-  
-  // Convert from DiscussionState
-  static IsarDiscussion fromDiscussionState(DiscussionState state) {
+
+  // Convert from Discussion
+  static IsarDiscussion fromDiscussion(Discussion state) {
     return IsarDiscussion()
       ..discussionId = state.id
       ..title = state.title
@@ -114,10 +116,10 @@ class IsarDiscussion {
       ..lastActivity = state.lastActivity
       ..isActive = state.isActive;
   }
-  
-  // Convert to DiscussionState (without messages, those are loaded separately)
-  DiscussionState toDiscussionState() {
-    return DiscussionState(
+
+  // Convert to Discussion (without messages, those are loaded separately)
+  Discussion toDiscussion() {
+    return Discussion(
       id: discussionId!,
       title: title!,
       participants: participantIds.toSet(),
@@ -132,23 +134,23 @@ class IsarDiscussion {
 @collection
 class IsarUser {
   Id id = Isar.autoIncrement;
-  
+
   @Index(unique: true)
   String? userId;
-  
+
   String? name;
   String? email;
   String? avatarUrl;
-  
+
   bool isOnline = true;
   String status = '';
-  
+
   @Index()
   DateTime? lastSeen;
-  
+
   // Metadata as JSON string
   String? metadataJson;
-  
+
   // Convert from User model
   static IsarUser fromUser(User user) {
     return IsarUser()
@@ -160,7 +162,7 @@ class IsarUser {
       ..status = user.status
       ..lastSeen = user.lastSeen;
   }
-  
+
   // Convert to User model
   User toUser() {
     return User(

@@ -2,13 +2,13 @@ import 'package:chat_app_package/src/src.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-part 'discussion_state.freezed.dart';
-part 'discussion_state.g.dart';
+part 'discussion.freezed.dart';
+part 'discussion.g.dart';
 
 /// Discussion Model
 @freezed
-sealed class DiscussionState with _$DiscussionState {
-  const factory DiscussionState({
+sealed class Discussion with _$Discussion {
+  const factory Discussion({
     required String id,
     required String title,
     required Set<String> participants,
@@ -16,20 +16,20 @@ sealed class DiscussionState with _$DiscussionState {
     required DateTime lastActivity,
     @Default([]) List<Message> messages,
     @Default(true) bool isActive,
-  }) = _DiscussionState;
+  }) = _Discussion;
 
-  const DiscussionState._();
+  const Discussion._();
 
-  factory DiscussionState.fromJson(Map<String, dynamic> json) =>
-      _$DiscussionStateFromJson(json);
+  factory Discussion.fromJson(Map<String, dynamic> json) =>
+      _$DiscussionFromJson(json);
 
-  factory DiscussionState.initial({
+  factory Discussion.initial({
     required String id,
     required String title,
     List<String>? participants,
   }) {
     final now = DateTime.now();
-    return DiscussionState(
+    return Discussion(
       id: id,
       title: title,
       participants: Set<String>.from(participants ?? []),

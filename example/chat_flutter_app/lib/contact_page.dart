@@ -88,7 +88,7 @@ class _ContactPageState extends State<ContactPage> {
       logger.i(
         'Creating new discussion: $title with ${selectedUsers.length} users',
       );
-      final discussion = Discussion.withUsers(
+      final discussion = DiscussionService.withUsers(
         title: title,
         users: selectedUsers,
         persistToDatabase: true,
@@ -257,7 +257,7 @@ class _ContactPageState extends State<ContactPage> {
     // Get current user (using first available user as current user for now)
 
     // Create a temporary discussion that won't be persisted until first message
-    final tempDiscussion = Discussion.withUsers(
+    final tempDiscussion = DiscussionService.withUsers(
       title: user.displayName,
       users: [_currentUser!, user],
       persistToDatabase: false, // Don't persist yet

@@ -5,7 +5,7 @@ import 'package:chat_app_package/chat_app_package.dart';
 import 'utils/utils.dart';
 
 class TempChatPage extends StatefulWidget {
-  final Discussion discussion;
+  final DiscussionService discussion;
   final User currentUser;
   final User otherUser;
 
@@ -21,7 +21,7 @@ class TempChatPage extends StatefulWidget {
 }
 
 class _TempChatPageState extends State<TempChatPage> {
-  late Discussion _discussion;
+  late DiscussionService _discussion;
   final TextEditingController _messageController = TextEditingController();
   User? _currentUser;
   User? _otherUser;
@@ -46,7 +46,7 @@ class _TempChatPageState extends State<TempChatPage> {
     if (text.isEmpty) return;
 
     // Persist the discussion to database without adding the message yet
-    final discussion = Discussion.withUsers(
+    final discussion = DiscussionService.withUsers(
       id: _discussion.id,
       title: _discussion.title,
       users: [_currentUser!, _otherUser!],

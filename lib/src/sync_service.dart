@@ -153,7 +153,7 @@ class SyncService {
 
       // Get remote discussions
       final remoteDiscussionsData = await _firebase.get('discussions');
-      final remoteDiscussions = <DiscussionState>[];
+      final remoteDiscussions = <Discussion>[];
 
       if (remoteDiscussionsData != null) {
         for (final entry in remoteDiscussionsData.entries) {
@@ -162,7 +162,7 @@ class SyncService {
               entry.value as Map,
             );
             discussionData['id'] = entry.key;
-            remoteDiscussions.add(DiscussionState.fromJson(discussionData));
+            remoteDiscussions.add(Discussion.fromJson(discussionData));
           } on Exception catch (e) {
             logger.e('Error parsing remote discussion ${entry.key}: $e');
           }
@@ -342,7 +342,7 @@ class SyncService {
   }
 
   /// Save discussion locally and sync to remote
-  Future<void> saveDiscussion(DiscussionState discussion) async {
+  Future<void> saveDiscussion(Discussion discussion) async {
     await _localDb.saveDiscussion(discussion);
 
     if (_isOnline) {
@@ -539,7 +539,7 @@ class SyncService {
       try {
         final discussionData = Map<String, dynamic>.from(entry.value as Map);
         discussionData['id'] = entry.key;
-        final remoteDiscussion = DiscussionState.fromJson(discussionData);
+        final remoteDiscussion = Discussion.fromJson(discussionData);
 
         final localDiscussion = await _localDb.getDiscussion(
           remoteDiscussion.id,
@@ -671,16 +671,16 @@ class SyncService {
   }
 
   /// Get a discussion from local database
-  Future<DiscussionState?> getDiscussion(String discussionId) async {
+  Future<Discussion?> getDiscussion(String discussionId) async {
     return _localDb.getDiscussion(discussionId);
   }
 
   /// Get all discussions from local database
-  Future<List<DiscussionState>> getAllDiscussions() async {
+  Future<List<Discussion>> getAllDiscussions() async {
     return _localDb.getAllDiscussions();
   }
 
-  Stream<List<DiscussionState>> watchAllDiscussions() {
+  Stream<List<Discussion>> watchAllDiscussions() {
     return _localDb.watchAllDiscussions();
   }
 

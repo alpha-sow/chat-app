@@ -20,7 +20,7 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  Discussion? _discussion;
+  DiscussionService? _discussion;
   final TextEditingController _messageController = TextEditingController();
   User? _currentUser;
   bool _isLoading = true;
@@ -47,7 +47,9 @@ class _ChatPageState extends State<ChatPage> {
       );
 
       // Load the discussion
-      _discussion = await Discussion.loadFromDatabase(widget.discussionId);
+      _discussion = await DiscussionService.loadFromDatabase(
+        widget.discussionId,
+      );
 
       // Add initial message if provided
       if (widget.initialMessage != null &&

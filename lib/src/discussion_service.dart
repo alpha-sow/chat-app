@@ -3,17 +3,17 @@ import 'dart:async';
 import 'package:chat_app_package/src/src.dart';
 
 /// Discussion
-class Discussion {
+class DiscussionService {
   /// Factory constructors
-  factory Discussion({
+  factory DiscussionService({
     required String title,
     String? id,
     List<String>? participants,
     bool persistToDatabase = false,
   }) {
-    return Discussion._(
-      initialState: DiscussionState.initial(
-        id: id ?? DiscussionState.generateId(),
+    return DiscussionService._(
+      initialState: Discussion.initial(
+        id: id ?? Discussion.generateId(),
         title: title,
         participants: participants,
       ),
@@ -22,15 +22,15 @@ class Discussion {
   }
 
   /// Factory constructor with User objects
-  factory Discussion.withUsers({
+  factory DiscussionService.withUsers({
     required String title,
     String? id,
     List<User>? users,
     bool persistToDatabase = false,
   }) {
-    final discussion = Discussion._(
-      initialState: DiscussionState.initial(
-        id: id ?? DiscussionState.generateId(),
+    final discussion = DiscussionService._(
+      initialState: Discussion.initial(
+        id: id ?? Discussion.generateId(),
         title: title,
         participants: users?.map((u) => u.id).toList(),
       ),
@@ -52,30 +52,30 @@ class Discussion {
   }
 
   /// from Json
-  factory Discussion.fromJson(
+  factory DiscussionService.fromJson(
     Map<String, dynamic> json, {
     bool persistToDatabase = false,
   }) {
-    return Discussion._(
-      initialState: DiscussionState.fromJson(json),
+    return DiscussionService._(
+      initialState: Discussion.fromJson(json),
       persistToDatabase: persistToDatabase,
     );
   }
 
   /// from state
-  factory Discussion.fromState(
-    DiscussionState state, {
+  factory DiscussionService.fromState(
+    Discussion state, {
     bool persistToDatabase = false,
   }) {
-    return Discussion._(
+    return DiscussionService._(
       initialState: state,
       persistToDatabase: persistToDatabase,
     );
   }
 
   /// Internal Constructor
-  Discussion._({
-    required DiscussionState initialState,
+  DiscussionService._({
+    required Discussion initialState,
     bool persistToDatabase = false,
   }) : _state = initialState,
        _persistToDatabase = persistToDatabase,
@@ -89,7 +89,7 @@ class Discussion {
       _syncService!.saveDiscussion(_state);
     }
   }
-  DiscussionState _state;
+  Discussion _state;
   final bool _persistToDatabase;
   SyncService? _syncService;
   final Map<String, User> _users = {};
@@ -101,13 +101,15 @@ class Discussion {
   _participantStreamController;
 
   /// Factory constructor to load from database
-  static Future<Discussion?> loadFromDatabase(String discussionId) async {
+  static Future<DiscussionService?> loadFromDatabase(
+    String discussionId,
+  ) async {
     final syncService = SyncService.instance;
     final discussionState = await syncService.getDiscussion(discussionId);
 
     if (discussionState == null) return null;
 
-    final discussion = Discussion._(
+    final discussion = DiscussionService._(
       initialState: discussionState,
       persistToDatabase: true,
     );
@@ -119,7 +121,7 @@ class Discussion {
   }
 
   /// state
-  DiscussionState get state => _state;
+  Discussion get state => _state;
 
   /// id
   String get id => _state.id;
@@ -559,7 +561,7 @@ class Discussion {
   }
 
   /// Static Watch discussion state
-  static Stream<List<DiscussionState>> watchAllDiscussions() {
+  static Stream<List<Discussion>> watchAllDiscussions() {
     final syncService = SyncService.instance;
     return syncService.watchAllDiscussions();
   }

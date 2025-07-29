@@ -37,7 +37,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
     }
   }
 
-  Future<void> _deleteDiscussion(DiscussionState discussion) async {
+  Future<void> _deleteDiscussion(Discussion discussion) async {
     final shouldDelete = await _showDeleteDiscussionConfirmation(
       discussion.title,
     );
@@ -129,8 +129,8 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
           ),
         ],
       ),
-      body: StreamBuilder<List<DiscussionState>>(
-        stream: Discussion.watchAllDiscussions(),
+      body: StreamBuilder<List<Discussion>>(
+        stream: DiscussionService.watchAllDiscussions(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

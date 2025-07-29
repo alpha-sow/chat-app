@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'package:isar/isar.dart';
+
 import 'package:chat_app_package/src/src.dart';
+import 'package:isar/isar.dart';
 
 class DatabaseService {
   static DatabaseService? _instance;
@@ -36,15 +37,15 @@ class DatabaseService {
   }
 
   // Discussion operations
-  Future<void> saveDiscussion(DiscussionState discussionState) async {
-    final isarDiscussion = IsarDiscussion.fromDiscussionState(discussionState);
+  Future<void> saveDiscussion(Discussion Discussion) async {
+    final isarDiscussion = IsarDiscussion.fromDiscussion(Discussion);
 
     await isar.writeTxn(() async {
       await isar.isarDiscussions.put(isarDiscussion);
     });
   }
 
-  Future<DiscussionState?> getDiscussion(String discussionId) async {
+  Future<Discussion?> getDiscussion(String discussionId) async {
     final isarDiscussion = await isar.isarDiscussions
         .filter()
         .discussionIdEqualTo(discussionId)
@@ -54,22 +55,22 @@ class DatabaseService {
 
     // Load messages for this discussion
     final messages = await getMessagesForDiscussion(discussionId);
-    final discussionState = isarDiscussion.toDiscussionState();
+    final Discussion = isarDiscussion.toDiscussion();
 
-    return discussionState.copyWith(messages: messages);
+    return Discussion.copyWith(messages: messages);
   }
 
   /// Get All Discussions
-  Future<List<DiscussionState>> getAllDiscussions() async {
+  Future<List<Discussion>> getAllDiscussions() async {
     final isarDiscussions = await isar.isarDiscussions.where().findAll();
-    final discussions = <DiscussionState>[];
+    final discussions = <Discussion>[];
 
     for (final isarDiscussion in isarDiscussions) {
       final messages = await getMessagesForDiscussion(
         isarDiscussion.discussionId!,
       );
-      final discussionState = isarDiscussion.toDiscussionState();
-      discussions.add(discussionState.copyWith(messages: messages));
+      final Discussion = isarDiscussion.toDiscussion();
+      discussions.add(Discussion.copyWith(messages: messages));
     }
 
     return discussions;
@@ -200,17 +201,17 @@ class DatabaseService {
         );
   }
 
-  Stream<List<DiscussionState>> watchAllDiscussions() {
+  Stream<List<Discussion>> watchAllDiscussions() {
     return isar.isarDiscussions.where().watch(fireImmediately: true).asyncMap((
       isarDiscussions,
     ) async {
-      final discussions = <DiscussionState>[];
+      final discussions = <Discussion>[];
       for (final isarDiscussion in isarDiscussions) {
         final messages = await getMessagesForDiscussion(
           isarDiscussion.discussionId!,
         );
-        final discussionState = isarDiscussion.toDiscussionState();
-        discussions.add(discussionState.copyWith(messages: messages));
+        final Discussion = isarDiscussion.toDiscussion();
+        discussions.add(Discussion.copyWith(messages: messages));
       }
       return discussions;
     });

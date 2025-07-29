@@ -1,9 +1,9 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:chat_app_package/src/src.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-part 'message.g.dart';
 part 'message.freezed.dart';
+part 'message.g.dart';
 
 @freezed
 sealed class Message with _$Message {
