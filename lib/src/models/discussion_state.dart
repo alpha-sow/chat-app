@@ -11,7 +11,7 @@ sealed class DiscussionState with _$DiscussionState {
     required String id,
     required String title,
     required Set<String> participants,
-    required List<Message> messages,
+    @Default([]) List<Message> messages,
     required DateTime createdAt,
     required DateTime lastActivity,
     @Default(true) bool isActive,

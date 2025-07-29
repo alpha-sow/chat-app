@@ -3,4 +3,7 @@ export 'database_service.dart';
 export 'discussion.dart';
 export 'firebase_realtime_service.dart';
 export 'models/models.dart';
+export 'sync_operation.dart';
+export 'sync_operation_type.dart';
 export 'sync_service.dart';
+export 'sync_status.dart';

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 
+import 'connectivity_handler.dart';
 import 'discussion_list_page.dart';
 import 'utils/utils.dart';
 
@@ -21,17 +22,27 @@ void main() async {
   logger.i('Initializing database at: ${appDocDir.path}');
   await DatabaseService.initialize(directory: appDocDir.path);
 
-  // Clear all existing data for fresh start (useful for development)
-  logger.w('Clearing all database data for fresh start');
-  await DatabaseService.instance.clearAllData();
+  // Initialize Firebase Realtime Database service
+  final firebaseService = FirebaseRealtimeService();
+
+  // Initialize sync service
+  SyncService.initialize(
+    localDb: DatabaseService.instance,
+    firebase: firebaseService,
+  );
+
+  // Start real-time synchronization
+  SyncService.instance.startRealtimeSync();
+
+  logger.i('Sync service initialized and real-time sync started');
 
   // Create and save current user
   final currentUser = User.create(
+    id: '1991',
     name: 'You',
     email: 'you@example.com',
     avatarUrl: faker.image.loremPicsum(width: 100, height: 100),
   );
-  await DatabaseService.instance.saveUser(currentUser);
   logger.i(
     'Created current user: ${currentUser.displayName} (${currentUser.id})',
   );
@@ -51,7 +62,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: DiscussionListPage(currentUser: currentUser),
+      home: ConnectionStatusWidget(
+        child: DiscussionListPage(currentUser: currentUser),
+      ),
+      builder: (context, child) {
+        // Initialize connectivity handler for the app
+        ConnectivityHandler.instance.initialize(context);
+        return child ?? const SizedBox();
+      },
     );
   }
 }

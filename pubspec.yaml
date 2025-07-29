@@ -21,6 +21,7 @@ dependencies:
     version: ^3.1.8
   json_annotation: ^4.9.0
   uuid: ^4.5.1
+  logger: ^2.6.1
   # path: ^1.8.0
 
 dev_dependencies:

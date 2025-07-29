@@ -31,7 +31,7 @@ class _ContactPageState extends State<ContactPage> {
       // Load available users or create some sample users
       _users = await DatabaseService.instance.getAllUsers();
 
-      if (_users.length <= 1) {
+      if (_users.isEmpty) {
         // Create realistic sample users if none exist
         final usersGenerated = List.generate(10, (index) {
           final id = (index + 1).toString();
@@ -57,6 +57,8 @@ class _ContactPageState extends State<ContactPage> {
         for (final user in usersGenerated) {
           await DatabaseService.instance.saveUser(user);
         }
+        await DatabaseService.instance.saveUser(_currentUser!);
+        _users.add(_currentUser!);
         _users.addAll(usersGenerated);
       }
     } catch (e) {

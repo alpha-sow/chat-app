@@ -27,6 +27,11 @@ class _ChatPageState extends State<ChatPage> {
   bool _isSelectionMode = false;
   final Set<String> _selectedMessages = {};
   String? _replyToMessageId;
+  SyncStatus _syncStatus = const SyncStatus(
+    isOnline: false,
+    pendingOperations: 0,
+    syncInProgress: false,
+  );
 
   @override
   void initState() {
@@ -53,6 +58,9 @@ class _ChatPageState extends State<ChatPage> {
           'Added initial message to discussion: ${widget.initialMessage}',
         );
       }
+
+      // Update sync status
+      _syncStatus = SyncService.instance.syncStatus;
     } catch (e) {
       logger.e('Error loading chat', error: e);
     }
@@ -69,17 +77,18 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isNotEmpty && _discussion != null && _currentUser != null) {
       setState(() {
         _discussion!.addMessage(
-          _currentUser!.id, 
+          _currentUser!.id,
           text,
           replyToId: _replyToMessageId,
         );
         _messageController.clear();
         _replyToMessageId = null;
+        _syncStatus = SyncService.instance.syncStatus;
       });
     }
   }
@@ -137,7 +146,7 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       _replyToMessageId = messageId;
     });
-    
+
     // Focus the text field for reply
     FocusScope.of(context).requestFocus(FocusNode());
   }
@@ -147,11 +156,11 @@ class _ChatPageState extends State<ChatPage> {
       final replyToMessage = _discussion?.messages.firstWhere(
         (m) => m.id == replyToId,
       );
-      
+
       if (replyToMessage == null) return const SizedBox.shrink();
-    
+
       final replyToUser = _discussion!.getUser(replyToMessage.senderId);
-      
+
       return Container(
         margin: const EdgeInsets.only(bottom: 4),
         padding: const EdgeInsets.all(8),
@@ -191,54 +200,54 @@ class _ChatPageState extends State<ChatPage> {
       final replyToMessage = _discussion?.messages.firstWhere(
         (m) => m.id == _replyToMessageId,
       );
-      
+
       if (replyToMessage == null) return const SizedBox.shrink();
-    
+
       final replyToUser = _discussion!.getUser(replyToMessage.senderId);
-    
+
       return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.reply, size: 16, color: Colors.blue[600]),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Replying to ${replyToUser?.displayName ?? replyToMessage.senderId}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue[600],
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.blue[50],
+          border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.reply, size: 16, color: Colors.blue[600]),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Replying to ${replyToUser?.displayName ?? replyToMessage.senderId}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[600],
+                    ),
                   ),
-                ),
-                Text(
-                  replyToMessage.content,
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                  Text(
+                    replyToMessage.content,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _replyToMessageId = null;
-              });
-            },
-            icon: const Icon(Icons.close, size: 18),
-            tooltip: 'Cancel reply',
-          ),
-        ],
-      ),
-    );
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  _replyToMessageId = null;
+                });
+              },
+              icon: const Icon(Icons.close, size: 18),
+              tooltip: 'Cancel reply',
+            ),
+          ],
+        ),
+      );
     } catch (e) {
       return const SizedBox.shrink();
     }
@@ -258,11 +267,18 @@ class _ChatPageState extends State<ChatPage> {
       _selectedMessages.length,
     );
     if (shouldDelete == true && _discussion != null && _currentUser != null) {
+      // Delete from sync service (handles local + remote)
+      for (final messageId in _selectedMessages) {
+        await SyncService.instance.deleteMessage(
+          messageId,
+          widget.discussionId,
+        );
+        _discussion!.deleteMessage(messageId, _currentUser!.id);
+      }
+
       setState(() {
-        for (final messageId in _selectedMessages) {
-          _discussion!.deleteMessage(messageId, _currentUser!.id);
-        }
         _exitSelectionMode();
+        _syncStatus = SyncService.instance.syncStatus;
       });
     }
   }
@@ -326,7 +342,17 @@ class _ChatPageState extends State<ChatPage> {
                   tooltip: 'Delete selected messages',
                 ),
               ]
-            : null,
+            : [
+                // Sync status indicator
+                IconButton(
+                  icon: Icon(
+                    _syncStatus.isOnline ? Icons.cloud_done : Icons.cloud_off,
+                    color: _syncStatus.isOnline ? Colors.green : Colors.red,
+                  ),
+                  onPressed: () => _showChatSyncStatus(),
+                  tooltip: _syncStatus.isOnline ? 'Online' : 'Offline',
+                ),
+              ],
       ),
       body: SafeArea(
         child: Column(
@@ -455,7 +481,9 @@ class _ChatPageState extends State<ChatPage> {
                 Container(
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
-                    border: Border(top: BorderSide(color: Colors.grey.shade300)),
+                    border: Border(
+                      top: BorderSide(color: Colors.grey.shade300),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -463,8 +491,8 @@ class _ChatPageState extends State<ChatPage> {
                         child: TextField(
                           controller: _messageController,
                           decoration: InputDecoration(
-                            hintText: _replyToMessageId != null 
-                                ? 'Reply to message...' 
+                            hintText: _replyToMessageId != null
+                                ? 'Reply to message...'
                                 : 'Type a message...',
                             border: const OutlineInputBorder(),
                             contentPadding: const EdgeInsets.symmetric(
@@ -472,12 +500,12 @@ class _ChatPageState extends State<ChatPage> {
                               vertical: 8,
                             ),
                           ),
-                          onSubmitted: (_) => _sendMessage(),
+                          onSubmitted: (_) async => await _sendMessage(),
                         ),
                       ),
                       const SizedBox(width: 8),
                       IconButton(
-                        onPressed: _sendMessage,
+                        onPressed: () => _sendMessage(),
                         icon: const Icon(Icons.send),
                         tooltip: 'Send Message',
                       ),
@@ -489,6 +517,72 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showChatSyncStatus() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Sync Status'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    _syncStatus.isOnline ? Icons.cloud_done : Icons.cloud_off,
+                    color: _syncStatus.isOnline ? Colors.green : Colors.red,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _syncStatus.isOnline ? 'Online' : 'Offline',
+                    style: TextStyle(
+                      color: _syncStatus.isOnline ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text('Pending operations: ${_syncStatus.pendingOperations}'),
+              const SizedBox(height: 4),
+              Text(
+                'Sync in progress: ${_syncStatus.syncInProgress ? "Yes" : "No"}',
+              ),
+              if (!_syncStatus.isOnline) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'Messages will be synced when connection is restored.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.orange,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+            if (!_syncStatus.isOnline)
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  setState(() {
+                    _syncStatus = SyncService.instance.syncStatus;
+                  });
+                },
+                child: const Text('Refresh'),
+              ),
+          ],
+        );
+      },
     );
   }
 }

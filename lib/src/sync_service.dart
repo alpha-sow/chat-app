@@ -1,12 +1,22 @@
 import 'dart:async';
 import 'package:chat_app_package/src/src.dart';
+import 'package:chat_app_package/src/utils/utils.dart';
 
-/// Service that synchronizes local Isar database with Firebase Realtime Database
+/// Service that synchronizes
+/// local Isar database with Firebase Realtime Database
 class SyncService {
+  SyncService._({
+    required DatabaseService localDb,
+    required FirebaseRealtimeService firebase,
+  }) : _localDb = localDb,
+       _firebase = firebase {
+    _startConnectionMonitoring();
+    _startPeriodicSync();
+  }
   static SyncService? _instance;
   final DatabaseService _localDb;
   final FirebaseRealtimeService _firebase;
-  
+
   // Sync queues for offline operations
   final List<SyncOperation> _pendingSyncOperations = [];
   Timer? _syncTimer;
@@ -14,15 +24,7 @@ class SyncService {
   bool _isOnline = false;
   bool _syncInProgress = false;
 
-  SyncService._({
-    required DatabaseService localDb,
-    required FirebaseRealtimeService firebase,
-  })  : _localDb = localDb,
-        _firebase = firebase {
-    _startConnectionMonitoring();
-    _startPeriodicSync();
-  }
-
+  /// instance of sync service
   static SyncService get instance {
     if (_instance == null) {
       throw StateError(
@@ -65,7 +67,7 @@ class SyncService {
   /// Sync all data (discussions, messages, users) bidirectionally
   Future<void> syncAll() async {
     if (_syncInProgress) return;
-    
+
     _syncInProgress = true;
     try {
       await Future.wait([
@@ -87,15 +89,15 @@ class SyncService {
       // Get remote users
       final remoteUsersData = await _firebase.get('users');
       final remoteUsers = <User>[];
-      
+
       if (remoteUsersData != null) {
         for (final entry in remoteUsersData.entries) {
           try {
             final userData = Map<String, dynamic>.from(entry.value as Map);
             userData['id'] = entry.key;
             remoteUsers.add(User.fromJson(userData));
-          } catch (e) {
-            print('Error parsing remote user ${entry.key}: $e');
+          } on Exception catch (e) {
+            logger.e('Error parsing remote user ${entry.key}: $e');
           }
         }
       }
@@ -105,7 +107,7 @@ class SyncService {
         final remoteUser = remoteUsers
             .where((u) => u.id == localUser.id)
             .firstOrNull;
-        
+
         if (remoteUser == null ||
             ConflictResolver.isLocalUserNewer(localUser, remoteUser)) {
           await _firebase.set('users/${localUser.id}', localUser.toJson());
@@ -117,7 +119,7 @@ class SyncService {
         final localUser = localUsers
             .where((u) => u.id == remoteUser.id)
             .firstOrNull;
-        
+
         if (localUser == null ||
             ConflictResolver.isRemoteUserNewer(remoteUser, localUser)) {
           await _localDb.saveUser(remoteUser);
@@ -133,15 +135,13 @@ class SyncService {
         }
       }
     } on Exception catch (e) {
-      // Use logging framework in production
-      assert(() {
-        print('Error syncing users: $e');
-        return true;
-      }());
-      _queueSyncOperation(SyncOperation(
-        type: SyncOperationType.users,
-        operation: 'sync_all',
-      ));
+      logger.e('Error syncing users: $e');
+      _queueSyncOperation(
+        SyncOperation(
+          type: SyncOperationType.users,
+          operation: 'sync_all',
+        ),
+      );
     }
   }
 
@@ -154,15 +154,17 @@ class SyncService {
       // Get remote discussions
       final remoteDiscussionsData = await _firebase.get('discussions');
       final remoteDiscussions = <DiscussionState>[];
-      
+
       if (remoteDiscussionsData != null) {
         for (final entry in remoteDiscussionsData.entries) {
           try {
-            final discussionData = Map<String, dynamic>.from(entry.value as Map);
+            final discussionData = Map<String, dynamic>.from(
+              entry.value as Map,
+            );
             discussionData['id'] = entry.key;
             remoteDiscussions.add(DiscussionState.fromJson(discussionData));
-          } catch (e) {
-            print('Error parsing remote discussion ${entry.key}: $e');
+          } on Exception catch (e) {
+            logger.e('Error parsing remote discussion ${entry.key}: $e');
           }
         }
       }
@@ -172,7 +174,7 @@ class SyncService {
         final remoteDiscussion = remoteDiscussions
             .where((d) => d.id == localDiscussion.id)
             .firstOrNull;
-        
+
         if (remoteDiscussion == null ||
             ConflictResolver.isLocalDiscussionNewer(
               localDiscussion,
@@ -192,7 +194,7 @@ class SyncService {
         final localDiscussion = localDiscussions
             .where((d) => d.id == remoteDiscussion.id)
             .firstOrNull;
-        
+
         if (localDiscussion == null ||
             ConflictResolver.isRemoteDiscussionNewer(
               remoteDiscussion,
@@ -211,15 +213,13 @@ class SyncService {
         }
       }
     } on Exception catch (e) {
-      // Use logging framework in production
-      assert(() {
-        print('Error syncing discussions: $e');
-        return true;
-      }());
-      _queueSyncOperation(SyncOperation(
-        type: SyncOperationType.discussions,
-        operation: 'sync_all',
-      ));
+      logger.e('Error syncing discussions: $e');
+      _queueSyncOperation(
+        SyncOperation(
+          type: SyncOperationType.discussions,
+          operation: 'sync_all',
+        ),
+      );
     }
   }
 
@@ -227,16 +227,12 @@ class SyncService {
   Future<void> syncMessages() async {
     try {
       final discussions = await _localDb.getAllDiscussions();
-      
+
       for (final discussion in discussions) {
         await _syncMessagesForDiscussion(discussion.id);
       }
     } on Exception catch (e) {
-      // Use logging framework in production
-      assert(() {
-        print('Error syncing messages: $e');
-        return true;
-      }());
+      logger.e('Error syncing messages: $e');
     }
   }
 
@@ -244,20 +240,22 @@ class SyncService {
   Future<void> _syncMessagesForDiscussion(String discussionId) async {
     try {
       // Get local messages
-      final localMessages = await _localDb.getMessagesForDiscussion(discussionId);
+      final localMessages = await _localDb.getMessagesForDiscussion(
+        discussionId,
+      );
 
       // Get remote messages
       final remoteMessagesData = await _firebase.get('messages/$discussionId');
       final remoteMessages = <Message>[];
-      
+
       if (remoteMessagesData != null) {
         for (final entry in remoteMessagesData.entries) {
           try {
             final messageData = Map<String, dynamic>.from(entry.value as Map);
             messageData['id'] = entry.key;
             remoteMessages.add(Message.fromJson(messageData));
-          } catch (e) {
-            print('Error parsing remote message ${entry.key}: $e');
+          } on Exception catch (e) {
+            logger.e('Error parsing remote message ${entry.key}: $e');
           }
         }
       }
@@ -267,7 +265,7 @@ class SyncService {
         final remoteMessage = remoteMessages
             .where((m) => m.id == localMessage.id)
             .firstOrNull;
-        
+
         if (remoteMessage == null ||
             ConflictResolver.isLocalMessageNewer(
               localMessage,
@@ -285,7 +283,7 @@ class SyncService {
         final localMessage = localMessages
             .where((m) => m.id == remoteMessage.id)
             .firstOrNull;
-        
+
         if (localMessage == null ||
             ConflictResolver.isRemoteMessageNewer(
               remoteMessage,
@@ -304,167 +302,191 @@ class SyncService {
         }
       }
     } on Exception catch (e) {
-      // Use logging framework in production
-      assert(() {
-        print('Error syncing messages for discussion $discussionId: $e');
-        return true;
-      }());
-      _queueSyncOperation(SyncOperation(
-        type: SyncOperationType.messages,
-        operation: 'sync_discussion',
-        discussionId: discussionId,
-      ));
+      logger.e('Error syncing messages for discussion $discussionId: $e');
+      _queueSyncOperation(
+        SyncOperation(
+          type: SyncOperationType.messages,
+          operation: 'sync_discussion',
+          discussionId: discussionId,
+        ),
+      );
     }
   }
 
   /// Save user locally and sync to remote
   Future<void> saveUser(User user) async {
     await _localDb.saveUser(user);
-    
+
     if (_isOnline) {
       try {
         await _firebase.set('users/${user.id}', user.toJson());
-      } catch (e) {
-        print('Error syncing user to remote: $e');
-        _queueSyncOperation(SyncOperation(
+      } on Exception catch (e) {
+        logger.e('Error syncing user to remote: $e');
+        _queueSyncOperation(
+          SyncOperation(
+            type: SyncOperationType.users,
+            operation: 'save',
+            data: user.toJson(),
+          ),
+        );
+      }
+    } else {
+      _queueSyncOperation(
+        SyncOperation(
           type: SyncOperationType.users,
           operation: 'save',
           data: user.toJson(),
-        ));
-      }
-    } else {
-      _queueSyncOperation(SyncOperation(
-        type: SyncOperationType.users,
-        operation: 'save',
-        data: user.toJson(),
-      ));
+        ),
+      );
     }
   }
 
   /// Save discussion locally and sync to remote
   Future<void> saveDiscussion(DiscussionState discussion) async {
     await _localDb.saveDiscussion(discussion);
-    
+
     if (_isOnline) {
       try {
-        final discussionJson = discussion.toJson();
-        discussionJson.remove('messages'); // Messages are synced separately
+        final discussionJson = discussion.toJson()..remove('messages');
         await _firebase.set('discussions/${discussion.id}', discussionJson);
-      } catch (e) {
-        print('Error syncing discussion to remote: $e');
-        _queueSyncOperation(SyncOperation(
+      } on Exception catch (e) {
+        logger.e('Error syncing discussion to remote: $e');
+        _queueSyncOperation(
+          SyncOperation(
+            type: SyncOperationType.discussions,
+            operation: 'save',
+            data: discussion.toJson(),
+          ),
+        );
+      }
+    } else {
+      _queueSyncOperation(
+        SyncOperation(
           type: SyncOperationType.discussions,
           operation: 'save',
           data: discussion.toJson(),
-        ));
-      }
-    } else {
-      _queueSyncOperation(SyncOperation(
-        type: SyncOperationType.discussions,
-        operation: 'save',
-        data: discussion.toJson(),
-      ));
+        ),
+      );
     }
   }
 
   /// Save message locally and sync to remote
   Future<void> saveMessage(Message message, String discussionId) async {
     await _localDb.saveMessage(message, discussionId);
-    
+
     if (_isOnline) {
       try {
-        await _firebase.set('messages/$discussionId/${message.id}', message.toJson());
-      } catch (e) {
-        print('Error syncing message to remote: $e');
-        _queueSyncOperation(SyncOperation(
+        await _firebase.set(
+          'messages/$discussionId/${message.id}',
+          message.toJson(),
+        );
+      } on Exception catch (e) {
+        logger.e('Error syncing message to remote: $e');
+        _queueSyncOperation(
+          SyncOperation(
+            type: SyncOperationType.messages,
+            operation: 'save',
+            discussionId: discussionId,
+            data: message.toJson(),
+          ),
+        );
+      }
+    } else {
+      _queueSyncOperation(
+        SyncOperation(
           type: SyncOperationType.messages,
           operation: 'save',
           discussionId: discussionId,
           data: message.toJson(),
-        ));
-      }
-    } else {
-      _queueSyncOperation(SyncOperation(
-        type: SyncOperationType.messages,
-        operation: 'save',
-        discussionId: discussionId,
-        data: message.toJson(),
-      ));
+        ),
+      );
     }
   }
 
   /// Delete user locally and from remote
   Future<void> deleteUser(String userId) async {
     await _localDb.deleteUser(userId);
-    
+
     if (_isOnline) {
       try {
         await _firebase.delete('users/$userId');
-      } catch (e) {
-        print('Error deleting user from remote: $e');
-        _queueSyncOperation(SyncOperation(
+      } on Exception catch (e) {
+        logger.e('Error deleting user from remote: $e');
+        _queueSyncOperation(
+          SyncOperation(
+            type: SyncOperationType.users,
+            operation: 'delete',
+            entityId: userId,
+          ),
+        );
+      }
+    } else {
+      _queueSyncOperation(
+        SyncOperation(
           type: SyncOperationType.users,
           operation: 'delete',
           entityId: userId,
-        ));
-      }
-    } else {
-      _queueSyncOperation(SyncOperation(
-        type: SyncOperationType.users,
-        operation: 'delete',
-        entityId: userId,
-      ));
+        ),
+      );
     }
   }
 
   /// Delete discussion locally and from remote
   Future<void> deleteDiscussion(String discussionId) async {
     await _localDb.deleteDiscussion(discussionId);
-    
+
     if (_isOnline) {
       try {
         await _firebase.delete('discussions/$discussionId');
         await _firebase.delete('messages/$discussionId');
-      } catch (e) {
-        print('Error deleting discussion from remote: $e');
-        _queueSyncOperation(SyncOperation(
+      } on Exception catch (e) {
+        logger.e('Error deleting discussion from remote: $e');
+        _queueSyncOperation(
+          SyncOperation(
+            type: SyncOperationType.discussions,
+            operation: 'delete',
+            entityId: discussionId,
+          ),
+        );
+      }
+    } else {
+      _queueSyncOperation(
+        SyncOperation(
           type: SyncOperationType.discussions,
           operation: 'delete',
           entityId: discussionId,
-        ));
-      }
-    } else {
-      _queueSyncOperation(SyncOperation(
-        type: SyncOperationType.discussions,
-        operation: 'delete',
-        entityId: discussionId,
-      ));
+        ),
+      );
     }
   }
 
   /// Delete message locally and from remote
   Future<void> deleteMessage(String messageId, String discussionId) async {
     await _localDb.deleteMessage(messageId);
-    
+
     if (_isOnline) {
       try {
         await _firebase.delete('messages/$discussionId/$messageId');
-      } catch (e) {
-        print('Error deleting message from remote: $e');
-        _queueSyncOperation(SyncOperation(
+      } on Exception catch (e) {
+        logger.e('Error deleting message from remote: $e');
+        _queueSyncOperation(
+          SyncOperation(
+            type: SyncOperationType.messages,
+            operation: 'delete',
+            entityId: messageId,
+            discussionId: discussionId,
+          ),
+        );
+      }
+    } else {
+      _queueSyncOperation(
+        SyncOperation(
           type: SyncOperationType.messages,
           operation: 'delete',
           entityId: messageId,
           discussionId: discussionId,
-        ));
-      }
-    } else {
-      _queueSyncOperation(SyncOperation(
-        type: SyncOperationType.messages,
-        operation: 'delete',
-        entityId: messageId,
-        discussionId: discussionId,
-      ));
+        ),
+      );
     }
   }
 
@@ -499,14 +521,14 @@ class SyncService {
         final userData = Map<String, dynamic>.from(entry.value as Map);
         userData['id'] = entry.key;
         final remoteUser = User.fromJson(userData);
-        
+
         final localUser = await _localDb.getUser(remoteUser.id);
         if (localUser == null ||
             ConflictResolver.isRemoteUserNewer(remoteUser, localUser)) {
           await _localDb.saveUser(remoteUser);
         }
-      } catch (e) {
-        print('Error handling remote user change: $e');
+      } on Exception catch (e) {
+        logger.e('Error handling remote user change: $e');
       }
     }
   }
@@ -518,7 +540,7 @@ class SyncService {
         final discussionData = Map<String, dynamic>.from(entry.value as Map);
         discussionData['id'] = entry.key;
         final remoteDiscussion = DiscussionState.fromJson(discussionData);
-        
+
         final localDiscussion = await _localDb.getDiscussion(
           remoteDiscussion.id,
         );
@@ -529,8 +551,8 @@ class SyncService {
             )) {
           await _localDb.saveDiscussion(remoteDiscussion);
         }
-      } catch (e) {
-        print('Error handling remote discussion change: $e');
+      } on Exception catch (e) {
+        logger.e('Error handling remote discussion change: $e');
       }
     }
   }
@@ -539,14 +561,18 @@ class SyncService {
   Future<void> _handleRemoteMessageChanges(Map<String, dynamic> data) async {
     for (final discussionEntry in data.entries) {
       final discussionId = discussionEntry.key;
-      final messagesData = Map<String, dynamic>.from(discussionEntry.value as Map);
-      
+      final messagesData = Map<String, dynamic>.from(
+        discussionEntry.value as Map,
+      );
+
       for (final messageEntry in messagesData.entries) {
         try {
-          final messageData = Map<String, dynamic>.from(messageEntry.value as Map);
+          final messageData = Map<String, dynamic>.from(
+            messageEntry.value as Map,
+          );
           messageData['id'] = messageEntry.key;
           final remoteMessage = Message.fromJson(messageData);
-          
+
           final localMessage = await _localDb.getMessage(remoteMessage.id);
           if (localMessage == null ||
               ConflictResolver.isRemoteMessageNewer(
@@ -555,8 +581,8 @@ class SyncService {
               )) {
             await _localDb.saveMessage(remoteMessage, discussionId);
           }
-        } catch (e) {
-          print('Error handling remote message change: $e');
+        } on Exception catch (e) {
+          logger.e('Error handling remote message change: $e');
         }
       }
     }
@@ -575,8 +601,8 @@ class SyncService {
     for (final operation in operations) {
       try {
         await _executeSyncOperation(operation);
-      } catch (e) {
-        print('Error executing sync operation: $e');
+      } on Exception catch (e) {
+        logger.e('Error executing sync operation: $e');
         // Re-queue failed operations
         _pendingSyncOperations.add(operation);
       }
@@ -588,13 +614,10 @@ class SyncService {
     switch (operation.type) {
       case SyncOperationType.users:
         await _executeUserSyncOperation(operation);
-        break;
       case SyncOperationType.discussions:
         await _executeDiscussionSyncOperation(operation);
-        break;
       case SyncOperationType.messages:
         await _executeMessageSyncOperation(operation);
-        break;
     }
   }
 
@@ -603,13 +626,10 @@ class SyncService {
     switch (operation.operation) {
       case 'save':
         await _firebase.set('users/${operation.data!['id']}', operation.data!);
-        break;
       case 'delete':
         await _firebase.delete('users/${operation.entityId}');
-        break;
       case 'sync_all':
         await syncUsers();
-        break;
     }
   }
 
@@ -620,14 +640,11 @@ class SyncService {
         final data = Map<String, dynamic>.from(operation.data!);
         data.remove('messages'); // Messages are synced separately
         await _firebase.set('discussions/${data['id']}', data);
-        break;
       case 'delete':
         await _firebase.delete('discussions/${operation.entityId}');
         await _firebase.delete('messages/${operation.entityId}');
-        break;
       case 'sync_all':
         await syncDiscussions();
-        break;
     }
   }
 
@@ -639,23 +656,36 @@ class SyncService {
           'messages/${operation.discussionId}/${operation.data!['id']}',
           operation.data!,
         );
-        break;
       case 'delete':
-        await _firebase.delete('messages/${operation.discussionId}/${operation.entityId}');
-        break;
+        await _firebase.delete(
+          'messages/${operation.discussionId}/${operation.entityId}',
+        );
       case 'sync_discussion':
         await _syncMessagesForDiscussion(operation.discussionId!);
-        break;
     }
   }
 
+  /// Get a user from local database
+  Future<User?> getUser(String userId) async {
+    return _localDb.getUser(userId);
+  }
+
+  /// Get a discussion from local database
+  Future<DiscussionState?> getDiscussion(String discussionId) async {
+    return _localDb.getDiscussion(discussionId);
+  }
+
+  /// Get all discussions from local database
+  Future<List<DiscussionState>> getAllDiscussions() async {
+    return _localDb.getAllDiscussions();
+  }
 
   /// Get sync status
   SyncStatus get syncStatus => SyncStatus(
-        isOnline: _isOnline,
-        pendingOperations: _pendingSyncOperations.length,
-        syncInProgress: _syncInProgress,
-      );
+    isOnline: _isOnline,
+    pendingOperations: _pendingSyncOperations.length,
+    syncInProgress: _syncInProgress,
+  );
 
   /// Dispose resources
   void dispose() {
@@ -664,43 +694,4 @@ class SyncService {
     _pendingSyncOperations.clear();
     _instance = null;
   }
-}
-
-
-/// Represents a sync operation to be executed
-class SyncOperation {
-  final SyncOperationType type;
-  final String operation;
-  final String? entityId;
-  final String? discussionId;
-  final Map<String, dynamic>? data;
-  final DateTime timestamp;
-
-  SyncOperation({
-    required this.type,
-    required this.operation,
-    this.entityId,
-    this.discussionId,
-    this.data,
-  }) : timestamp = DateTime.now();
-}
-
-/// Types of sync operations
-enum SyncOperationType {
-  users,
-  discussions,
-  messages,
-}
-
-/// Current sync status
-class SyncStatus {
-  final bool isOnline;
-  final int pendingOperations;
-  final bool syncInProgress;
-
-  const SyncStatus({
-    required this.isOnline,
-    required this.pendingOperations,
-    required this.syncInProgress,
-  });
 }

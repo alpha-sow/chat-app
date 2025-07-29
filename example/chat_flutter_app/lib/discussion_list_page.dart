@@ -3,6 +3,7 @@ import 'package:chat_app_package/chat_app_package.dart';
 
 import 'chat_page.dart';
 import 'contact_page.dart';
+import 'connectivity_handler.dart';
 import 'utils/utils.dart';
 
 class DiscussionListPage extends StatefulWidget {
@@ -17,6 +18,11 @@ class DiscussionListPage extends StatefulWidget {
 class _DiscussionListPageState extends State<DiscussionListPage> {
   List<DiscussionState> _discussions = [];
   bool _isLoading = true;
+  SyncStatus _syncStatus = const SyncStatus(
+    isOnline: false,
+    pendingOperations: 0,
+    syncInProgress: false,
+  );
 
   @override
   void initState() {
@@ -26,8 +32,17 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
 
   Future<void> _loadData() async {
     try {
-      // Load existing discussions
+      // Load existing discussions from local database
       _discussions = await Discussion.getAllDiscussionsFromDatabase();
+      
+      // Trigger sync to get latest data from remote
+      await SyncService.instance.syncAll();
+      
+      // Reload after sync
+      _discussions = await Discussion.getAllDiscussionsFromDatabase();
+      
+      // Update sync status
+      _syncStatus = SyncService.instance.syncStatus;
     } catch (e) {
       logger.e('Error loading data', error: e);
     }
@@ -44,7 +59,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
     if (shouldDelete == true) {
       try {
         logger.w('Deleting discussion: ${discussion.title} (${discussion.id})');
-        await Discussion.deleteFromDatabase(discussion.id);
+        await SyncService.instance.deleteDiscussion(discussion.id);
 
         // Show success message
         if (mounted) {
@@ -127,6 +142,15 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         title: const Text('Discussions'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
+          // Sync status indicator
+          IconButton(
+            icon: Icon(
+              _syncStatus.isOnline ? Icons.cloud_done : Icons.cloud_off,
+              color: _syncStatus.isOnline ? Colors.green : Colors.red,
+            ),
+            onPressed: () => _showSyncStatus(),
+            tooltip: _syncStatus.isOnline ? 'Online' : 'Offline',
+          ),
           IconButton(
             icon: const Icon(Icons.contacts),
             onPressed: () {
@@ -223,7 +247,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                         logger.w(
                           'Deleting discussion: ${discussion.title} (${discussion.id})',
                         );
-                        await Discussion.deleteFromDatabase(discussion.id);
+                        await SyncService.instance.deleteDiscussion(discussion.id);
 
                         // Show success message
                         if (mounted) {
@@ -283,9 +307,11 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => ChatPage(
-                              discussionId: discussion.id,
-                              currentUserId: widget.currentUser.id,
+                            builder: (context) => ConnectionStatusWidget(
+                              child: ChatPage(
+                                discussionId: discussion.id,
+                                currentUserId: widget.currentUser.id,
+                              ),
                             ),
                           ),
                         );
@@ -296,6 +322,59 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                 );
               },
             ),
+    );
+  }
+
+  void _showSyncStatus() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Sync Status'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    _syncStatus.isOnline ? Icons.cloud_done : Icons.cloud_off,
+                    color: _syncStatus.isOnline ? Colors.green : Colors.red,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _syncStatus.isOnline ? 'Online' : 'Offline',
+                    style: TextStyle(
+                      color: _syncStatus.isOnline ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text('Pending operations: ${_syncStatus.pendingOperations}'),
+              const SizedBox(height: 4),
+              Text(
+                'Sync in progress: ${_syncStatus.syncInProgress ? "Yes" : "No"}',
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+            if (!_syncStatus.isOnline)
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await _loadData();
+                },
+                child: const Text('Retry Sync'),
+              ),
+          ],
+        );
+      },
     );
   }
 }
