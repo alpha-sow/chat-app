@@ -12,14 +12,17 @@ class SyncService {
   SyncService._({
     required DatabaseService localDb,
     required FirebaseRealtimeService firebase,
+    required String currentUserId,
   }) : _localDb = localDb,
-       _firebase = firebase {
+       _firebase = firebase,
+       _currentUserId = currentUserId {
     _startConnectionMonitoring();
     _startPeriodicSync();
   }
   static SyncService? _instance;
   final DatabaseService _localDb;
   final FirebaseRealtimeService _firebase;
+  final String _currentUserId;
 
   // Sync queues for offline operations
   final List<SyncOperation> _pendingSyncOperations = [];
@@ -47,13 +50,16 @@ class SyncService {
   ///
   /// [localDb] The local Isar database service.
   /// [firebase] The Firebase Realtime Database service.
+  /// [currentUserId] The ID of the current user for scoping data.
   static void initialize({
     required DatabaseService localDb,
     required FirebaseRealtimeService firebase,
+    required String currentUserId,
   }) {
     _instance = SyncService._(
       localDb: localDb,
       firebase: firebase,
+      currentUserId: currentUserId,
     );
   }
 
@@ -107,7 +113,7 @@ class SyncService {
       final localUsers = await _localDb.getAllUsers();
 
       // Get remote users
-      final remoteUsersData = await _firebase.get('users');
+      final remoteUsersData = await _firebase.get('users/$_currentUserId/contacts');
       final remoteUsers = <User>[];
 
       if (remoteUsersData != null) {
@@ -130,7 +136,7 @@ class SyncService {
 
         if (remoteUser == null ||
             ConflictResolver.isLocalUserNewer(localUser, remoteUser)) {
-          await _firebase.set('users/${localUser.id}', localUser.toJson());
+          await _firebase.set('users/$_currentUserId/contacts/${localUser.id}', localUser.toJson());
         }
       }
 
@@ -175,7 +181,7 @@ class SyncService {
       final localDiscussions = await _localDb.getAllDiscussions();
 
       // Get remote discussions
-      final remoteDiscussionsData = await _firebase.get('discussions');
+      final remoteDiscussionsData = await _firebase.get('users/$_currentUserId/discussions');
       final remoteDiscussions = <Discussion>[];
 
       if (remoteDiscussionsData != null) {
@@ -206,7 +212,7 @@ class SyncService {
           final discussionJson = localDiscussion.toJson()
             ..remove('messages'); // Messages are synced separately
           await _firebase.set(
-            'discussions/${localDiscussion.id}',
+            'users/$_currentUserId/discussions/${localDiscussion.id}',
             discussionJson,
           );
         }
@@ -271,7 +277,7 @@ class SyncService {
       );
 
       // Get remote messages
-      final remoteMessagesData = await _firebase.get('messages/$discussionId');
+      final remoteMessagesData = await _firebase.get('users/$_currentUserId/messages/$discussionId');
       final remoteMessages = <Message>[];
 
       if (remoteMessagesData != null) {
@@ -308,7 +314,7 @@ class SyncService {
               remoteMessage,
             )) {
           await _firebase.set(
-            'messages/$discussionId/${localMessage.id}',
+            'users/$_currentUserId/messages/$discussionId/${localMessage.id}',
             localMessage.toJson(),
           );
         }
@@ -360,7 +366,7 @@ class SyncService {
 
     if (_isOnline) {
       try {
-        await _firebase.set('users/${user.id}', user.toJson());
+        await _firebase.set('users/$_currentUserId/contacts/${user.id}', user.toJson());
       } on Exception catch (e) {
         logger.e('Error syncing user to remote: $e');
         _queueSyncOperation(
@@ -394,7 +400,7 @@ class SyncService {
     if (_isOnline) {
       try {
         final discussionJson = discussion.toJson()..remove('messages');
-        await _firebase.set('discussions/${discussion.id}', discussionJson);
+        await _firebase.set('users/$_currentUserId/discussions/${discussion.id}', discussionJson);
       } on Exception catch (e) {
         logger.e('Error syncing discussion to remote: $e');
         _queueSyncOperation(
@@ -426,7 +432,7 @@ class SyncService {
     if (_isOnline) {
       try {
         await _firebase.set(
-          'messages/$discussionId/${message.id}',
+          'users/$_currentUserId/messages/$discussionId/${message.id}',
           message.toJson(),
         );
       } on Exception catch (e) {
@@ -462,7 +468,7 @@ class SyncService {
     if (_isOnline) {
       try {
         await _firebase.set(
-          'messages/$discussionId/${message.id}',
+          'users/$_currentUserId/messages/$discussionId/${message.id}',
           message.toJson(),
         );
       } on Exception catch (e) {
@@ -496,7 +502,7 @@ class SyncService {
 
     if (_isOnline) {
       try {
-        await _firebase.delete('users/$userId');
+        await _firebase.delete('users/$_currentUserId/contacts/$userId');
       } on Exception catch (e) {
         logger.e('Error deleting user from remote: $e');
         _queueSyncOperation(
@@ -529,8 +535,8 @@ class SyncService {
 
     if (_isOnline) {
       try {
-        await _firebase.delete('discussions/$discussionId');
-        await _firebase.delete('messages/$discussionId');
+        await _firebase.delete('users/$_currentUserId/discussions/$discussionId');
+        await _firebase.delete('users/$_currentUserId/messages/$discussionId');
       } on Exception catch (e) {
         logger.e('Error deleting discussion from remote: $e');
         _queueSyncOperation(
@@ -561,7 +567,7 @@ class SyncService {
 
     if (_isOnline) {
       try {
-        await _firebase.delete('messages/$discussionId/$messageId');
+        await _firebase.delete('users/$_currentUserId/messages/$discussionId/$messageId');
       } on Exception catch (e) {
         logger.e('Error deleting message from remote: $e');
         _queueSyncOperation(
@@ -591,21 +597,21 @@ class SyncService {
   /// automatically update local data when remote changes occur.
   void startRealtimeSync() {
     // Listen to user changes
-    _firebase.listen('users').listen((data) {
+    _firebase.listen('users/$_currentUserId/contacts').listen((data) {
       if (data != null) {
         _handleRemoteUserChanges(data);
       }
     });
 
     // Listen to discussion changes
-    _firebase.listen('discussions').listen((data) {
+    _firebase.listen('users/$_currentUserId/discussions').listen((data) {
       if (data != null) {
         _handleRemoteDiscussionChanges(data);
       }
     });
 
     // Listen to message changes
-    _firebase.listen('messages').listen((data) {
+    _firebase.listen('users/$_currentUserId/messages').listen((data) {
       if (data != null) {
         _handleRemoteMessageChanges(data);
       }
@@ -732,9 +738,9 @@ class SyncService {
   Future<void> _executeUserSyncOperation(SyncOperation operation) async {
     switch (operation.operation) {
       case 'save':
-        await _firebase.set('users/${operation.data!['id']}', operation.data!);
+        await _firebase.set('users/$_currentUserId/contacts/${operation.data!['id']}', operation.data!);
       case 'delete':
-        await _firebase.delete('users/${operation.entityId}');
+        await _firebase.delete('users/$_currentUserId/contacts/${operation.entityId}');
       case 'sync_all':
         await syncUsers();
     }
@@ -746,10 +752,10 @@ class SyncService {
       case 'save':
         final data = Map<String, dynamic>.from(operation.data!);
         data.remove('messages'); // Messages are synced separately
-        await _firebase.set('discussions/${data['id']}', data);
+        await _firebase.set('users/$_currentUserId/discussions/${data['id']}', data);
       case 'delete':
-        await _firebase.delete('discussions/${operation.entityId}');
-        await _firebase.delete('messages/${operation.entityId}');
+        await _firebase.delete('users/$_currentUserId/discussions/${operation.entityId}');
+        await _firebase.delete('users/$_currentUserId/messages/${operation.entityId}');
       case 'sync_all':
         await syncDiscussions();
     }
@@ -760,12 +766,12 @@ class SyncService {
     switch (operation.operation) {
       case 'save':
         await _firebase.set(
-          'messages/${operation.discussionId}/${operation.data!['id']}',
+          'users/$_currentUserId/messages/${operation.discussionId}/${operation.data!['id']}',
           operation.data!,
         );
       case 'delete':
         await _firebase.delete(
-          'messages/${operation.discussionId}/${operation.entityId}',
+          'users/$_currentUserId/messages/${operation.discussionId}/${operation.entityId}',
         );
       case 'sync_discussion':
         await _syncMessagesForDiscussion(operation.discussionId!);

@@ -25,17 +25,6 @@ void main() async {
   // Initialize Firebase Realtime Database service
   final firebaseService = FirebaseRealtimeService();
 
-  // Initialize sync service
-  SyncService.initialize(
-    localDb: DatabaseService.instance,
-    firebase: firebaseService,
-  );
-
-  // Start real-time synchronization
-  SyncService.instance.startRealtimeSync();
-
-  logger.i('Sync service initialized and real-time sync started');
-
   // Create and save current user
   final currentUser = User.create(
     id: '1991',
@@ -47,6 +36,16 @@ void main() async {
     'Created current user: ${currentUser.displayName} (${currentUser.id})',
   );
 
+  // Initialize sync service
+  SyncService.initialize(
+    localDb: DatabaseService.instance,
+    firebase: firebaseService,
+    currentUserId: currentUser.id,
+  );
+  // Start real-time synchronization
+  SyncService.instance.startRealtimeSync();
+
+  logger.i('Sync service initialized and real-time sync started');
   runApp(MyApp(currentUser: currentUser));
 }
 
