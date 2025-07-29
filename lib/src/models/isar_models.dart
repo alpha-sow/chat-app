@@ -27,16 +27,14 @@ class IsarMessage {
   bool edited = false;
   DateTime? editedAt;
 
-  // Store reactions as JSON string since Isar doesn't support nested maps
   String? reactionsJson;
 
-  // Store reply message IDs as list
+  String? replyToId;
+
   List<String> replyIds = [];
 
-  // Store read by user IDs
   List<String> readByIds = [];
 
-  // Convert from Message model
   static IsarMessage fromMessage(Message message, String discussionId) {
     return IsarMessage()
       ..messageId = message.id
@@ -48,13 +46,12 @@ class IsarMessage {
       ..edited = message.edited
       ..editedAt = message.editedAt
       ..reactionsJson = _encodeReactions(message.reactions)
+      ..replyToId = message.replyToId
       ..replyIds = message.replies.map((r) => r.id).toList()
       ..readByIds = message.readBy?.toList() ?? [];
   }
 
-  // Convert to Message model
   Message toMessage() {
-    // Validate required fields
     if (messageId == null || messageId!.isEmpty) {
       throw StateError('Message ID cannot be null or empty');
     }
@@ -77,24 +74,25 @@ class IsarMessage {
       edited: edited,
       editedAt: editedAt,
       reactions: _decodeReactions(reactionsJson),
-      replies: [], // Replies would need separate query
+      replyToId: replyToId,
+      replies: [],
       readBy: readByIds.isNotEmpty ? readByIds.toSet() : null,
     );
   }
 
   static String? _encodeReactions(Map<String, Set<String>> reactions) {
     if (reactions.isEmpty) return null;
-    // Convert Set<String> to List<String> for JSON serialization
+
     final jsonMap = reactions.map(
       (key, value) => MapEntry(key, value.toList()),
     );
-    return jsonMap.toString(); // Simple string encoding for now
+    return jsonMap.toString();
   }
 
   static Map<String, Set<String>> _decodeReactions(String? reactionsJson) {
     if (reactionsJson == null || reactionsJson.isEmpty) return {};
-    // This is a simplified decoder - in production you'd use proper JSON
-    return {}; // Return empty for now, implement proper JSON parsing as needed
+
+    return {};
   }
 }
 
@@ -117,10 +115,8 @@ class IsarDiscussion {
 
   bool isActive = true;
 
-  // Metadata as JSON string
   String? metadataJson;
 
-  // Convert from Discussion
   static IsarDiscussion fromDiscussion(Discussion state) {
     return IsarDiscussion()
       ..discussionId = state.id
@@ -131,13 +127,12 @@ class IsarDiscussion {
       ..isActive = state.isActive;
   }
 
-  // Convert to Discussion (without messages, those are loaded separately)
   Discussion toDiscussion() {
     return Discussion(
       id: discussionId!,
       title: title!,
       participants: participantIds.toSet(),
-      messages: [], // Messages loaded separately
+      messages: [],
       createdAt: createdAt!,
       lastActivity: lastActivity!,
       isActive: isActive,
@@ -163,10 +158,8 @@ class IsarUser {
   @Index()
   DateTime? lastSeen;
 
-  // Metadata as JSON string
   String? metadataJson;
 
-  // Convert from User model
   static IsarUser fromUser(User user) {
     return IsarUser()
       ..userId = user.id
@@ -179,7 +172,6 @@ class IsarUser {
       ..lastSeen = user.lastSeen;
   }
 
-  // Convert to User model
   User toUser() {
     return User(
       id: userId!,
