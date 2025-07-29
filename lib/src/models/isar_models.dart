@@ -154,6 +154,7 @@ class IsarUser {
 
   String? name;
   String? email;
+  String? phoneNumber;
   String? avatarUrl;
 
   bool isOnline = true;
@@ -171,6 +172,7 @@ class IsarUser {
       ..userId = user.id
       ..name = user.name
       ..email = user.email
+      ..phoneNumber = user.phoneNumber
       ..avatarUrl = user.avatarUrl
       ..isOnline = user.isOnline
       ..status = user.status
@@ -183,6 +185,7 @@ class IsarUser {
       id: userId!,
       name: name!,
       email: email,
+      phoneNumber: phoneNumber,
       avatarUrl: avatarUrl,
       isOnline: isOnline,
       status: status,

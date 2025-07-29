@@ -42,6 +42,7 @@ void main() async {
     firebase: firebaseService,
     currentUserId: currentUser.id,
   );
+  SyncService.instance.saveUser(currentUser);
   // Start real-time synchronization
   SyncService.instance.startRealtimeSync();
 

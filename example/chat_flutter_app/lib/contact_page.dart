@@ -1,5 +1,6 @@
 import 'package:chat_flutter_app/create_discussion_group_page.dart';
 import 'package:chat_flutter_app/temp_chat_page.dart';
+import 'package:chat_flutter_app/contact_add_page.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 
@@ -28,39 +29,7 @@ class _ContactPageState extends State<ContactPage> {
 
   Future<void> _loadUsers() async {
     try {
-      // Load available users or create some sample users
       _users = await DatabaseService.instance.getAllUsers();
-
-      if (_users.isEmpty) {
-        // Create realistic sample users if none exist
-        final usersGenerated = List.generate(10, (index) {
-          final id = (index + 1).toString();
-          final isOnline = faker.randomGenerator.boolean();
-          return User(
-            id: id,
-            name: faker.person.name(),
-            email: faker.internet.email(),
-            isOnline: isOnline,
-            status: isOnline ? 'Available' : 'Away',
-            avatarUrl: faker.image.loremPicsum(
-              width: 100,
-              height: 100,
-              seed: '$index',
-            ),
-            lastSeen: isOnline
-                ? null
-                : faker.date.dateTime(minYear: 2024, maxYear: 2025),
-          );
-        });
-
-        // Save sample users to database
-        for (final user in usersGenerated) {
-          await DatabaseService.instance.saveUser(user);
-        }
-        await DatabaseService.instance.saveUser(_currentUser!);
-        _users.add(_currentUser!);
-        _users.addAll(usersGenerated);
-      }
     } catch (e) {
       logger.e('Error loading data', error: e);
     }
@@ -68,6 +37,19 @@ class _ContactPageState extends State<ContactPage> {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future<void> _addContact() async {
+    final result = await Navigator.of(context).push<User>(
+      MaterialPageRoute(
+        builder: (context) => const ContactAddPage(),
+      ),
+    );
+
+    if (result != null) {
+      // Refresh the contacts list
+      _loadUsers();
+    }
   }
 
   Future<void> _createGroupDiscussion() async {
@@ -119,7 +101,11 @@ class _ContactPageState extends State<ContactPage> {
         title: const Text('Contacts'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadUsers),
+          IconButton(
+            onPressed: _addContact,
+            icon: const Icon(Icons.person_add),
+            tooltip: 'Add Contact',
+          ),
         ],
       ),
       body: _isLoading
@@ -167,7 +153,7 @@ class _ContactPageState extends State<ContactPage> {
           ],
         ),
         trailing: _buildOnlineIndicator(user),
-        onTap: () => _starchatWithUser(user),
+        onTap: () => _starChatWithUser(user),
         onLongPress: () => _showUserDetails(user),
       ),
     );
@@ -243,7 +229,7 @@ class _ContactPageState extends State<ContactPage> {
           ElevatedButton.icon(
             onPressed: () {
               Navigator.of(context).pop();
-              _starchatWithUser(user);
+              _starChatWithUser(user);
             },
             icon: const Icon(Icons.chat),
             label: const Text('Start Chat'),
@@ -253,7 +239,7 @@ class _ContactPageState extends State<ContactPage> {
     );
   }
 
-  void _starchatWithUser(User user) async {
+  void _starChatWithUser(User user) async {
     // Get current user (using first available user as current user for now)
 
     // Create a temporary discussion that won't be persisted until first message

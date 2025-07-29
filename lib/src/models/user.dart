@@ -4,15 +4,16 @@ part 'user.freezed.dart';
 part 'user.g.dart';
 
 /// Immutable model representing a user in the chat application.
-/// 
+///
 /// Contains user profile information, online status, and metadata.
 /// Supports presence tracking and extensible metadata for future features.
 @freezed
-class User with _$User {
+sealed class User with _$User {
   const factory User({
     required String id,
     required String name,
     String? email,
+    String? phoneNumber,
     String? avatarUrl,
     @Default(true) bool isOnline,
     @Default('') String status,
@@ -29,14 +30,15 @@ class User with _$User {
     String? id,
     required String name,
     String? email,
+    String? phoneNumber,
     String? avatarUrl,
   }) {
     return User(
       id: id ?? _generateUserId(),
       name: name,
       email: email,
+      phoneNumber: phoneNumber,
       avatarUrl: avatarUrl,
-      isOnline: true,
     );
   }
 
@@ -50,10 +52,11 @@ class User with _$User {
   }
 
   // Helper methods
-  String get displayName => name.isNotEmpty ? name : 'User ${id.substring(0, 8)}';
-  
+  String get displayName =>
+      name.isNotEmpty ? name : 'User ${id.substring(0, 8)}';
+
   bool get isGuest => id.startsWith('guest_');
-  
+
   String get initials {
     final parts = name.trim().split(' ');
     if (parts.isEmpty) return '';
@@ -62,9 +65,9 @@ class User with _$User {
   }
 
   User setOnline() => copyWith(isOnline: true, lastSeen: DateTime.now());
-  
+
   User setOffline() => copyWith(isOnline: false, lastSeen: DateTime.now());
-  
+
   User updateStatus(String newStatus) => copyWith(status: newStatus);
 
   static String _generateUserId() {
