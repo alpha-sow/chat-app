@@ -2,8 +2,12 @@ import 'dart:async';
 import 'package:chat_app_package/src/src.dart';
 import 'package:chat_app_package/src/utils/utils.dart';
 
-/// Service that synchronizes
-/// local Isar database with Firebase Realtime Database
+/// Service that synchronizes local Isar database with Firebase Realtime Database.
+/// 
+/// This service provides bidirectional synchronization between local storage
+/// and remote Firebase, handling offline scenarios with operation queuing
+/// and conflict resolution. It supports real-time updates and automatic
+/// retry mechanisms for failed operations.
 class SyncService {
   SyncService._({
     required DatabaseService localDb,
@@ -24,7 +28,9 @@ class SyncService {
   bool _isOnline = false;
   bool _syncInProgress = false;
 
-  /// instance of sync service
+  /// Gets the singleton instance of the sync service.
+  /// 
+  /// Throws [StateError] if the service hasn't been initialized.
   static SyncService get instance {
     if (_instance == null) {
       throw StateError(
@@ -34,7 +40,13 @@ class SyncService {
     return _instance!;
   }
 
-  /// Initialize the sync service with database instances
+  /// Initializes the sync service with required database instances.
+  /// 
+  /// Must be called before accessing the [instance]. This sets up the
+  /// singleton with local database and Firebase service instances.
+  /// 
+  /// [localDb] The local Isar database service.
+  /// [firebase] The Firebase Realtime Database service.
   static void initialize({
     required DatabaseService localDb,
     required FirebaseRealtimeService firebase,
@@ -64,7 +76,11 @@ class SyncService {
     });
   }
 
-  /// Sync all data (discussions, messages, users) bidirectionally
+  /// Synchronizes all data types bidirectionally with remote database.
+  /// 
+  /// Performs a complete sync of users, discussions, and messages between
+  /// local and remote databases. Operations are performed in parallel
+  /// for efficiency.
   Future<void> syncAll() async {
     if (_syncInProgress) return;
 
@@ -80,7 +96,11 @@ class SyncService {
     }
   }
 
-  /// Sync users between local and remote
+  /// Synchronizes user data between local and remote databases.
+  /// 
+  /// Compares local and remote users, uploading newer local changes
+  /// and downloading newer remote changes. Handles conflicts using
+  /// the conflict resolver.
   Future<void> syncUsers() async {
     try {
       // Get local users
@@ -145,7 +165,10 @@ class SyncService {
     }
   }
 
-  /// Sync discussions between local and remote
+  /// Synchronizes discussion data between local and remote databases.
+  /// 
+  /// Note: Messages are synced separately. This only syncs discussion
+  /// metadata like title, participants, and timestamps.
   Future<void> syncDiscussions() async {
     try {
       // Get local discussions
@@ -223,7 +246,10 @@ class SyncService {
     }
   }
 
-  /// Sync messages between local and remote
+  /// Synchronizes all messages across all discussions.
+  /// 
+  /// Iterates through all discussions and syncs their messages
+  /// individually for better error isolation.
   Future<void> syncMessages() async {
     try {
       final discussions = await _localDb.getAllDiscussions();
@@ -313,7 +339,12 @@ class SyncService {
     }
   }
 
-  /// Save user locally and sync to remote
+  /// Saves a user locally and synchronizes to remote database.
+  /// 
+  /// If online, immediately syncs to remote. If offline, queues the
+  /// operation for later execution when connection is restored.
+  /// 
+  /// [user] The user object to save and sync.
   Future<void> saveUser(User user) async {
     await _localDb.saveUser(user);
 
@@ -341,7 +372,12 @@ class SyncService {
     }
   }
 
-  /// Save discussion locally and sync to remote
+  /// Saves a discussion locally and synchronizes to remote database.
+  /// 
+  /// Messages are excluded from remote sync as they're handled separately.
+  /// If offline, queues the operation for later execution.
+  /// 
+  /// [discussion] The discussion object to save and sync.
   Future<void> saveDiscussion(Discussion discussion) async {
     await _localDb.saveDiscussion(discussion);
 
@@ -370,7 +406,10 @@ class SyncService {
     }
   }
 
-  /// Save message locally and sync to remote
+  /// Saves a message locally and synchronizes to remote database.
+  /// 
+  /// [message] The message object to save and sync.
+  /// [discussionId] The ID of the discussion this message belongs to.
   Future<void> saveMessage(Message message, String discussionId) async {
     await _localDb.saveMessage(message, discussionId);
 
@@ -403,7 +442,9 @@ class SyncService {
     }
   }
 
-  /// Delete user locally and from remote
+  /// Deletes a user from both local and remote databases.
+  /// 
+  /// [userId] The ID of the user to delete.
   Future<void> deleteUser(String userId) async {
     await _localDb.deleteUser(userId);
 
@@ -431,7 +472,12 @@ class SyncService {
     }
   }
 
-  /// Delete discussion locally and from remote
+  /// Deletes a discussion and its messages from both databases.
+  /// 
+  /// Removes the discussion and all associated messages from both
+  /// local and remote storage.
+  /// 
+  /// [discussionId] The ID of the discussion to delete.
   Future<void> deleteDiscussion(String discussionId) async {
     await _localDb.deleteDiscussion(discussionId);
 
@@ -460,7 +506,10 @@ class SyncService {
     }
   }
 
-  /// Delete message locally and from remote
+  /// Deletes a message from both local and remote databases.
+  /// 
+  /// [messageId] The ID of the message to delete.
+  /// [discussionId] The ID of the discussion containing the message.
   Future<void> deleteMessage(String messageId, String discussionId) async {
     await _localDb.deleteMessage(messageId);
 
@@ -490,7 +539,10 @@ class SyncService {
     }
   }
 
-  /// Listen to real-time changes from Firebase
+  /// Starts listening for real-time changes from Firebase.
+  /// 
+  /// Sets up listeners for users, discussions, and messages that will
+  /// automatically update local data when remote changes occur.
   void startRealtimeSync() {
     // Listen to user changes
     _firebase.listen('users').listen((data) {
@@ -665,33 +717,53 @@ class SyncService {
     }
   }
 
-  /// Get a user from local database
+  /// Retrieves a user from the local database.
+  /// 
+  /// [userId] The ID of the user to retrieve.
+  /// 
+  /// Returns the User object if found, null otherwise.
   Future<User?> getUser(String userId) async {
     return _localDb.getUser(userId);
   }
 
-  /// Get a discussion from local database
+  /// Retrieves a discussion from the local database.
+  /// 
+  /// [discussionId] The ID of the discussion to retrieve.
+  /// 
+  /// Returns the Discussion object if found, null otherwise.
   Future<Discussion?> getDiscussion(String discussionId) async {
     return _localDb.getDiscussion(discussionId);
   }
 
-  /// Get all discussions from local database
+  /// Retrieves all discussions from the local database.
+  /// 
+  /// Returns a list of all Discussion objects stored locally.
   Future<List<Discussion>> getAllDiscussions() async {
     return _localDb.getAllDiscussions();
   }
 
+  /// Watches all discussions for real-time updates.
+  /// 
+  /// Returns a stream that emits the current list of discussions
+  /// whenever they change in the local database.
   Stream<List<Discussion>> watchAllDiscussions() {
     return _localDb.watchAllDiscussions();
   }
 
-  /// Get sync status
+  /// Gets the current synchronization status.
+  /// 
+  /// Returns information about online state, pending operations,
+  /// and whether a sync is currently in progress.
   SyncStatus get syncStatus => SyncStatus(
     isOnline: _isOnline,
     pendingOperations: _pendingSyncOperations.length,
     syncInProgress: _syncInProgress,
   );
 
-  /// Dispose resources
+  /// Disposes of the sync service and releases resources.
+  /// 
+  /// Cancels timers, closes subscriptions, clears pending operations,
+  /// and nullifies the singleton instance.
   void dispose() {
     _syncTimer?.cancel();
     _connectionSubscription?.cancel();

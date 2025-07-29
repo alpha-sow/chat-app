@@ -5,6 +5,11 @@ import 'package:uuid/uuid.dart';
 part 'message.freezed.dart';
 part 'message.g.dart';
 
+/// Immutable model representing a chat message.
+/// 
+/// A message contains the content, metadata, and interaction data for
+/// a single message in a discussion. Supports different message types,
+/// reactions, replies, and read status tracking.
 @freezed
 sealed class Message with _$Message {
   const factory Message({

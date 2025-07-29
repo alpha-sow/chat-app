@@ -3,6 +3,10 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'user.freezed.dart';
 part 'user.g.dart';
 
+/// Immutable model representing a user in the chat application.
+/// 
+/// Contains user profile information, online status, and metadata.
+/// Supports presence tracking and extensible metadata for future features.
 @freezed
 class User with _$User {
   const factory User({
