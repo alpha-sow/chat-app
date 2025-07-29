@@ -27,11 +27,6 @@ class _ChatPageState extends State<ChatPage> {
   bool _isSelectionMode = false;
   final Set<String> _selectedMessages = {};
   String? _replyToMessageId;
-  SyncStatus _syncStatus = const SyncStatus(
-    isOnline: false,
-    pendingOperations: 0,
-    syncInProgress: false,
-  );
 
   @override
   void initState() {
@@ -60,9 +55,6 @@ class _ChatPageState extends State<ChatPage> {
           'Added initial message to discussion: ${widget.initialMessage}',
         );
       }
-
-      // Update sync status
-      _syncStatus = SyncService.instance.syncStatus;
     } catch (e) {
       logger.e('Error loading chat', error: e);
     }
@@ -90,7 +82,6 @@ class _ChatPageState extends State<ChatPage> {
         );
         _messageController.clear();
         _replyToMessageId = null;
-        _syncStatus = SyncService.instance.syncStatus;
       });
     }
   }
@@ -280,7 +271,6 @@ class _ChatPageState extends State<ChatPage> {
 
       setState(() {
         _exitSelectionMode();
-        _syncStatus = SyncService.instance.syncStatus;
       });
     }
   }
@@ -336,25 +326,14 @@ class _ChatPageState extends State<ChatPage> {
                 onPressed: _exitSelectionMode,
               )
             : null,
-        actions: _isSelectionMode
-            ? [
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: _deleteSelectedMessages,
-                  tooltip: 'Delete selected messages',
-                ),
-              ]
-            : [
-                // Sync status indicator
-                IconButton(
-                  icon: Icon(
-                    _syncStatus.isOnline ? Icons.cloud_done : Icons.cloud_off,
-                    color: _syncStatus.isOnline ? Colors.green : Colors.red,
-                  ),
-                  onPressed: () => _showChatSyncStatus(),
-                  tooltip: _syncStatus.isOnline ? 'Online' : 'Offline',
-                ),
-              ],
+        actions: [
+          if (_isSelectionMode)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: _deleteSelectedMessages,
+              tooltip: 'Delete selected messages',
+            ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -519,72 +498,6 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ),
       ),
-    );
-  }
-
-  void _showChatSyncStatus() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Sync Status'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    _syncStatus.isOnline ? Icons.cloud_done : Icons.cloud_off,
-                    color: _syncStatus.isOnline ? Colors.green : Colors.red,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _syncStatus.isOnline ? 'Online' : 'Offline',
-                    style: TextStyle(
-                      color: _syncStatus.isOnline ? Colors.green : Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text('Pending operations: ${_syncStatus.pendingOperations}'),
-              const SizedBox(height: 4),
-              Text(
-                'Sync in progress: ${_syncStatus.syncInProgress ? "Yes" : "No"}',
-              ),
-              if (!_syncStatus.isOnline) ...[
-                const SizedBox(height: 8),
-                const Text(
-                  'Messages will be synced when connection is restored.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.orange,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-            if (!_syncStatus.isOnline)
-              TextButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  setState(() {
-                    _syncStatus = SyncService.instance.syncStatus;
-                  });
-                },
-                child: const Text('Refresh'),
-              ),
-          ],
-        );
-      },
     );
   }
 }
