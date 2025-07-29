@@ -141,8 +141,7 @@ class FirebaseRealtimeService {
 
   /// Go offline/online
   void goOffline() => _database.goOffline();
-  
+
   /// Go online
   void goOnline() => _database.goOnline();
 }
-

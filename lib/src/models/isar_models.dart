@@ -54,6 +54,20 @@ class IsarMessage {
 
   // Convert to Message model
   Message toMessage() {
+    // Validate required fields
+    if (messageId == null || messageId!.isEmpty) {
+      throw StateError('Message ID cannot be null or empty');
+    }
+    if (senderId == null || senderId!.isEmpty) {
+      throw StateError('Sender ID cannot be null or empty');
+    }
+    if (content == null) {
+      throw StateError('Message content cannot be null');
+    }
+    if (timestamp == null) {
+      throw StateError('Message timestamp cannot be null');
+    }
+
     return Message(
       id: messageId!,
       senderId: senderId!,

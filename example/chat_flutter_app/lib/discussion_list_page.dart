@@ -42,13 +42,14 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
       discussion.title,
     );
     if (shouldDelete == true) {
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
       try {
         logger.w('Deleting discussion: ${discussion.title} (${discussion.id})');
         await SyncService.instance.deleteDiscussion(discussion.id);
 
         // Show success message
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.showSnackBar(
             SnackBar(
               content: Text('Discussion "${discussion.title}" deleted'),
               backgroundColor: Colors.green,
@@ -58,7 +59,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
       } catch (e) {
         logger.e('Error deleting discussion', error: e);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.showSnackBar(
             SnackBar(
               content: Text('Failed to delete discussion: $e'),
               backgroundColor: Colors.red,
@@ -237,6 +238,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                     );
                   },
                   onDismissed: (direction) async {
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
                     try {
                       logger.w(
                         'Deleting discussion: ${discussion.title} (${discussion.id})',
@@ -246,7 +248,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                       );
 
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        scaffoldMessenger.showSnackBar(
                           SnackBar(
                             content: Text(
                               'Discussion "${discussion.title}" deleted',
@@ -258,7 +260,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                     } catch (e) {
                       logger.e('Error deleting discussion', error: e);
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        scaffoldMessenger.showSnackBar(
                           SnackBar(
                             content: Text('Failed to delete discussion: $e'),
                             backgroundColor: Colors.red,

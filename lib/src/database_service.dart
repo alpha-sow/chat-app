@@ -54,12 +54,13 @@ class DatabaseService {
   /// Saves a discussion to the local database.
   ///
   /// Converts the Discussion domain model to IsarDiscussion and stores it.
+  /// Uses putByDiscussionId to handle unique constraint on discussionId.
   /// [discussion] The discussion object to save.
   Future<void> saveDiscussion(Discussion discussion) async {
     final isarDiscussion = IsarDiscussion.fromDiscussion(discussion);
 
     await isar.writeTxn(() async {
-      await isar.isarDiscussions.put(isarDiscussion);
+      await isar.isarDiscussions.putByDiscussionId(isarDiscussion);
     });
   }
 
@@ -208,7 +209,7 @@ class DatabaseService {
     final isarUser = IsarUser.fromUser(user);
 
     await isar.writeTxn(() async {
-      await isar.isarUsers.put(isarUser);
+      await isar.isarUsers.putByUserId(isarUser);
     });
   }
 

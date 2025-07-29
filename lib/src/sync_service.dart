@@ -279,6 +279,16 @@ class SyncService {
           try {
             final messageData = Map<String, dynamic>.from(entry.value as Map);
             messageData['id'] = entry.key;
+
+            // Validate required fields before creating Message
+            if (!_isValidMessageData(messageData)) {
+              logger.w(
+                'Skipping invalid remote '
+                'message ${entry.key}: missing required fields',
+              );
+              continue;
+            }
+
             remoteMessages.add(Message.fromJson(messageData));
           } on Exception catch (e) {
             logger.e('Error parsing remote message ${entry.key}: $e');
@@ -659,6 +669,15 @@ class SyncService {
             messageEntry.value as Map,
           );
           messageData['id'] = messageEntry.key;
+
+          // Validate required fields before creating Message
+          if (!_isValidMessageData(messageData)) {
+            logger.w(
+              'Skipping invalid remote message ${messageEntry.key}: missing required fields',
+            );
+            continue;
+          }
+
           final remoteMessage = Message.fromJson(messageData);
 
           final localMessage = await _localDb.getMessage(remoteMessage.id);
@@ -795,6 +814,29 @@ class SyncService {
     pendingOperations: _pendingSyncOperations.length,
     syncInProgress: _syncInProgress,
   );
+
+  /// Validates that message data contains all required fields.
+  ///
+  /// [messageData] The message data to validate.
+  ///
+  /// Returns true if the message data is valid, false otherwise.
+  bool _isValidMessageData(Map<String, dynamic> messageData) {
+    // Check required fields
+    if (messageData['id'] == null || messageData['id'].toString().isEmpty) {
+      return false;
+    }
+    if (messageData['senderId'] == null ||
+        messageData['senderId'].toString().isEmpty) {
+      return false;
+    }
+    if (messageData['content'] == null) {
+      return false;
+    }
+    if (messageData['timestamp'] == null) {
+      return false;
+    }
+    return true;
+  }
 
   /// Disposes of the sync service and releases resources.
   ///
