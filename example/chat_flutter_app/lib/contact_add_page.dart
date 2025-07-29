@@ -37,11 +37,11 @@ class _ContactAddPageState extends State<ContactAddPage> {
     try {
       final contact = User.create(
         name: _displayNameController.text.trim(),
-        email: _emailController.text.trim().isEmpty 
-            ? null 
+        email: _emailController.text.trim().isEmpty
+            ? null
             : _emailController.text.trim(),
-        phoneNumber: _phoneController.text.trim().isEmpty 
-            ? null 
+        phoneNumber: _phoneController.text.trim().isEmpty
+            ? null
             : _phoneController.text.trim(),
       );
 
@@ -96,10 +96,7 @@ class _ContactAddPageState extends State<ContactAddPage> {
               onPressed: _saveContact,
               child: const Text(
                 'Save',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),
         ],
@@ -213,10 +210,7 @@ class _ContactAddPageState extends State<ContactAddPage> {
                     Expanded(
                       child: Text(
                         'Name is required. Email and phone are optional but help identify contacts.',
-                        style: TextStyle(
-                          color: Colors.blue[700],
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.blue[700], fontSize: 12),
                       ),
                     ),
                   ],
