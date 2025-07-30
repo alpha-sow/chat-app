@@ -36,3 +36,7 @@ coverage/
 
 # Test outputs
 .test_coverage.dart
+
+# Firebase configuration files (contain sensitive keys)
+**/google-services.json
+**/GoogleService-Info.plist
