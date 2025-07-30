@@ -3,6 +3,126 @@ import 'package:chat_app_package/chat_app_package.dart';
 
 import 'utils/utils.dart';
 
+class ReplyContextWidget extends StatelessWidget {
+  final String replyToId;
+  final DiscussionService discussion;
+
+  const ReplyContextWidget({
+    super.key,
+    required this.replyToId,
+    required this.discussion,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    try {
+      final replyToMessage = discussion.messages.firstWhere(
+        (m) => m.id == replyToId,
+      );
+
+      final replyToUser = discussion.getUser(replyToMessage.senderId);
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 4),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(6),
+          border: Border(left: BorderSide(color: Colors.blue[300]!, width: 3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Replying to ${replyToUser?.displayName ?? replyToMessage.senderId}',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[600],
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              replyToMessage.content,
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      return const SizedBox.shrink();
+    }
+  }
+}
+
+class ReplyPreviewWidget extends StatelessWidget {
+  final String replyToMessageId;
+  final DiscussionService discussion;
+  final VoidCallback onCancel;
+
+  const ReplyPreviewWidget({
+    super.key,
+    required this.replyToMessageId,
+    required this.discussion,
+    required this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    try {
+      final replyToMessage = discussion.messages.firstWhere(
+        (m) => m.id == replyToMessageId,
+      );
+
+      final replyToUser = discussion.getUser(replyToMessage.senderId);
+
+      return Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.blue[50],
+          border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.reply, size: 16, color: Colors.blue[600]),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Replying to ${replyToUser?.displayName ?? replyToMessage.senderId}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[600],
+                    ),
+                  ),
+                  Text(
+                    replyToMessage.content,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: onCancel,
+              icon: const Icon(Icons.close, size: 18),
+              tooltip: 'Cancel reply',
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      return const SizedBox.shrink();
+    }
+  }
+}
+
 class ChatPage extends StatefulWidget {
   final String discussionId;
   final String currentUserId;
@@ -144,107 +264,13 @@ class _ChatPageState extends State<ChatPage> {
     FocusScope.of(context).requestFocus(FocusNode());
   }
 
-  Widget _buildReplyContext(String replyToId) {
-    try {
-      final replyToMessage = _discussion?.messages.firstWhere(
-        (m) => m.id == replyToId,
-      );
-
-      if (replyToMessage == null) return const SizedBox.shrink();
-
-      final replyToUser = _discussion!.getUser(replyToMessage.senderId);
-
-      return Container(
-        margin: const EdgeInsets.only(bottom: 4),
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(6),
-          border: Border(left: BorderSide(color: Colors.blue[300]!, width: 3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Replying to ${replyToUser?.displayName ?? replyToMessage.senderId}',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue[600],
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              replyToMessage.content,
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      return const SizedBox.shrink();
-    }
+  void _cancelReply() {
+    setState(() {
+      _replyToMessageId = null;
+    });
   }
 
-  Widget _buildReplyPreview() {
-    try {
-      final replyToMessage = _discussion?.messages.firstWhere(
-        (m) => m.id == _replyToMessageId,
-      );
 
-      if (replyToMessage == null) return const SizedBox.shrink();
-
-      final replyToUser = _discussion!.getUser(replyToMessage.senderId);
-
-      return Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.blue[50],
-          border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.reply, size: 16, color: Colors.blue[600]),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Replying to ${replyToUser?.displayName ?? replyToMessage.senderId}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue[600],
-                    ),
-                  ),
-                  Text(
-                    replyToMessage.content,
-                    style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  _replyToMessageId = null;
-                });
-              },
-              icon: const Icon(Icons.close, size: 18),
-              tooltip: 'Cancel reply',
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      return const SizedBox.shrink();
-    }
-  }
 
   void _exitSelectionMode() {
     setState(() {
@@ -385,7 +411,10 @@ class _ChatPageState extends State<ChatPage> {
                             children: [
                               // Show reply context if this message is a reply
                               if (message.replyToId != null)
-                                _buildReplyContext(message.replyToId!),
+                                ReplyContextWidget(
+                                  replyToId: message.replyToId!,
+                                  discussion: _discussion!,
+                                ),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -458,7 +487,12 @@ class _ChatPageState extends State<ChatPage> {
             Column(
               children: [
                 // Reply preview bar
-                if (_replyToMessageId != null) _buildReplyPreview(),
+                if (_replyToMessageId != null)
+                  ReplyPreviewWidget(
+                    replyToMessageId: _replyToMessageId!,
+                    discussion: _discussion!,
+                    onCancel: _cancelReply,
+                  ),
                 Container(
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
