@@ -40,3 +40,4 @@ coverage/
 # Firebase configuration files (contain sensitive keys)
 **/google-services.json
 **/GoogleService-Info.plist
+**/firebase_options.dart
