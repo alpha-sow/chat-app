@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:chat_app_package/chat_app_package.dart';
+import 'package:alphasow_ui/alphasow_ui.dart';
 
 import 'utils/utils.dart';
 
@@ -109,10 +110,10 @@ class ReplyPreviewWidget extends StatelessWidget {
                 ],
               ),
             ),
-            IconButton(
+            Button(
               onPressed: onCancel,
-              icon: const Icon(Icons.close, size: 18),
-              tooltip: 'Cancel reply',
+              variant: Variant.ghost,
+              child: const Icon(Icons.close, size: 18),
             ),
           ],
         ),
@@ -270,8 +271,6 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-
-
   void _exitSelectionMode() {
     setState(() {
       _isSelectionMode = false;
@@ -302,27 +301,24 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<bool?> _showBulkDeleteConfirmation(int messageCount) {
-    return showDialog<bool>(
+    return alertDialogUI(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Messages'),
-          content: Text(
-            'Are you sure you want to delete $messageCount selected messages?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete All'),
-            ),
-          ],
-        );
-      },
+      title: const Text('Delete Messages'),
+      content: Text(
+        'Are you sure you want to delete $messageCount selected messages?',
+      ),
+      actions: [
+        Button(
+          onPressed: () => Navigator.of(context).pop(false),
+          variant: Variant.ghost,
+          child: const Text('Cancel'),
+        ),
+        Button(
+          onPressed: () => Navigator.of(context).pop(true),
+          variant: Variant.destructive,
+          child: const Text('Delete All'),
+        ),
+      ],
     );
   }
 
@@ -347,17 +343,18 @@ class _ChatPageState extends State<ChatPage> {
             ? Text('${_selectedMessages.length} selected')
             : Text(_discussion!.title),
         leading: _isSelectionMode
-            ? IconButton(
-                icon: const Icon(Icons.close),
+            ? Button(
                 onPressed: _exitSelectionMode,
+                variant: Variant.ghost,
+                child: const Icon(Icons.close),
               )
             : null,
         actions: [
           if (_isSelectionMode)
-            IconButton(
-              icon: const Icon(Icons.delete),
+            Button(
               onPressed: _deleteSelectedMessages,
-              tooltip: 'Delete selected messages',
+              variant: Variant.ghost,
+              child: const Icon(Icons.delete),
             ),
         ],
       ),
@@ -503,26 +500,18 @@ class _ChatPageState extends State<ChatPage> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: TextField(
+                        child: Input(
                           controller: _messageController,
-                          decoration: InputDecoration(
-                            hintText: _replyToMessageId != null
-                                ? 'Reply to message...'
-                                : 'Type a message...',
-                            border: const OutlineInputBorder(),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
-                          onSubmitted: (_) async => await _sendMessage(),
+                          hintText: _replyToMessageId != null
+                              ? 'Reply to message...'
+                              : 'Type a message...',
                         ),
                       ),
                       const SizedBox(width: 8),
-                      IconButton(
+                      Button(
                         onPressed: () => _sendMessage(),
-                        icon: const Icon(Icons.send),
-                        tooltip: 'Send Message',
+                        variant: Variant.ghost,
+                        child: const Icon(Icons.send),
                       ),
                     ],
                   ),

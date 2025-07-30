@@ -1,6 +1,7 @@
 import 'package:chat_flutter_app/chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app_package/chat_app_package.dart';
+import 'package:alphasow_ui/alphasow_ui.dart';
 
 import 'utils/utils.dart';
 
@@ -150,24 +151,16 @@ class _TempChatPageState extends State<TempChatPage> {
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
+                    child: Input(
                       controller: _messageController,
-                      decoration: InputDecoration(
-                        hintText: 'Send first message to start chat...',
-                        border: const OutlineInputBorder(),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                      onSubmitted: (_) => _sendMessage(),
+                      hintText: 'Send first message to start chat...',
                     ),
                   ),
                   const SizedBox(width: 8),
-                  IconButton(
+                  Button(
                     onPressed: _sendMessage,
-                    icon: const Icon(Icons.send),
-                    tooltip: 'Send Message',
+                    variant: Variant.ghost,
+                    child: const Icon(Icons.send),
                   ),
                 ],
               ),

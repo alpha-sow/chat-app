@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:chat_app_package/chat_app_package.dart';
+import 'package:alphasow_ui/alphasow_ui.dart';
 
 import 'chat_page.dart';
 import 'discussion_new_page.dart';
@@ -71,40 +72,37 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
   }
 
   Future<bool?> _showDeleteDiscussionConfirmation(String discussionTitle) {
-    return showDialog<bool>(
+    return alertDialogUI(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Discussion'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Are you sure you want to delete "$discussionTitle"?'),
-              const SizedBox(height: 8),
-              const Text(
-                'This will permanently delete all messages and cannot be undone.',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+      title: const Text('Delete Discussion'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Are you sure you want to delete "$discussionTitle"?'),
+          const SizedBox(height: 8),
+          const Text(
+            'This will permanently delete all messages and cannot be undone.',
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
+      actions: [
+        Button(
+          onPressed: () => Navigator.of(context).pop(false),
+          variant: Variant.ghost,
+          child: const Text('Cancel'),
+        ),
+        Button(
+          onPressed: () => Navigator.of(context).pop(true),
+          variant: Variant.destructive,
+          child: const Text('Delete'),
+        ),
+      ],
     );
   }
 
@@ -116,8 +114,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           // Sync status indicator
-          IconButton(
-            icon: const Icon(Icons.add_circle),
+          Button(
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -126,7 +123,8 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                 ),
               );
             },
-            tooltip: 'Contacts',
+            variant: Variant.ghost,
+            child: const Icon(Icons.add_circle),
           ),
         ],
       ),
@@ -155,7 +153,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton(
+                  Button(
                     onPressed: () => SyncService.instance.syncAll(),
                     child: const Text('Retry'),
                   ),

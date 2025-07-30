@@ -4,6 +4,7 @@ import 'package:chat_flutter_app/contact_add_page.dart';
 import 'package:chat_flutter_app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app_package/chat_app_package.dart';
+import 'package:alphasow_ui/alphasow_ui.dart';
 
 import 'utils/utils.dart';
 
@@ -49,40 +50,37 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
   }
 
   Future<bool?> _showDeleteContactConfirmation(String contactName) {
-    return showDialog<bool>(
+    return alertDialogUI(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Contact'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Are you sure you want to delete "$contactName"?'),
-              const SizedBox(height: 8),
-              const Text(
-                'This will permanently remove the contact from your list.',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+      title: const Text('Delete Contact'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Are you sure you want to delete "$contactName"?'),
+          const SizedBox(height: 8),
+          const Text(
+            'This will permanently remove the contact from your list.',
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
+      actions: [
+        Button(
+          onPressed: () => Navigator.of(context).pop(false),
+          variant: Variant.ghost,
+          child: const Text('Cancel'),
+        ),
+        Button(
+          onPressed: () => Navigator.of(context).pop(true),
+          variant: Variant.destructive,
+          child: const Text('Delete'),
+        ),
+      ],
     );
   }
 
@@ -138,10 +136,10 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
         title: const Text('New Discussion'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          IconButton(
+          Button(
             onPressed: _addContact,
-            icon: const Icon(Icons.person_add),
-            tooltip: 'Add Contact',
+            variant: Variant.ghost,
+            child: const Icon(Icons.person_add),
           ),
         ],
       ),
@@ -151,61 +149,74 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
           ? const Center(
               child: Text('No contacts found', style: TextStyle(fontSize: 16)),
             )
-          : ListView.builder(
-              itemCount: _users.length,
-              itemBuilder: (context, index) {
-                final user = _users[index];
-                return UserTile(
-                  user: user,
-                  confirmDismiss: (_) =>
-                      _showDeleteContactConfirmation(user.displayName),
-                  onDismissed: (_) => _deleteContact(user),
-                  onTap: () => _starChatWithUser(user),
-                  onLongPress: () => _showUserDetails(user),
-                );
-              },
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Button(
+                    onPressed: _createGroupDiscussion,
+                    child: Text('New Group'),
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _users.length,
+                    itemBuilder: (context, index) {
+                      final user = _users[index];
+                      return UserTile(
+                        user: user,
+                        confirmDismiss: (_) =>
+                            _showDeleteContactConfirmation(user.displayName),
+                        onDismissed: (_) => _deleteContact(user),
+                        onTap: () => _starChatWithUser(user),
+                        onLongPress: () => _showUserDetails(user),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _createGroupDiscussion,
-        tooltip: 'Create Group Discussion',
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
   void _showUserDetails(User user) {
-    showDialog(
+    alertDialogUI(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(user.displayName),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (user.email != null && user.email!.isNotEmpty)
-              Text('Email: ${user.email}'),
-            Text('Status: ${user.isOnline ? 'Online' : 'Offline'}'),
-            if (user.status.isNotEmpty) Text('Message: ${user.status}'),
-            if (user.isGuest) const Text('Type: Guest User'),
-            if (user.lastSeen != null && !user.isOnline)
-              Text('Last seen: ${_formatDateTime(user.lastSeen!)}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _starChatWithUser(user);
-            },
-            icon: const Icon(Icons.chat),
-            label: const Text('Start Chat'),
-          ),
+      title: Text(user.displayName),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (user.email != null && user.email!.isNotEmpty)
+            Text('Email: ${user.email}'),
+          Text('Status: ${user.isOnline ? 'Online' : 'Offline'}'),
+          if (user.status.isNotEmpty) Text('Message: ${user.status}'),
+          if (user.isGuest) const Text('Type: Guest User'),
+          if (user.lastSeen != null && !user.isOnline)
+            Text('Last seen: ${_formatDateTime(user.lastSeen!)}'),
         ],
       ),
+      actions: [
+        Button(
+          onPressed: () => Navigator.of(context).pop(),
+          variant: Variant.ghost,
+          child: const Text('Close'),
+        ),
+        Button(
+          onPressed: () {
+            Navigator.of(context).pop();
+            _starChatWithUser(user);
+          },
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.chat, size: 16),
+              SizedBox(width: 4),
+              Text('Start Chat'),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

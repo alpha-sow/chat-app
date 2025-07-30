@@ -1,6 +1,7 @@
 import 'package:chat_flutter_app/chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app_package/chat_app_package.dart';
+import 'package:alphasow_ui/alphasow_ui.dart';
 
 import 'utils/utils.dart';
 
@@ -32,6 +33,20 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
     _currentUser = widget.currentUser;
     _selectedUsers.add(_currentUser!);
     _updateTitle();
+
+    // Listen for changes to handle custom title logic
+    _titleController.addListener(() {
+      if (!_isCustomTitle) {
+        final expectedTitle = _generateDefaultTitle(_selectedUsers);
+        if (_titleController.text != expectedTitle &&
+            _titleController.text.isNotEmpty) {
+          setState(() {
+            _isCustomTitle = true;
+          });
+          logger.d('User created custom title: ${_titleController.text}');
+        }
+      }
+    });
   }
 
   @override
@@ -177,8 +192,9 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
         title: const Text('Create Group Discussion'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          TextButton(
+          Button(
             onPressed: _createDiscussion,
+            variant: Variant.ghost,
             child: const Text(
               'Create',
               style: TextStyle(
@@ -196,48 +212,19 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
           children: [
             const SizedBox(height: 16),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
-                  child: TextField(
+                  child: Input(
                     controller: _titleController,
-                    decoration: InputDecoration(
-                      labelText: 'Discussion Title',
-                      border: const OutlineInputBorder(),
-                      hintText: _selectedUsers.isEmpty
-                          ? 'Enter a title for your discussion'
-                          : 'Auto-generated from participants',
-                      suffixIcon: _isCustomTitle
-                          ? IconButton(
-                              icon: const Icon(Icons.refresh),
-                              onPressed: () {
-                                setState(() {
-                                  _isCustomTitle = false;
-                                  _updateTitle();
-                                });
-                              },
-                              tooltip: 'Reset to auto-generated title',
-                            )
-                          : null,
-                    ),
-                    onChanged: (value) {
-                      // Mark as custom title if user manually types
-                      if (!_isCustomTitle) {
-                        final expectedTitle = _generateDefaultTitle(
-                          _selectedUsers,
-                        );
-                        if (value != expectedTitle && value.isNotEmpty) {
-                          setState(() {
-                            _isCustomTitle = true;
-                          });
-                          logger.d('User created custom title: $value');
-                        }
-                      }
-                    },
+                    label: 'Discussion Title',
+                    hintText: _selectedUsers.isEmpty
+                        ? 'Enter a title for your discussion'
+                        : 'Auto-generated from participants',
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.casino),
+                Button(
                   onPressed: () {
                     final randomName = _generateRandomGroupName();
                     setState(() {
@@ -246,10 +233,14 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
                     });
                     logger.d('Generated random group name: $randomName');
                   },
-                  tooltip: 'Generate random group name',
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.purple[50],
-                    foregroundColor: Colors.purple[700],
+                  variant: Variant.outline,
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.casino, size: 16),
+                      SizedBox(width: 4),
+                      Text('Random'),
+                    ],
                   ),
                 ),
               ],

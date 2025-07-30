@@ -27,6 +27,16 @@ This is a Dart package project called `chat_app_package` - a starting point for 
 - Uses `package:very_good_analysis` for static analysis (stricter rules than standard lints)
 - Configuration in `analysis_options.yaml`
 
+## Environment Configuration
+
+### Custom Pub Repository
+
+This project is configured to use a custom pub repository:
+
+- **PUB_HOSTED_URL**: `https://repo.alphasow.dev/artifactory/api/pub/repo-pub`
+- Configured in `.vscode/settings.json` via `dart.env` for VS Code integration
+- Allows access to private packages hosted on the custom Artifactory repository
+
 ## Architecture
 
 ### Package Structure
