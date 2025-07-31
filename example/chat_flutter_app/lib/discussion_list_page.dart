@@ -43,28 +43,23 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
       discussion.title,
     );
     if (shouldDelete == true) {
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
       try {
         logger.w('Deleting discussion: ${discussion.title} (${discussion.id})');
         await SyncService.instance.deleteDiscussion(discussion.id);
 
         // Show success message
         if (mounted) {
-          scaffoldMessenger.showSnackBar(
-            SnackBar(
-              content: Text('Discussion "${discussion.title}" deleted'),
-              backgroundColor: Colors.green,
-            ),
+          context.showBanner(
+            message: 'Discussion "${discussion.title}" deleted',
+            type: AlertType.success,
           );
         }
       } catch (e) {
         logger.e('Error deleting discussion', error: e);
         if (mounted) {
-          scaffoldMessenger.showSnackBar(
-            SnackBar(
-              content: Text('Failed to delete discussion: $e'),
-              backgroundColor: Colors.red,
-            ),
+          context.showBanner(
+            message: 'Failed to delete discussion: $e',
+            type: AlertType.error,
           );
         }
       }
@@ -72,8 +67,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
   }
 
   Future<bool?> _showDeleteDiscussionConfirmation(String discussionTitle) {
-    return alertDialogUI(
-      context: context,
+    return context.showAlertDialog(
       title: const Text('Delete Discussion'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -94,7 +88,6 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
       actions: [
         Button(
           onPressed: () => Navigator.of(context).pop(false),
-          variant: Variant.ghost,
           child: const Text('Cancel'),
         ),
         Button(
@@ -132,7 +125,9 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         stream: DiscussionService.watchAllDiscussions(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: LoadingSpinner(color: Theme.of(context).primaryColor),
+            );
           }
 
           if (snapshot.hasError) {

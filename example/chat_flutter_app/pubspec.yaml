@@ -20,7 +20,7 @@ dependencies:
   chat_app_package:
     path: ../../
   firebase_core: ^4.0.0
-  alphasow_ui: ^1.0.1
+  alphasow_ui: ^1.2.0
 
 dev_dependencies:
   flutter_test:

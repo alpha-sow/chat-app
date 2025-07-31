@@ -50,8 +50,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
   }
 
   Future<bool?> _showDeleteContactConfirmation(String contactName) {
-    return alertDialogUI(
-      context: context,
+    return context.showAlertDialog(
       title: const Text('Delete Contact'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -180,8 +179,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
   }
 
   void _showUserDetails(User user) {
-    alertDialogUI(
-      context: context,
+    context.showAlertDialog(
       title: Text(user.displayName),
       content: Column(
         mainAxisSize: MainAxisSize.min,

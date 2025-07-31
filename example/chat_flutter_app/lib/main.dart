@@ -14,13 +14,6 @@ import 'utils/utils.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize ThemeUI
-  ThemeUI.init(
-    primary: Colors.deepPurple,
-    secondary: Colors.grey,
-    radius: 8.0,
-  );
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Get the application documents directory
@@ -65,7 +58,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return AlphasowUiApp(
       title: 'Chat App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -73,11 +66,6 @@ class MyApp extends StatelessWidget {
       home: ConnectionStatusWidget(
         child: DiscussionListPage(currentUser: currentUser),
       ),
-      builder: (context, child) {
-        // Initialize connectivity handler for the app
-        ConnectivityHandler.instance.initialize(context);
-        return child ?? const SizedBox();
-      },
     );
   }
 }

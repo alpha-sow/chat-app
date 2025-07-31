@@ -301,8 +301,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<bool?> _showBulkDeleteConfirmation(int messageCount) {
-    return alertDialogUI(
-      context: context,
+    return context.showAlertDialog(
       title: const Text('Delete Messages'),
       content: Text(
         'Are you sure you want to delete $messageCount selected messages?',
