@@ -326,9 +326,7 @@ class _ChatPageState extends State<ChatPage> {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: const Text('Loading...'),
         ),
-        body: Center(
-          child: LoadingCircular(color: Theme.of(context).primaryColor),
-        ),
+        body: Center(child: LoadingCircular()),
       );
     }
 

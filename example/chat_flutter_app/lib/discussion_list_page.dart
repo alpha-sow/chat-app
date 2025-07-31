@@ -123,9 +123,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         stream: DiscussionService.watchAllDiscussions(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: LoadingCircular(color: Theme.of(context).primaryColor),
-            );
+            return Center(child: LoadingCircular());
           }
 
           if (snapshot.hasError) {

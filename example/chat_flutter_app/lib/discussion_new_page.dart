@@ -140,9 +140,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: LoadingCircular(color: Theme.of(context).primaryColor),
-            )
+          ? Center(child: LoadingCircular())
           : _users.isEmpty
           ? const Center(
               child: Text('No contacts found', style: TextStyle(fontSize: 16)),

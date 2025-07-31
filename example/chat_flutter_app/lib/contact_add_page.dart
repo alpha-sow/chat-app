@@ -134,11 +134,7 @@ class _ContactAddPageState extends State<ContactAddPage> {
           if (_isLoading)
             Padding(
               padding: EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: LoadingCircular(color: Theme.of(context).primaryColor),
-              ),
+              child: SizedBox(width: 20, height: 20, child: LoadingCircular()),
             )
           else
             Button.ghost(
