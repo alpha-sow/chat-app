@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/chat_page.dart';
+import 'package:chat_flutter_app/cubit/discussion_list_cubit.dart';
 import 'package:chat_flutter_app/discussion_new_page.dart';
 import 'package:chat_flutter_app/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DiscussionListPage extends StatefulWidget {
   const DiscussionListPage({required this.currentUser, super.key});
@@ -115,195 +117,190 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
           ),
         ],
       ),
-      body: StreamBuilder<List<Discussion>>(
-        stream: DiscussionService.watchAllDiscussions(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: LoadingCircular());
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error loading discussions',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    snapshot.error.toString(),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  Button(
-                    onPressed: () => SyncService.instance.syncAll(),
-                    child: const Text('Retry'),
-                  ),
-                ],
+      body: BlocProvider(
+        create: (context) => DiscussionListCubit(),
+        child: BlocBuilder<DiscussionListCubit, DiscussionListState>(
+          builder: (context, state) {
+            return switch (state) {
+              DiscussionListStateLoading() => const Center(
+                child: LoadingCircular(),
               ),
-            );
-          }
-
-          final discussions = snapshot.data ?? [];
-
-          if (discussions.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 64,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No discussions yet',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Create a new discussion to get started',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.symmetric(horizontal: 32),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue[200]!),
-                    ),
-                    child: Text(
-                      '💡 Tips:\n• You are automatically included in all '
-                      'discussions\n• Select other participants to '
-                      'auto-generate titles\n• Example: "Chat with Alice" '
-                      'or "Alice & Bob"\n• Edit title manually for custom '
-                      'names\n• Tap to open chat, swipe left to delete',
-                      style: TextStyle(color: Colors.blue[700], fontSize: 12),
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: discussions.length,
-            itemBuilder: (context, index) {
-              final discussion = discussions[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Dismissible(
-                  key: Key(discussion.id),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                  ),
-                  confirmDismiss: (direction) async {
-                    return _showDeleteDiscussionConfirmation(
-                      discussion.title,
-                    );
-                  },
-                  onDismissed: (direction) async {
-                    final scaffoldMessenger = ScaffoldMessenger.of(context);
-                    try {
-                      logger.w(
-                        'Deleting discussion: ${discussion.title} (${discussion.id})',
-                      );
-                      await SyncService.instance.deleteDiscussion(
-                        discussion.id,
-                      );
-
-                      if (mounted) {
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Discussion "${discussion.title}" deleted',
+              DiscussionListStateLoaded(:final data) =>
+                data.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.chat_bubble_outline,
+                              size: 64,
+                              color: Colors.grey[400],
                             ),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      }
-                    } on Exception catch (e) {
-                      logger.e('Error deleting discussion', error: e);
-                      if (mounted) {
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text('Failed to delete discussion: $e'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.blue[100],
-                      child: Text(
-                        discussion.title[0].toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.blue[800],
-                          fontWeight: FontWeight.bold,
+                            const SizedBox(height: 16),
+                            Text(
+                              'No discussions yet',
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    color: Colors.grey[600],
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Create a new discussion to get started',
+                              style:
+                                  Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.grey[500],
+                                  ),
+                            ),
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[50],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.blue[200]!),
+                              ),
+                              child: Text(
+                                '💡 Tips:\n• You are automatically included in all '
+                                'discussions\n• Select other participants to '
+                                'auto-generate titles\n• Example: "Chat with Alice" '
+                                'or "Alice & Bob"\n• Edit title manually for custom '
+                                'names\n• Tap to open chat, swipe left to delete',
+                                style: TextStyle(
+                                  color: Colors.blue[700],
+                                  fontSize: 12,
+                                ),
+                                textAlign: TextAlign.left,
+                              ),
+                            ),
+                          ],
                         ),
+                      )
+                    : ListView.builder(
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          final discussion = data[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
+                            child: Dismissible(
+                              key: Key(discussion.id),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                  size: 32,
+                                ),
+                              ),
+                              confirmDismiss: (direction) async {
+                                return _showDeleteDiscussionConfirmation(
+                                  discussion.title,
+                                );
+                              },
+                              onDismissed: (direction) async {
+                                final scaffoldMessenger = ScaffoldMessenger.of(
+                                  context,
+                                );
+                                try {
+                                  logger.w(
+                                    'Deleting discussion: ${discussion.title} (${discussion.id})',
+                                  );
+                                  await SyncService.instance.deleteDiscussion(
+                                    discussion.id,
+                                  );
+
+                                  if (mounted) {
+                                    scaffoldMessenger.showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Discussion "${discussion.title}" deleted',
+                                        ),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  }
+                                } on Exception catch (e) {
+                                  logger.e(
+                                    'Error deleting discussion',
+                                    error: e,
+                                  );
+                                  if (mounted) {
+                                    scaffoldMessenger.showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Failed to delete discussion: $e',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: Colors.blue[100],
+                                  child: Text(
+                                    discussion.title[0].toUpperCase(),
+                                    style: TextStyle(
+                                      color: Colors.blue[800],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                title: Text(discussion.title),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${discussion.participantCount} participants',
+                                    ),
+                                    Text(
+                                      '${discussion.messageCount} messages',
+                                      style: TextStyle(
+                                        color: Colors.green[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                trailing: Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.grey[400],
+                                ),
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (context) => ChatPage(
+                                        discussionId: discussion.id,
+                                        currentUserId: widget.currentUser.id,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                onLongPress: () =>
+                                    _deleteDiscussion(discussion),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                    title: Text(discussion.title),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${discussion.participantCount} participants'),
-                        Text(
-                          '${discussion.messageCount} messages',
-                          style: TextStyle(
-                            color: Colors.green[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    trailing: Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.grey[400],
-                    ),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (context) => ChatPage(
-                            discussionId: discussion.id,
-                            currentUserId: widget.currentUser.id,
-                          ),
-                        ),
-                      );
-                    },
-                    onLongPress: () => _deleteDiscussion(discussion),
-                  ),
-                ),
-              );
-            },
-          );
-        },
+            };
+          },
+        ),
       ),
     );
   }
