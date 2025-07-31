@@ -130,65 +130,62 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
                           style: TextStyle(fontSize: 16),
                         ),
                       )
-                    : Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Button(
-                              onPressed: () => _createGroupDiscussion(data),
-                              child: const Text('New Group'),
+                    : ListView(
+                        children: ListTileUI.divideTiles(
+                          tiles: [
+                            ListTileUI(
+                              leading: const Icon(Icons.group),
+                              title: const Text('New Group'),
+                              onTap: () => _createGroupDiscussion(data),
                             ),
-                          ),
-                          Expanded(
-                            child: ListView(
-                              children: ListTileUI.divideTiles(
-                                tiles: data.map(
-                                  (user) => Dismissible(
-                                    key: Key(user.id),
-                                    direction: DismissDirection.endToStart,
-                                    background: Container(
-                                      alignment: Alignment.centerRight,
-                                      padding: const EdgeInsets.only(right: 20),
-                                      color: Colors.red,
-                                      child: const Icon(
-                                        Icons.delete,
-                                        color: Colors.white,
-                                        size: 28,
-                                      ),
-                                    ),
-                                    confirmDismiss: (direction) async {
-                                      return _showDeleteContactConfirmation(
-                                        user.displayName,
-                                      );
-                                    },
-                                    onDismissed: (direction) async {
-                                      await _deleteContact(user);
-                                    },
-                                    child: ListTileUI(
-                                      leading: UserAvatar(user),
-                                      title: Text(
-                                        user.displayName,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      subtitle:
-                                          user.email != null &&
-                                              user.email!.isNotEmpty
-                                          ? Text(user.email!)
-                                          : user.phoneNumber != null &&
-                                                user.phoneNumber!.isNotEmpty
-                                          ? Text(user.phoneNumber!)
-                                          : null,
-                                      onTap: () => _starChatWithUser(user),
-                                    ),
+                            ...data.map(
+                              (user) => Dismissible(
+                                key: Key(user.id),
+                                direction: DismissDirection.endToStart,
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(
+                                    right: 20,
+                                  ),
+                                  color: Colors.red,
+                                  child: const Icon(
+                                    Icons.delete,
+                                    color: Colors.white,
+                                    size: 28,
                                   ),
                                 ),
-                              ).toList(),
+                                confirmDismiss: (direction) async {
+                                  return _showDeleteContactConfirmation(
+                                    user.displayName,
+                                  );
+                                },
+                                onDismissed: (direction) async {
+                                  await _deleteContact(user);
+                                },
+                                child: ListTileUI(
+                                  leading: UserAvatar(user),
+                                  title: Text(
+                                    user.displayName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle:
+                                      user.email != null &&
+                                          user.email!.isNotEmpty
+                                      ? Text(user.email!)
+                                      : user.phoneNumber != null &&
+                                            user.phoneNumber!.isNotEmpty
+                                      ? Text(user.phoneNumber!)
+                                      : null,
+                                  onTap: () => _starChatWithUser(user),
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ).toList(),
                       ),
+
               UserListStateError(:final e) => Center(child: Text('$e')),
             };
           },
