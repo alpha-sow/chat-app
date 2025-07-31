@@ -1,18 +1,17 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:chat_app_package/chat_app_package.dart';
 import 'package:alphasow_ui/alphasow_ui.dart';
-
-import 'chat_page.dart';
-import 'discussion_new_page.dart';
-import 'connectivity_handler.dart';
-import 'utils/utils.dart';
+import 'package:chat_app_package/chat_app_package.dart';
+import 'package:chat_flutter_app/chat_page.dart';
+import 'package:chat_flutter_app/connectivity_handler.dart';
+import 'package:chat_flutter_app/discussion_new_page.dart';
+import 'package:chat_flutter_app/utils/utils.dart';
+import 'package:flutter/material.dart';
 
 class DiscussionListPage extends StatefulWidget {
-  final User currentUser;
+  const DiscussionListPage({required this.currentUser, super.key});
 
-  const DiscussionListPage({super.key, required this.currentUser});
+  final User currentUser;
 
   @override
   State<DiscussionListPage> createState() => _DiscussionListPageState();
@@ -33,7 +32,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
   Future<void> _initSync() async {
     try {
       await SyncService.instance.syncAll();
-    } catch (e) {
+    } on Exception catch (e) {
       logger.e('Error during initial sync', error: e);
     }
   }
@@ -42,19 +41,18 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
     final shouldDelete = await _showDeleteDiscussionConfirmation(
       discussion.title,
     );
-    if (shouldDelete == true) {
+    if (shouldDelete ?? false) {
       try {
         logger.w('Deleting discussion: ${discussion.title} (${discussion.id})');
         await SyncService.instance.deleteDiscussion(discussion.id);
 
-        // Show success message
         if (mounted) {
           context.showBanner(
             message: 'Discussion "${discussion.title}" deleted',
             type: AlertType.success,
           );
         }
-      } catch (e) {
+      } on Exception catch (e) {
         logger.e('Error deleting discussion', error: e);
         if (mounted) {
           context.showBanner(
@@ -105,11 +103,10 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         title: const Text('Discussions'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          // Sync status indicator
           Button.ghost(
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (context) =>
                       DiscussionNewPage(currentUser: widget.currentUser),
                 ),
@@ -123,7 +120,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         stream: DiscussionService.watchAllDiscussions(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: LoadingCircular());
+            return const Center(child: LoadingCircular());
           }
 
           if (snapshot.hasError) {
@@ -189,7 +186,11 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                       border: Border.all(color: Colors.blue[200]!),
                     ),
                     child: Text(
-                      '💡 Tips:\n• You are automatically included in all discussions\n• Select other participants to auto-generate titles\n• Example: "Chat with Alice" or "Alice & Bob"\n• Edit title manually for custom names\n• Tap to open chat, swipe left to delete',
+                      '💡 Tips:\n• You are automatically included in all '
+                      'discussions\n• Select other participants to '
+                      'auto-generate titles\n• Example: "Chat with Alice" '
+                      'or "Alice & Bob"\n• Edit title manually for custom '
+                      'names\n• Tap to open chat, swipe left to delete',
                       style: TextStyle(color: Colors.blue[700], fontSize: 12),
                       textAlign: TextAlign.left,
                     ),
@@ -222,7 +223,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                     ),
                   ),
                   confirmDismiss: (direction) async {
-                    return await _showDeleteDiscussionConfirmation(
+                    return _showDeleteDiscussionConfirmation(
                       discussion.title,
                     );
                   },
@@ -246,7 +247,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                           ),
                         );
                       }
-                    } catch (e) {
+                    } on Exception catch (e) {
                       logger.e('Error deleting discussion', error: e);
                       if (mounted) {
                         scaffoldMessenger.showSnackBar(
@@ -289,7 +290,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                     ),
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(
+                        MaterialPageRoute<void>(
                           builder: (context) => ConnectionStatusWidget(
                             child: ChatPage(
                               discussionId: discussion.id,

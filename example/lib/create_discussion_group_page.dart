@@ -1,15 +1,14 @@
-import 'package:chat_flutter_app/chat_page.dart';
-import 'package:flutter/material.dart';
-import 'package:chat_app_package/chat_app_package.dart';
 import 'package:alphasow_ui/alphasow_ui.dart';
-
-import 'utils/utils.dart';
+import 'package:chat_app_package/chat_app_package.dart';
+import 'package:chat_flutter_app/chat_page.dart';
+import 'package:chat_flutter_app/utils/utils.dart';
+import 'package:flutter/material.dart';
 
 class CreateDiscussionGroupPage extends StatefulWidget {
   const CreateDiscussionGroupPage({
-    super.key,
     required this.availableUsers,
     required this.currentUser,
+    super.key,
   });
 
   final List<User> availableUsers;
@@ -22,19 +21,18 @@ class CreateDiscussionGroupPage extends StatefulWidget {
 
 class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
   final _titleController = TextEditingController();
-  User? _currentUser;
+  late User _currentUser;
   final Set<User> _selectedUsers = {};
   bool _isCustomTitle = false;
 
   @override
   void initState() {
     super.initState();
-    // Automatically include current user
+
     _currentUser = widget.currentUser;
-    _selectedUsers.add(_currentUser!);
+    _selectedUsers.add(_currentUser);
     _updateTitle();
 
-    // Listen for changes to handle custom title logic
     _titleController.addListener(() {
       if (!_isCustomTitle) {
         final expectedTitle = _generateDefaultTitle(_selectedUsers);
@@ -84,17 +82,15 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
   String _generateDefaultTitle(Set<User> users) {
     if (users.isEmpty) return '';
 
-    // Exclude current user from title (since "you" are already in the conversation)
     final otherUsers = users
         .where((user) => user.id != widget.currentUser.id)
         .toSet();
 
     if (otherUsers.isEmpty) {
-      return 'Personal Notes'; // Just current user selected
+      return 'Personal Notes';
     }
 
-    final names = otherUsers.map((user) => user.displayName).toList();
-    names.sort(); // Sort for consistent ordering
+    final names = otherUsers.map((user) => user.displayName).toList()..sort();
 
     if (names.length == 1) {
       return 'Chat with ${names[0]}';
@@ -121,7 +117,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
 
   void _createDiscussion() {
     final title = _titleController.text.trim();
-    // Auto-generate title if empty and users are selected
+
     if (title.isEmpty && _selectedUsers.isNotEmpty) {
       _updateTitle();
     }
@@ -147,20 +143,15 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
     }
 
     logger.i(
-      'Creating discussion: ${_titleController.text.trim()} (${_isCustomTitle ? "custom" : "auto-generated"})',
+      'Creating discussion: ${_titleController.text.trim()} '
+      '(${_isCustomTitle ? "custom" : "auto-generated"})',
     );
 
-    // Create new discussion
-    logger.i(
-      'Creating new discussion: $title with ${_selectedUsers.toList().length} users',
-    );
     final discussion = DiscussionService.withUsers(
       title: title,
       users: _selectedUsers.toList(),
       persistToDatabase: true,
     );
-
-    // Add welcome message with variety
 
     final welcomeMessages = [
       'Welcome to $title! 👋',
@@ -175,10 +166,10 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
     logger.d('Added welcome message to discussion: ${discussion.id}');
 
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) => ChatPage(
           discussionId: discussion.id,
-          currentUserId: _currentUser!.id,
+          currentUserId: _currentUser.id,
           initialMessage: welcomeMessage,
         ),
       ),
@@ -402,7 +393,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
                           ? null
                           : (selected) {
                               setState(() {
-                                if (selected == true) {
+                                if (selected ?? false) {
                                   _selectedUsers.add(user);
                                 } else {
                                   _selectedUsers.remove(user);

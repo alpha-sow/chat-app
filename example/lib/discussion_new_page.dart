@@ -1,12 +1,11 @@
+import 'package:alphasow_ui/alphasow_ui.dart';
+import 'package:chat_app_package/chat_app_package.dart';
+import 'package:chat_flutter_app/contact_add_page.dart';
 import 'package:chat_flutter_app/create_discussion_group_page.dart';
 import 'package:chat_flutter_app/temp_chat_page.dart';
-import 'package:chat_flutter_app/contact_add_page.dart';
+import 'package:chat_flutter_app/utils/utils.dart';
 import 'package:chat_flutter_app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:chat_app_package/chat_app_package.dart';
-import 'package:alphasow_ui/alphasow_ui.dart';
-
-import 'utils/utils.dart';
 
 class DiscussionNewPage extends StatefulWidget {
   const DiscussionNewPage({required this.currentUser, super.key});
@@ -20,7 +19,7 @@ class DiscussionNewPage extends StatefulWidget {
 class _DiscussionNewPageState extends State<DiscussionNewPage> {
   List<User> _users = [];
   bool _isLoading = true;
-  User? _currentUser;
+  late User _currentUser;
 
   @override
   void initState() {
@@ -32,7 +31,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
   Future<void> _loadUsers() async {
     try {
       _users = await DatabaseService.instance.getAllUsers();
-    } catch (e) {
+    } on Exception catch (e) {
       logger.e('Error loading data', error: e);
     }
     setState(() {
@@ -45,7 +44,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
       MaterialPageRoute(builder: (context) => const ContactAddPage()),
     );
     if (result != null) {
-      _loadUsers();
+      await _loadUsers();
     }
   }
 
@@ -99,10 +98,10 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
           ),
         );
       }
-    } catch (e) {
+    } on Exception catch (e) {
       logger.e('Error deleting contact', error: e);
 
-      _loadUsers();
+      await _loadUsers();
 
       if (mounted) {
         scaffoldMessenger.showSnackBar(
@@ -120,7 +119,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
       MaterialPageRoute(
         builder: (context) => CreateDiscussionGroupPage(
           availableUsers: _users,
-          currentUser: _currentUser!,
+          currentUser: _currentUser,
         ),
       ),
     );
@@ -140,7 +139,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
         ],
       ),
       body: _isLoading
-          ? Center(child: LoadingCircular())
+          ? const Center(child: LoadingCircular())
           : _users.isEmpty
           ? const Center(
               child: Text('No contacts found', style: TextStyle(fontSize: 16)),
@@ -148,10 +147,10 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
           : Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(8),
                   child: Button(
                     onPressed: _createGroupDiscussion,
-                    child: Text('New Group'),
+                    child: const Text('New Group'),
                   ),
                 ),
                 Expanded(
@@ -176,7 +175,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
   }
 
   void _showUserDetails(User user) {
-    context.showAlertDialog(
+    context.showAlertDialog<void>(
       title: Text(user.displayName),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -214,18 +213,17 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
     );
   }
 
-  void _starChatWithUser(User user) async {
+  Future<void> _starChatWithUser(User user) async {
     final tempDiscussion = DiscussionService.withUsers(
       title: user.displayName,
-      users: [_currentUser!, user],
-      persistToDatabase: false,
+      users: [_currentUser, user],
     );
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
         builder: (context) => TempChatPage(
           discussion: tempDiscussion,
-          currentUser: _currentUser!,
+          currentUser: _currentUser,
           otherUser: user,
         ),
       ),

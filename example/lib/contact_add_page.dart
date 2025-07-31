@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:chat_app_package/chat_app_package.dart';
 import 'package:alphasow_ui/alphasow_ui.dart';
-
-import 'utils/utils.dart';
+import 'package:chat_app_package/chat_app_package.dart';
+import 'package:chat_flutter_app/utils/utils.dart';
+import 'package:flutter/material.dart';
 
 class ContactAddPage extends StatefulWidget {
   const ContactAddPage({super.key});
@@ -92,7 +91,7 @@ class _ContactAddPageState extends State<ContactAddPage> {
         );
         Navigator.of(context).pop(contact);
       }
-    } catch (e) {
+    } on Exception catch (e) {
       logger.e('Error saving contact', error: e);
       if (mounted) {
         context.showBanner(
@@ -117,8 +116,8 @@ class _ContactAddPageState extends State<ContactAddPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           if (_isLoading)
-            Padding(
-              padding: EdgeInsets.all(16.0),
+            const Padding(
+              padding: EdgeInsets.all(16),
               child: SizedBox(width: 20, height: 20, child: LoadingCircular()),
             )
           else
@@ -132,7 +131,7 @@ class _ContactAddPageState extends State<ContactAddPage> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -174,9 +173,9 @@ class _ContactAddPageState extends State<ContactAddPage> {
             ),
             const SizedBox(height: 24),
 
-            AlertBanner(
-              message:
-                  'Name is required. Email and phone are optional but help identify contacts.',
+            const AlertBanner(
+              message: 'Name is required. Email and phone are optional but '
+                  'help identify contacts.',
             ),
           ],
         ),

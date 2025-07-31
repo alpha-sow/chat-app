@@ -1,18 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:chat_app_package/chat_app_package.dart';
 import 'package:alphasow_ui/alphasow_ui.dart';
-
-import 'utils/utils.dart';
+import 'package:chat_app_package/chat_app_package.dart';
+import 'package:chat_flutter_app/utils/utils.dart';
+import 'package:flutter/material.dart';
 
 class ReplyContextWidget extends StatelessWidget {
-  final String replyToId;
-  final DiscussionService discussion;
-
   const ReplyContextWidget({
-    super.key,
     required this.replyToId,
     required this.discussion,
+    super.key,
   });
+
+  final String replyToId;
+  final DiscussionService discussion;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +34,8 @@ class ReplyContextWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Replying to ${replyToUser?.displayName ?? replyToMessage.senderId}',
+              'Replying to '
+              '${replyToUser?.displayName ?? replyToMessage.senderId}',
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
@@ -52,23 +52,23 @@ class ReplyContextWidget extends StatelessWidget {
           ],
         ),
       );
-    } catch (e) {
+    } on Exception {
       return const SizedBox.shrink();
     }
   }
 }
 
 class ReplyPreviewWidget extends StatelessWidget {
-  final String replyToMessageId;
-  final DiscussionService discussion;
-  final VoidCallback onCancel;
-
   const ReplyPreviewWidget({
-    super.key,
     required this.replyToMessageId,
     required this.discussion,
     required this.onCancel,
+    super.key,
   });
+
+  final String replyToMessageId;
+  final DiscussionService discussion;
+  final VoidCallback onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +94,8 @@ class ReplyPreviewWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Replying to ${replyToUser?.displayName ?? replyToMessage.senderId}',
+                    'Replying to '
+                    '${replyToUser?.displayName ?? replyToMessage.senderId}',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -117,23 +118,23 @@ class ReplyPreviewWidget extends StatelessWidget {
           ],
         ),
       );
-    } catch (e) {
+    } on Exception {
       return const SizedBox.shrink();
     }
   }
 }
 
 class ChatPage extends StatefulWidget {
-  final String discussionId;
-  final String currentUserId;
-  final String? initialMessage;
-
   const ChatPage({
-    super.key,
     required this.discussionId,
     required this.currentUserId,
     this.initialMessage,
+    super.key,
   });
+
+  final String discussionId;
+  final String currentUserId;
+  final String? initialMessage;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -172,7 +173,7 @@ class _ChatPageState extends State<ChatPage> {
           'Added initial message to discussion: ${widget.initialMessage}',
         );
       }
-    } catch (e) {
+    } on Exception catch (e) {
       logger.e('Error loading chat', error: e);
     }
 
@@ -222,9 +223,9 @@ class _ChatPageState extends State<ChatPage> {
       context: context,
       position: const RelativeRect.fromLTRB(100, 100, 100, 100),
       items: [
-        PopupMenuItem(
+        const PopupMenuItem(
           value: 'reply',
-          child: const Row(
+          child: Row(
             children: [
               Icon(Icons.reply, size: 18),
               SizedBox(width: 8),
@@ -232,9 +233,9 @@ class _ChatPageState extends State<ChatPage> {
             ],
           ),
         ),
-        PopupMenuItem(
+        const PopupMenuItem(
           value: 'delete',
-          child: const Row(
+          child: Row(
             children: [
               Icon(Icons.delete, size: 18, color: Colors.red),
               SizedBox(width: 8),
@@ -279,7 +280,9 @@ class _ChatPageState extends State<ChatPage> {
     final shouldDelete = await _showBulkDeleteConfirmation(
       _selectedMessages.length,
     );
-    if (shouldDelete == true && _discussion != null && _currentUser != null) {
+    if ((shouldDelete ?? false) &&
+        _discussion != null &&
+        _currentUser != null) {
       for (final messageId in _selectedMessages) {
         await SyncService.instance.deleteMessage(
           messageId,
@@ -288,9 +291,7 @@ class _ChatPageState extends State<ChatPage> {
         _discussion!.deleteMessage(messageId, _currentUser!.id);
       }
 
-      setState(() {
-        _exitSelectionMode();
-      });
+      setState(_exitSelectionMode);
     }
   }
 
@@ -321,7 +322,7 @@ class _ChatPageState extends State<ChatPage> {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: const Text('Loading...'),
         ),
-        body: Center(child: LoadingCircular()),
+        body: const Center(child: LoadingCircular()),
       );
     }
 
@@ -430,7 +431,8 @@ class _ChatPageState extends State<ChatPage> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    '${message.timestamp.hour}:${message.timestamp.minute.toString().padLeft(2, '0')}',
+                                    '${message.timestamp.hour}:'
+                                    '${message.timestamp.minute.toString().padLeft(2, '0')}',
                                     style: TextStyle(
                                       fontSize: 10,
                                       color: Colors.grey[600],
@@ -478,7 +480,7 @@ class _ChatPageState extends State<ChatPage> {
                     onCancel: _cancelReply,
                   ),
                 Container(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     border: Border(
                       top: BorderSide(color: Colors.grey.shade300),
@@ -497,7 +499,7 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                       const SizedBox(width: 8),
                       Button.ghost(
-                        onPressed: () => _sendMessage(),
+                        onPressed: _sendMessage,
                         child: const Icon(Icons.send),
                       ),
                     ],

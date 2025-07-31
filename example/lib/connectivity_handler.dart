@@ -2,47 +2,40 @@ import 'dart:async';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:flutter/material.dart';
 
-/// Handles connectivity changes and shows appropriate UI feedback
 class ConnectivityHandler {
+  ConnectivityHandler._();
   static ConnectivityHandler? _instance;
   StreamSubscription<bool>? _connectionSubscription;
-  
-  ConnectivityHandler._();
-  
+
   static ConnectivityHandler get instance {
     _instance ??= ConnectivityHandler._();
     return _instance!;
   }
 
-  /// Initialize connectivity monitoring
   void initialize(BuildContext context) {
-    // Listen to Firebase Realtime Database connection state
-    _connectionSubscription = FirebaseRealtimeService()
-        .connectionState
-        .listen((isConnected) async {
+    _connectionSubscription = FirebaseRealtimeService().connectionState.listen((
+      isConnected,
+    ) async {
       if (context.mounted) {
         _handleConnectionChange(context, isConnected);
       }
     });
   }
 
-  /// Handle connection state changes
   void _handleConnectionChange(BuildContext context, bool isConnected) {
-    // Check if context is still mounted before using it
     if (!context.mounted) return;
-    
+
     if (!isConnected) {
       _showOfflineSnackBar(context);
     } else {
       _showOnlineSnackBar(context);
-      // Trigger sync when coming back online
-      SyncService.instance.syncAll().catchError((error) {
+
+      SyncService.instance.syncAll().catchError((Object error) {
         debugPrint('Error syncing after reconnection: $error');
       });
     }
   }
 
-  /// Show offline indicator
   void _showOfflineSnackBar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -60,7 +53,6 @@ class ConnectivityHandler {
     );
   }
 
-  /// Show online indicator
   void _showOnlineSnackBar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -78,18 +70,16 @@ class ConnectivityHandler {
     );
   }
 
-  /// Clean up resources
   void dispose() {
     _connectionSubscription?.cancel();
     _instance = null;
   }
 }
 
-/// Widget that shows persistent connection status
 class ConnectionStatusWidget extends StatefulWidget {
-  final Widget child;
+  const ConnectionStatusWidget({required this.child, super.key});
 
-  const ConnectionStatusWidget({super.key, required this.child});
+  final Widget child;
 
   @override
   State<ConnectionStatusWidget> createState() => _ConnectionStatusWidgetState();
@@ -106,9 +96,9 @@ class _ConnectionStatusWidgetState extends State<ConnectionStatusWidget> {
   }
 
   void _listenToConnectionChanges() {
-    _connectionSubscription = FirebaseRealtimeService()
-        .connectionState
-        .listen((isConnected) {
+    _connectionSubscription = FirebaseRealtimeService().connectionState.listen((
+      isConnected,
+    ) {
       if (mounted) {
         setState(() {
           _isOnline = isConnected;

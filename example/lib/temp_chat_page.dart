@@ -1,21 +1,19 @@
-import 'package:chat_flutter_app/chat_page.dart';
-import 'package:flutter/material.dart';
-import 'package:chat_app_package/chat_app_package.dart';
 import 'package:alphasow_ui/alphasow_ui.dart';
-
-import 'utils/utils.dart';
+import 'package:chat_app_package/chat_app_package.dart';
+import 'package:chat_flutter_app/chat_page.dart';
+import 'package:chat_flutter_app/utils/utils.dart';
+import 'package:flutter/material.dart';
 
 class TempChatPage extends StatefulWidget {
-  final DiscussionService discussion;
-  final User currentUser;
-  final User otherUser;
-
   const TempChatPage({
-    super.key,
     required this.discussion,
     required this.currentUser,
     required this.otherUser,
+    super.key,
   });
+  final DiscussionService discussion;
+  final User currentUser;
+  final User otherUser;
 
   @override
   State<TempChatPage> createState() => _TempChatPageState();
@@ -24,8 +22,8 @@ class TempChatPage extends StatefulWidget {
 class _TempChatPageState extends State<TempChatPage> {
   late DiscussionService _discussion;
   final TextEditingController _messageController = TextEditingController();
-  User? _currentUser;
-  User? _otherUser;
+  late User _currentUser;
+  late User _otherUser;
 
   @override
   void initState() {
@@ -50,7 +48,7 @@ class _TempChatPageState extends State<TempChatPage> {
     final discussion = DiscussionService.withUsers(
       id: _discussion.id,
       title: _discussion.title,
-      users: [_currentUser!, _otherUser!],
+      users: [_currentUser, _otherUser],
       persistToDatabase: true,
     );
 
@@ -58,11 +56,11 @@ class _TempChatPageState extends State<TempChatPage> {
 
     // Navigate to ChatPage and pass the message to be added after navigation
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
           builder: (context) => ChatPage(
             discussionId: discussion.id,
-            currentUserId: _currentUser!.id,
+            currentUserId: _currentUser.id,
             initialMessage: text, // Pass the message to be added after loading
           ),
         ),
@@ -80,10 +78,9 @@ class _TempChatPageState extends State<TempChatPage> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            const Padding(
+              padding: EdgeInsets.all(8),
               child: AlertBanner(
-                type: AlertType.info,
                 message: 'Send your first message to start the conversation',
               ),
             ),
@@ -126,7 +123,7 @@ class _TempChatPageState extends State<TempChatPage> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 border: Border(top: BorderSide(color: Colors.grey.shade300)),
               ),
