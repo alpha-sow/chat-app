@@ -80,7 +80,7 @@ class _TempChatPageState extends State<TempChatPage> {
           children: [
             const Padding(
               padding: EdgeInsets.all(8),
-              child: AlertBanner(
+              child: ASAlertBanner(
                 message: 'Send your first message to start the conversation',
               ),
             ),
@@ -130,14 +130,14 @@ class _TempChatPageState extends State<TempChatPage> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Input(
+                    child: ASTextField(
                       controller: _messageController,
                       hintText: 'Send first message to start chat...',
                       onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Button.ghost(
+                  ASButton.ghost(
                     onPressed: _sendMessage,
                     child: const Icon(Icons.send),
                   ),

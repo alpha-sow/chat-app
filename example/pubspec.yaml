@@ -9,7 +9,7 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
-  alphasow_ui: ^1.6.0
+  alphasow_ui: ^1.7.0
 
   bloc: ^9.0.0
   chat_app_package:

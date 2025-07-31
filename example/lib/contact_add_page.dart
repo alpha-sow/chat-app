@@ -118,10 +118,14 @@ class _ContactAddPageState extends State<ContactAddPage> {
           if (_isLoading)
             const Padding(
               padding: EdgeInsets.all(16),
-              child: SizedBox(width: 20, height: 20, child: LoadingCircular()),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: ASLoadingCircular(),
+              ),
             )
           else
-            Button.ghost(
+            ASButton.ghost(
               onPressed: _saveContact,
               child: const Text(
                 'Save',
@@ -152,29 +156,30 @@ class _ContactAddPageState extends State<ContactAddPage> {
             ),
             const SizedBox(height: 32),
 
-            Input(
+            ASTextField(
               controller: _displayNameController,
               label: 'Name *',
               hintText: 'Enter contact name',
             ),
             const SizedBox(height: 16),
 
-            Input(
+            ASTextField(
               controller: _phoneController,
               label: 'Phone Number',
               hintText: 'Enter phone number (optional)',
             ),
             const SizedBox(height: 16),
 
-            Input(
+            ASTextField(
               controller: _emailController,
               label: 'Email',
               hintText: 'Enter email address (optional)',
             ),
             const SizedBox(height: 24),
 
-            const AlertBanner(
-              message: 'Name is required. Email and phone are optional but '
+            const ASAlertBanner(
+              message:
+                  'Name is required. Email and phone are optional but '
                   'help identify contacts.',
             ),
           ],
