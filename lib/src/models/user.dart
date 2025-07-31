@@ -27,8 +27,7 @@ sealed class User with _$User {
 
   // Factory constructors for common user creation patterns
   factory User.create({
-    String? id,
-    required String name,
+    required String name, String? id,
     String? email,
     String? phoneNumber,
     String? avatarUrl,
@@ -46,7 +45,6 @@ sealed class User with _$User {
     return User(
       id: 'guest_${_generateUserId()}',
       name: name,
-      isOnline: true,
       status: 'Guest User',
     );
   }

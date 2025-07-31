@@ -344,8 +344,8 @@ class DiscussionService {
     }
 
     final message = _state.messages[messageIndex];
-    final updatedReactions = Map<String, Set<String>>.from(message.reactions);
-    updatedReactions.putIfAbsent(emoji, () => <String>{});
+    final updatedReactions = Map<String, Set<String>>.from(message.reactions)
+      ..putIfAbsent(emoji, () => <String>{});
     updatedReactions[emoji] = Set<String>.from(updatedReactions[emoji]!)
       ..add(userId);
 

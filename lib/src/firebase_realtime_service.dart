@@ -2,10 +2,10 @@ import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 
 class FirebaseRealtimeService {
-  final FirebaseDatabase _database;
 
   FirebaseRealtimeService({FirebaseDatabase? database})
     : _database = database ?? FirebaseDatabase.instance;
+  final FirebaseDatabase _database;
 
   // Create or update data
   Future<void> set(String path, Map<String, dynamic> data) async {
@@ -39,7 +39,7 @@ class FirebaseRealtimeService {
     final snapshot = await ref.get();
 
     if (snapshot.exists) {
-      return Map<String, dynamic>.from(snapshot.value as Map);
+      return Map<String, dynamic>.from(snapshot.value! as Map);
     }
     return null;
   }
@@ -49,7 +49,7 @@ class FirebaseRealtimeService {
     final ref = _database.ref(path);
     return ref.onValue.map((event) {
       if (event.snapshot.exists) {
-        return Map<String, dynamic>.from(event.snapshot.value as Map);
+        return Map<String, dynamic>.from(event.snapshot.value! as Map);
       }
       return null;
     });
@@ -95,7 +95,7 @@ class FirebaseRealtimeService {
     final results = <Map<String, dynamic>>[];
 
     if (snapshot.exists) {
-      final data = snapshot.value as Map<dynamic, dynamic>;
+      final data = snapshot.value! as Map<dynamic, dynamic>;
       for (final entry in data.entries) {
         results.add({
           'key': entry.key,

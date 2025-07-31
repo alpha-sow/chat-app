@@ -9,10 +9,9 @@ import 'package:isar/isar.dart';
 /// using the Isar database. It handles data conversion between domain models
 /// and Isar models, and provides both synchronous and asynchronous operations.
 class DatabaseService {
+  DatabaseService._();
   static DatabaseService? _instance;
   static Isar? _isar;
-
-  DatabaseService._();
 
   /// Gets the singleton instance of the database service.
   static DatabaseService get instance {
