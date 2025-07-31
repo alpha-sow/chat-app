@@ -19,8 +19,10 @@ class ConnectivityHandler {
     // Listen to Firebase Realtime Database connection state
     _connectionSubscription = FirebaseRealtimeService()
         .connectionState
-        .listen((isConnected) {
-      _handleConnectionChange(context, isConnected);
+        .listen((isConnected) async {
+      if (context.mounted) {
+        _handleConnectionChange(context, isConnected);
+      }
     });
   }
 
