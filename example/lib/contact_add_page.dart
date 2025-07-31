@@ -26,55 +26,44 @@ class _ContactAddPageState extends State<ContactAddPage> {
   }
 
   Future<void> _saveContact() async {
-    // Manual validation since Input component doesn't support validator
     if (_displayNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Name is required'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      context.showBanner(message: 'Name is required', type: AlertType.error);
       return;
     }
 
     if (_displayNameController.text.trim().length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Name must be at least 2 characters'),
-          backgroundColor: Colors.red,
-        ),
+      context.showBanner(
+        message: 'Name must be at least 2 characters',
+        type: AlertType.error,
       );
+
       return;
     }
 
-    // Validate phone if provided
     final phone = _phoneController.text.trim();
     if (phone.isNotEmpty) {
       final phoneRegExp = RegExp(r'^\+?[\d\s\-\(\)]{10,}$');
       if (!phoneRegExp.hasMatch(phone)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please enter a valid phone number'),
-            backgroundColor: Colors.red,
-          ),
+        context.showBanner(
+          message: 'Please enter a valid phone number',
+          type: AlertType.error,
         );
+
         return;
       }
     }
 
-    // Validate email if provided
     final email = _emailController.text.trim();
     if (email.isNotEmpty) {
       final emailRegExp = RegExp(
         r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
       );
       if (!emailRegExp.hasMatch(email)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please enter a valid email address'),
-            backgroundColor: Colors.red,
-          ),
+        context.showBanner(
+          message: 'Please enter a valid email address',
+          type: AlertType.error,
         );
+
         return;
       }
     }
@@ -97,22 +86,18 @@ class _ContactAddPageState extends State<ContactAddPage> {
       await SyncService.instance.saveUser(contact);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Contact "${contact.name}" added successfully'),
-            backgroundColor: Colors.green,
-          ),
+        context.showBanner(
+          message: 'Contact "${contact.name}" added successfully',
+          type: AlertType.success,
         );
         Navigator.of(context).pop(contact);
       }
     } catch (e) {
       logger.e('Error saving contact', error: e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to add contact: $e'),
-            backgroundColor: Colors.red,
-          ),
+        context.showBanner(
+          message: 'Failed to add contact: $e',
+          type: AlertType.error,
         );
       }
     } finally {
@@ -151,7 +136,6 @@ class _ContactAddPageState extends State<ContactAddPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Contact Icon
             Center(
               child: Container(
                 width: 100,
@@ -169,7 +153,6 @@ class _ContactAddPageState extends State<ContactAddPage> {
             ),
             const SizedBox(height: 32),
 
-            // Name Field (Required)
             Input(
               controller: _displayNameController,
               label: 'Name *',
@@ -177,7 +160,6 @@ class _ContactAddPageState extends State<ContactAddPage> {
             ),
             const SizedBox(height: 16),
 
-            // Phone Field (Optional)
             Input(
               controller: _phoneController,
               label: 'Phone Number',
@@ -185,7 +167,6 @@ class _ContactAddPageState extends State<ContactAddPage> {
             ),
             const SizedBox(height: 16),
 
-            // Email Field (Optional)
             Input(
               controller: _emailController,
               label: 'Email',
@@ -193,26 +174,9 @@ class _ContactAddPageState extends State<ContactAddPage> {
             ),
             const SizedBox(height: 24),
 
-            // Info Text
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue[200]!),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Name is required. Email and phone are optional but help identify contacts.',
-                      style: TextStyle(color: Colors.blue[700], fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
+            AlertBanner(
+              message:
+                  'Name is required. Email and phone are optional but help identify contacts.',
             ),
           ],
         ),
