@@ -157,9 +157,8 @@ class _TempChatPageState extends State<TempChatPage> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Button(
+                  Button.ghost(
                     onPressed: _sendMessage,
-                    variant: Variant.ghost,
                     child: const Icon(Icons.send),
                   ),
                 ],

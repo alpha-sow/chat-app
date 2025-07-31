@@ -192,9 +192,8 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
         title: const Text('Create Group Discussion'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          Button(
+          Button.ghost(
             onPressed: _createDiscussion,
-            variant: Variant.ghost,
             child: const Text(
               'Create',
               style: TextStyle(
@@ -224,7 +223,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Button(
+                Button.outline(
                   onPressed: () {
                     final randomName = _generateRandomGroupName();
                     setState(() {
@@ -233,7 +232,6 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
                     });
                     logger.d('Generated random group name: $randomName');
                   },
-                  variant: Variant.outline,
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

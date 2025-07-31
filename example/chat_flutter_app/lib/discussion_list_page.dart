@@ -90,9 +90,8 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
           onPressed: () => Navigator.of(context).pop(false),
           child: const Text('Cancel'),
         ),
-        Button(
+        Button.destructive(
           onPressed: () => Navigator.of(context).pop(true),
-          variant: Variant.destructive,
           child: const Text('Delete'),
         ),
       ],
@@ -107,7 +106,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           // Sync status indicator
-          Button(
+          Button.ghost(
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -116,7 +115,6 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                 ),
               );
             },
-            variant: Variant.ghost,
             child: const Icon(Icons.add_circle),
           ),
         ],
@@ -126,7 +124,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
-              child: LoadingSpinner(color: Theme.of(context).primaryColor),
+              child: LoadingCircular(color: Theme.of(context).primaryColor),
             );
           }
 

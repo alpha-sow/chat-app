@@ -132,18 +132,17 @@ class _ContactAddPageState extends State<ContactAddPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           if (_isLoading)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(16.0),
               child: SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: LoadingCircular(color: Theme.of(context).primaryColor),
               ),
             )
           else
-            Button(
+            Button.ghost(
               onPressed: _saveContact,
-              variant: Variant.ghost,
               child: const Text(
                 'Save',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),

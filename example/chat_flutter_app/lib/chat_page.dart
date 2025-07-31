@@ -110,9 +110,8 @@ class ReplyPreviewWidget extends StatelessWidget {
                 ],
               ),
             ),
-            Button(
+            Button.ghost(
               onPressed: onCancel,
-              variant: Variant.ghost,
               child: const Icon(Icons.close, size: 18),
             ),
           ],
@@ -307,14 +306,12 @@ class _ChatPageState extends State<ChatPage> {
         'Are you sure you want to delete $messageCount selected messages?',
       ),
       actions: [
-        Button(
+        Button.ghost(
           onPressed: () => Navigator.of(context).pop(false),
-          variant: Variant.ghost,
           child: const Text('Cancel'),
         ),
-        Button(
+        Button.destructive(
           onPressed: () => Navigator.of(context).pop(true),
-          variant: Variant.destructive,
           child: const Text('Delete All'),
         ),
       ],
@@ -329,7 +326,9 @@ class _ChatPageState extends State<ChatPage> {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: const Text('Loading...'),
         ),
-        body: const Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: LoadingCircular(color: Theme.of(context).primaryColor),
+        ),
       );
     }
 
@@ -342,17 +341,15 @@ class _ChatPageState extends State<ChatPage> {
             ? Text('${_selectedMessages.length} selected')
             : Text(_discussion!.title),
         leading: _isSelectionMode
-            ? Button(
+            ? Button.ghost(
                 onPressed: _exitSelectionMode,
-                variant: Variant.ghost,
                 child: const Icon(Icons.close),
               )
             : null,
         actions: [
           if (_isSelectionMode)
-            Button(
+            Button.ghost(
               onPressed: _deleteSelectedMessages,
-              variant: Variant.ghost,
               child: const Icon(Icons.delete),
             ),
         ],
@@ -507,9 +504,8 @@ class _ChatPageState extends State<ChatPage> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Button(
+                      Button.ghost(
                         onPressed: () => _sendMessage(),
-                        variant: Variant.ghost,
                         child: const Icon(Icons.send),
                       ),
                     ],

@@ -69,14 +69,12 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
         ],
       ),
       actions: [
-        Button(
+        Button.ghost(
           onPressed: () => Navigator.of(context).pop(false),
-          variant: Variant.ghost,
           child: const Text('Cancel'),
         ),
-        Button(
+        Button.destructive(
           onPressed: () => Navigator.of(context).pop(true),
-          variant: Variant.destructive,
           child: const Text('Delete'),
         ),
       ],
@@ -135,15 +133,16 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
         title: const Text('New Discussion'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          Button(
+          Button.ghost(
             onPressed: _addContact,
-            variant: Variant.ghost,
             child: const Icon(Icons.person_add),
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: LoadingCircular(color: Theme.of(context).primaryColor),
+            )
           : _users.isEmpty
           ? const Center(
               child: Text('No contacts found', style: TextStyle(fontSize: 16)),
@@ -195,9 +194,8 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
         ],
       ),
       actions: [
-        Button(
+        Button.ghost(
           onPressed: () => Navigator.of(context).pop(),
-          variant: Variant.ghost,
           child: const Text('Close'),
         ),
         Button(
