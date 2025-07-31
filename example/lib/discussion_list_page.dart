@@ -38,33 +38,6 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
     }
   }
 
-  Future<void> _deleteDiscussion(Discussion discussion) async {
-    final shouldDelete = await _showDeleteDiscussionConfirmation(
-      discussion.title,
-    );
-    if (shouldDelete ?? false) {
-      try {
-        logger.w('Deleting discussion: ${discussion.title} (${discussion.id})');
-        await SyncService.instance.deleteDiscussion(discussion.id);
-
-        if (mounted) {
-          context.showBanner(
-            message: 'Discussion "${discussion.title}" deleted',
-            type: AlertType.success,
-          );
-        }
-      } on Exception catch (e) {
-        logger.e('Error deleting discussion', error: e);
-        if (mounted) {
-          context.showBanner(
-            message: 'Failed to delete discussion: $e',
-            type: AlertType.error,
-          );
-        }
-      }
-    }
-  }
-
   Future<bool?> _showDeleteDiscussionConfirmation(String discussionTitle) {
     return context.showAlertDialog(
       title: const Text('Delete Discussion'),
@@ -181,29 +154,20 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                           ],
                         ),
                       )
-                    : ListView.builder(
-                        itemCount: data.length,
-                        itemBuilder: (context, index) {
-                          final discussion = data[index];
-                          return Card(
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 4,
-                            ),
-                            child: Dismissible(
+                    : ListView(
+                        children: ListTileUI.divideTiles(
+                          tiles: data.map((discussion) {
+                            return Dismissible(
                               key: Key(discussion.id),
                               direction: DismissDirection.endToStart,
                               background: Container(
                                 alignment: Alignment.centerRight,
                                 padding: const EdgeInsets.only(right: 20),
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                                color: Colors.red,
                                 child: const Icon(
                                   Icons.delete,
                                   color: Colors.white,
-                                  size: 32,
+                                  size: 28,
                                 ),
                               ),
                               confirmDismiss: (direction) async {
@@ -212,9 +176,6 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                 );
                               },
                               onDismissed: (direction) async {
-                                final scaffoldMessenger = ScaffoldMessenger.of(
-                                  context,
-                                );
                                 try {
                                   logger.w(
                                     'Deleting discussion: ${discussion.title} (${discussion.id})',
@@ -223,14 +184,11 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                     discussion.id,
                                   );
 
-                                  if (mounted) {
-                                    scaffoldMessenger.showSnackBar(
-                                      SnackBar(
-                                        content: Text(
+                                  if (mounted && context.mounted) {
+                                    context.showBanner(
+                                      message:
                                           'Discussion "${discussion.title}" deleted',
-                                        ),
-                                        backgroundColor: Colors.green,
-                                      ),
+                                      type: AlertType.success,
                                     );
                                   }
                                 } on Exception catch (e) {
@@ -238,19 +196,16 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                     'Error deleting discussion',
                                     error: e,
                                   );
-                                  if (mounted) {
-                                    scaffoldMessenger.showSnackBar(
-                                      SnackBar(
-                                        content: Text(
+                                  if (mounted && context.mounted) {
+                                    context.showBanner(
+                                      message:
                                           'Failed to delete discussion: $e',
-                                        ),
-                                        backgroundColor: Colors.red,
-                                      ),
+                                      type: AlertType.error,
                                     );
                                   }
                                 }
                               },
-                              child: ListTile(
+                              child: ListTileUI(
                                 leading: CircleAvatar(
                                   backgroundColor: Colors.blue[100],
                                   child: Text(
@@ -291,12 +246,10 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                     ),
                                   );
                                 },
-                                onLongPress: () =>
-                                    _deleteDiscussion(discussion),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          }).toList(),
+                        ).toList(),
                       ),
             };
           },

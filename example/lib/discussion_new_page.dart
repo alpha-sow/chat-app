@@ -140,21 +140,51 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
                             ),
                           ),
                           Expanded(
-                            child: ListView.builder(
-                              itemCount: data.length,
-                              itemBuilder: (context, index) {
-                                final user = data[index];
-                                return UserTile(
-                                  user: user,
-                                  confirmDismiss: (_) =>
-                                      _showDeleteContactConfirmation(
-                                        user.displayName,
+                            child: ListView(
+                              children: ListTileUI.divideTiles(
+                                tiles: data.map(
+                                  (user) => Dismissible(
+                                    key: Key(user.id),
+                                    direction: DismissDirection.endToStart,
+                                    background: Container(
+                                      alignment: Alignment.centerRight,
+                                      padding: const EdgeInsets.only(right: 20),
+                                      color: Colors.red,
+                                      child: const Icon(
+                                        Icons.delete,
+                                        color: Colors.white,
+                                        size: 28,
                                       ),
-                                  onDismissed: (_) => _deleteContact(user),
-                                  onTap: () => _starChatWithUser(user),
-                                  onLongPress: () => _showUserDetails(user),
-                                );
-                              },
+                                    ),
+                                    confirmDismiss: (direction) async {
+                                      return _showDeleteContactConfirmation(
+                                        user.displayName,
+                                      );
+                                    },
+                                    onDismissed: (direction) async {
+                                      await _deleteContact(user);
+                                    },
+                                    child: ListTileUI(
+                                      leading: UserAvatar(user),
+                                      title: Text(
+                                        user.displayName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      subtitle:
+                                          user.email != null &&
+                                              user.email!.isNotEmpty
+                                          ? Text(user.email!)
+                                          : user.phoneNumber != null &&
+                                                user.phoneNumber!.isNotEmpty
+                                          ? Text(user.phoneNumber!)
+                                          : null,
+                                      onTap: () => _starChatWithUser(user),
+                                    ),
+                                  ),
+                                ),
+                              ).toList(),
                             ),
                           ),
                         ],
@@ -164,45 +194,6 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
           },
         ),
       ),
-    );
-  }
-
-  void _showUserDetails(User user) {
-    context.showAlertDialog<void>(
-      title: Text(user.displayName),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (user.email != null && user.email!.isNotEmpty)
-            Text('Email: ${user.email}'),
-          Text('Status: ${user.isOnline ? 'Online' : 'Offline'}'),
-          if (user.status.isNotEmpty) Text('Message: ${user.status}'),
-          if (user.isGuest) const Text('Type: Guest User'),
-          if (user.lastSeen != null && !user.isOnline)
-            Text('Last seen: ${_formatDateTime(user.lastSeen!)}'),
-        ],
-      ),
-      actions: [
-        Button.ghost(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-        Button(
-          onPressed: () {
-            Navigator.of(context).pop();
-            _starChatWithUser(user);
-          },
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.chat, size: 16),
-              SizedBox(width: 4),
-              Text('Start Chat'),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -221,20 +212,5 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
         ),
       ),
     );
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
-    } else {
-      return 'Just now';
-    }
   }
 }
