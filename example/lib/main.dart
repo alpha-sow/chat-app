@@ -1,6 +1,5 @@
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
-import 'package:chat_flutter_app/connectivity_handler.dart';
 import 'package:chat_flutter_app/discussion_list_page.dart';
 import 'package:chat_flutter_app/firebase_options.dart';
 import 'package:chat_flutter_app/utils/utils.dart';
@@ -54,9 +53,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
-      home: ConnectionStatusWidget(
-        child: DiscussionListPage(currentUser: currentUser),
-      ),
+      home: DiscussionListPage(currentUser: currentUser),
     );
   }
 }

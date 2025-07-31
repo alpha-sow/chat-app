@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/chat_page.dart';
-import 'package:chat_flutter_app/connectivity_handler.dart';
 import 'package:chat_flutter_app/discussion_new_page.dart';
 import 'package:chat_flutter_app/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -291,11 +290,9 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (context) => ConnectionStatusWidget(
-                            child: ChatPage(
-                              discussionId: discussion.id,
-                              currentUserId: widget.currentUser.id,
-                            ),
+                          builder: (context) => ChatPage(
+                            discussionId: discussion.id,
+                            currentUserId: widget.currentUser.id,
                           ),
                         ),
                       );
