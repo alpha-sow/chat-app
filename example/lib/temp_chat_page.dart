@@ -80,29 +80,11 @@ class _TempChatPageState extends State<TempChatPage> {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange[200]!),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.orange[700]),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Send your first message to start the conversation',
-                      style: TextStyle(
-                        color: Colors.orange[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: AlertBanner(
+                type: AlertType.info,
+                message: 'Send your first message to start the conversation',
               ),
             ),
             Expanded(
@@ -154,6 +136,7 @@ class _TempChatPageState extends State<TempChatPage> {
                     child: Input(
                       controller: _messageController,
                       hintText: 'Send first message to start chat...',
+                      onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
                   const SizedBox(width: 8),

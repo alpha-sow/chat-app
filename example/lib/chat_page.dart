@@ -156,17 +156,14 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _initializeChat() async {
     try {
-      // Get current user
       _currentUser = await DatabaseService.instance.getUser(
         widget.currentUserId,
       );
 
-      // Load the discussion
       _discussion = await DiscussionService.loadFromDatabase(
         widget.discussionId,
       );
 
-      // Add initial message if provided
       if (widget.initialMessage != null &&
           widget.initialMessage!.isNotEmpty &&
           _currentUser != null) {
@@ -260,7 +257,6 @@ class _ChatPageState extends State<ChatPage> {
       _replyToMessageId = messageId;
     });
 
-    // Focus the text field for reply
     FocusScope.of(context).requestFocus(FocusNode());
   }
 
@@ -284,7 +280,6 @@ class _ChatPageState extends State<ChatPage> {
       _selectedMessages.length,
     );
     if (shouldDelete == true && _discussion != null && _currentUser != null) {
-      // Delete from sync service (handles local + remote)
       for (final messageId in _selectedMessages) {
         await SyncService.instance.deleteMessage(
           messageId,
@@ -400,7 +395,6 @@ class _ChatPageState extends State<ChatPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Show reply context if this message is a reply
                               if (message.replyToId != null)
                                 ReplyContextWidget(
                                   replyToId: message.replyToId!,
@@ -477,7 +471,6 @@ class _ChatPageState extends State<ChatPage> {
             ),
             Column(
               children: [
-                // Reply preview bar
                 if (_replyToMessageId != null)
                   ReplyPreviewWidget(
                     replyToMessageId: _replyToMessageId!,
@@ -499,6 +492,7 @@ class _ChatPageState extends State<ChatPage> {
                           hintText: _replyToMessageId != null
                               ? 'Reply to message...'
                               : 'Type a message...',
+                          onSubmitted: (_) => _sendMessage(),
                         ),
                       ),
                       const SizedBox(width: 8),
