@@ -2,10 +2,12 @@ import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/contact_add_page.dart';
 import 'package:chat_flutter_app/create_discussion_group_page.dart';
+import 'package:chat_flutter_app/cubit/user_list_cubit.dart';
 import 'package:chat_flutter_app/temp_chat_page.dart';
 import 'package:chat_flutter_app/utils/utils.dart';
 import 'package:chat_flutter_app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DiscussionNewPage extends StatefulWidget {
   const DiscussionNewPage({required this.currentUser, super.key});
@@ -17,35 +19,18 @@ class DiscussionNewPage extends StatefulWidget {
 }
 
 class _DiscussionNewPageState extends State<DiscussionNewPage> {
-  List<User> _users = [];
-  bool _isLoading = true;
   late User _currentUser;
 
   @override
   void initState() {
     super.initState();
     _currentUser = widget.currentUser;
-    _loadUsers();
-  }
-
-  Future<void> _loadUsers() async {
-    try {
-      _users = await DatabaseService.instance.getAllUsers();
-    } on Exception catch (e) {
-      logger.e('Error loading data', error: e);
-    }
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   Future<void> _addContact() async {
-    final result = await Navigator.of(context).push<User>(
+    await Navigator.of(context).push<User>(
       MaterialPageRoute(builder: (context) => const ContactAddPage()),
     );
-    if (result != null) {
-      await _loadUsers();
-    }
   }
 
   Future<bool?> _showDeleteContactConfirmation(String contactName) {
@@ -81,44 +66,35 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
   }
 
   Future<void> _deleteContact(User user) async {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       logger.w('Deleting contact: ${user.displayName} (${user.id})');
       await SyncService.instance.deleteUser(user.id);
 
-      setState(() {
-        _users.removeWhere((u) => u.id == user.id);
-      });
-
       if (mounted) {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text('Contact "${user.displayName}" deleted'),
-            backgroundColor: Colors.green,
-          ),
+        context.showBanner(
+          message: 'Contact "${user.displayName}" deleted',
+          type: AlertType.success,
         );
       }
     } on Exception catch (e) {
       logger.e('Error deleting contact', error: e);
 
-      await _loadUsers();
+      if (mounted) await context.read<UserListCubit>().loadUserList();
 
       if (mounted) {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete contact: $e'),
-            backgroundColor: Colors.red,
-          ),
+        context.showBanner(
+          message: 'Failed to delete contact: $e',
+          type: AlertType.error,
         );
       }
     }
   }
 
-  Future<void> _createGroupDiscussion() async {
+  Future<void> _createGroupDiscussion(List<User> users) async {
     await Navigator.of(context).push<Map<String, dynamic>>(
       MaterialPageRoute(
         builder: (context) => CreateDiscussionGroupPage(
-          availableUsers: _users,
+          availableUsers: users,
           currentUser: _currentUser,
         ),
       ),
@@ -127,50 +103,67 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('New Discussion'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          Button.ghost(
-            onPressed: _addContact,
-            child: const Icon(Icons.person_add),
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: LoadingCircular())
-          : _users.isEmpty
-          ? const Center(
-              child: Text('No contacts found', style: TextStyle(fontSize: 16)),
-            )
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Button(
-                    onPressed: _createGroupDiscussion,
-                    child: const Text('New Group'),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _users.length,
-                    itemBuilder: (context, index) {
-                      final user = _users[index];
-                      return UserTile(
-                        user: user,
-                        confirmDismiss: (_) =>
-                            _showDeleteContactConfirmation(user.displayName),
-                        onDismissed: (_) => _deleteContact(user),
-                        onTap: () => _starChatWithUser(user),
-                        onLongPress: () => _showUserDetails(user),
-                      );
-                    },
-                  ),
-                ),
-              ],
+    return BlocProvider(
+      create: (context) => UserListCubit()..loadUserList(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('New Discussion'),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          actions: [
+            Button.ghost(
+              onPressed: _addContact,
+              child: const Icon(Icons.person_add),
             ),
+          ],
+        ),
+        body: BlocBuilder<UserListCubit, UserListState>(
+          builder: (context, state) {
+            return switch (state) {
+              UserListStateLoading() => const Center(
+                child: LoadingCircular(),
+              ),
+              UserListStateLoaded(:final data) =>
+                data.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No contacts found',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      )
+                    : Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Button(
+                              onPressed: () => _createGroupDiscussion(data),
+                              child: const Text('New Group'),
+                            ),
+                          ),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: data.length,
+                              itemBuilder: (context, index) {
+                                final user = data[index];
+                                return UserTile(
+                                  user: user,
+                                  confirmDismiss: (_) =>
+                                      _showDeleteContactConfirmation(
+                                        user.displayName,
+                                      ),
+                                  onDismissed: (_) => _deleteContact(user),
+                                  onTap: () => _starChatWithUser(user),
+                                  onLongPress: () => _showUserDetails(user),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+              UserListStateError(:final e) => Center(child: Text('$e')),
+            };
+          },
+        ),
+      ),
     );
   }
 
