@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
 class MessageInput extends StatefulWidget {
@@ -127,9 +128,11 @@ class _MessageInputState extends State<MessageInput>
       });
     } else {
       if (await _recorder.hasPermission()) {
+        final directory = await getTemporaryDirectory();
+        final audioPath = '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
         await _recorder.start(
           const RecordConfig(),
-          path: 'audio_${DateTime.now().millisecondsSinceEpoch}.m4a',
+          path: audioPath,
         );
         unawaited(_recordingAnimationController.repeat(reverse: true));
         setState(() {

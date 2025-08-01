@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/widgets/widgets.dart';
@@ -194,40 +195,48 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _sendMessage([String? messageText]) async {
     final text = messageText ?? _messageController.text.trim();
-    
+
     if (_discussion != null && _currentUser != null) {
-      setState(() {
-        // Send text message if there is text
-        if (text.isNotEmpty) {
+      // Send text message if there is text
+      if (text.isNotEmpty) {
+        _discussion!.sendMessage(
+          _currentUser!.id,
+          text,
+          replyToId: _replyToMessageId,
+        );
+      }
+
+      // Send image if selected
+      if (_selectedImage != null) {
+        final imageFile = File(_selectedImage!.path);
+        final imageBytes = await Converter.imageToBytes(imageFile);
+        _discussion!.sendMessage(
+          _currentUser!.id,
+          imageBytes,
+          type: MessageType.image,
+          replyToId: _replyToMessageId,
+        );
+      }
+
+      // Send audio if recorded
+      if (_recordedAudioPath != null) {
+        final audioFile = File(_recordedAudioPath!);
+        if (audioFile.existsSync()) {
+          final audioBytes = await Converter.audioToBytes(audioFile);
           _discussion!.sendMessage(
             _currentUser!.id,
-            text,
-            replyToId: _replyToMessageId,
-          );
-        }
-        
-        // Send image if selected
-        if (_selectedImage != null) {
-          _discussion!.sendMessage(
-            _currentUser!.id,
-            _selectedImage!.path,
-            type: MessageType.image,
-            replyToId: _replyToMessageId,
-          );
-          _selectedImage = null;
-        }
-        
-        // Send audio if recorded
-        if (_recordedAudioPath != null) {
-          _discussion!.sendMessage(
-            _currentUser!.id,
-            _recordedAudioPath!,
+            audioBytes,
             type: MessageType.audio,
             replyToId: _replyToMessageId,
           );
-          _recordedAudioPath = null;
+        } else {
+          logger.e('Audio file not found at path: $_recordedAudioPath');
         }
-        
+      }
+
+      setState(() {
+        _selectedImage = null;
+        _recordedAudioPath = null;
         _messageController.clear();
         _replyToMessageId = null;
       });
@@ -529,7 +538,8 @@ class _ChatPageState extends State<ChatPage> {
                   selectedImage: _selectedImage,
                   recordedAudioPath: _recordedAudioPath,
                   onRemoveImage: () => setState(() => _selectedImage = null),
-                  onRemoveAudio: () => setState(() => _recordedAudioPath = null),
+                  onRemoveAudio: () =>
+                      setState(() => _recordedAudioPath = null),
                 ),
               ],
             ),
