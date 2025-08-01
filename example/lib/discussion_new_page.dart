@@ -67,7 +67,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
   Future<void> _deleteContact(User user) async {
     try {
       logger.w('Deleting contact: ${user.displayName} (${user.id})');
-      await SyncService.instance.deleteUser(user.id);
+      await UserService.instance.deleteUser(user.id);
 
       if (mounted) {
         context.showBanner(
@@ -77,8 +77,6 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
       }
     } on Exception catch (e) {
       logger.e('Error deleting contact', error: e);
-
-      if (mounted) await context.read<UserListCubit>().loadUserList();
 
       if (mounted) {
         context.showBanner(
@@ -103,7 +101,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => UserListCubit()..loadUserList(),
+      create: (context) => UserListCubit(),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('New Discussion'),

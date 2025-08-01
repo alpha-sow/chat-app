@@ -243,38 +243,6 @@ class LocalDatabaseService {
     });
   }
 
-  /// Clears all data from the database.
-  ///
-  /// This removes all discussions, messages, and users. Use with caution.
-  Future<void> clearAllData() async {
-    await isar.writeTxn(() async {
-      await isar.clear();
-    });
-  }
-
-  /// Closes the database connection and cleans up resources.
-  ///
-  /// This should be called when the app is shutting down.
-  Future<void> close() async {
-    await _isar?.close();
-    _isar = null;
-    _instance = null;
-  }
-
-  /// Watches messages for a specific discussion in real-time.
-  ///
-  /// [discussionId] The ID of the discussion to watch.
-  ///
-  /// Returns a stream that emits updated message lists when they change.
-  Stream<List<Message>> watchMessagesForDiscussion(String discussionId) {
-    return isar.isarMessages
-        .filter()
-        .discussionIdEqualTo(discussionId)
-        .watch(fireImmediately: true)
-        .map(
-          (isarMessages) => isarMessages.map((im) => im.toMessage()).toList(),
-        );
-  }
 
   /// Watches all discussions for real-time updates.
   ///
@@ -294,5 +262,16 @@ class LocalDatabaseService {
       }
       return discussions;
     });
+  }
+
+  /// Watches all users for real-time updates.
+  ///
+  /// Returns a stream that emits the current list of users
+  /// whenever they change in the database.
+  Stream<List<User>> watchAllUsers() {
+    return isar.isarUsers
+        .where()
+        .watch(fireImmediately: true)
+        .map((isarUsers) => isarUsers.map((iu) => iu.toUser()).toList());
   }
 }

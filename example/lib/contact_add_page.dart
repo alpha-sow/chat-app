@@ -35,6 +35,16 @@ class _ContactAddPageState extends State<ContactAddPage> {
         type: AlertType.error,
       );
 
+      await UserService.instance.createUser(
+        name: _displayNameController.text.trim(),
+        email: _emailController.text.trim().isEmpty
+            ? null
+            : _emailController.text.trim(),
+        phoneNumber: _phoneController.text.trim().isEmpty
+            ? null
+            : _phoneController.text.trim(),
+      );
+
       return;
     }
 
