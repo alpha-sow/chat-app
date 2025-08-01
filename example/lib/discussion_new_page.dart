@@ -1,9 +1,9 @@
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
+import 'package:chat_flutter_app/chat_temp_page.dart';
 import 'package:chat_flutter_app/contact_add_page.dart';
 import 'package:chat_flutter_app/create_discussion_group_page.dart';
 import 'package:chat_flutter_app/cubit/user_list_cubit.dart';
-import 'package:chat_flutter_app/temp_chat_page.dart';
 import 'package:chat_flutter_app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -199,7 +199,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
 
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (context) => TempChatPage(
+        builder: (context) => ChatTempPage(
           discussion: tempDiscussion,
           currentUser: _currentUser,
           otherUser: user,

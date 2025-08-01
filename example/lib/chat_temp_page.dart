@@ -1,10 +1,11 @@
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/chat_page.dart';
+import 'package:chat_flutter_app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
-class TempChatPage extends StatefulWidget {
-  const TempChatPage({
+class ChatTempPage extends StatefulWidget {
+  const ChatTempPage({
     required this.discussion,
     required this.currentUser,
     required this.otherUser,
@@ -15,10 +16,10 @@ class TempChatPage extends StatefulWidget {
   final User otherUser;
 
   @override
-  State<TempChatPage> createState() => _TempChatPageState();
+  State<ChatTempPage> createState() => _ChatTempPageState();
 }
 
-class _TempChatPageState extends State<TempChatPage> {
+class _ChatTempPageState extends State<ChatTempPage> {
   late ChatService _discussion;
   final TextEditingController _messageController = TextEditingController();
   late User _currentUser;
@@ -121,27 +122,12 @@ class _TempChatPageState extends State<TempChatPage> {
                 ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.grey.shade300)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ASTextField(
-                      controller: _messageController,
-                      hintText: 'Send first message to start chat...',
-                      onSubmitted: (_) => _sendMessage(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ASButton.ghost(
-                    onPressed: _sendMessage,
-                    child: const Icon(Icons.send),
-                  ),
-                ],
-              ),
+            MessageInput(
+              messageController: _messageController,
+              onSendMessage: (message) {
+                _sendMessage();
+                _messageController.clear();
+              },
             ),
           ],
         ),

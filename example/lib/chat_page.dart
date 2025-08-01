@@ -1,5 +1,6 @@
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
+import 'package:chat_flutter_app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
 class ReplyContextWidget extends StatelessWidget {
@@ -478,31 +479,12 @@ class _ChatPageState extends State<ChatPage> {
                     discussion: _discussion!,
                     onCancel: _cancelReply,
                   ),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: Colors.grey.shade300),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ASTextField(
-                          controller: _messageController,
-                          hintText: _replyToMessageId != null
-                              ? 'Reply to message...'
-                              : 'Type a message...',
-                          onSubmitted: (_) => _sendMessage(),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      ASButton.ghost(
-                        onPressed: _sendMessage,
-                        child: const Icon(Icons.send),
-                      ),
-                    ],
-                  ),
+                MessageInput(
+                  messageController: _messageController,
+                  onSendMessage: (message) {
+                    _sendMessage();
+                    _messageController.clear();
+                  },
                 ),
               ],
             ),
