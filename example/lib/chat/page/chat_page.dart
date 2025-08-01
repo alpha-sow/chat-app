@@ -80,7 +80,7 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         _isSending = true;
       });
-      // Send text message if there is text
+
       if (text.isNotEmpty) {
         _discussion!.sendMessage(
           _currentUser!.id,
@@ -89,7 +89,6 @@ class _ChatPageState extends State<ChatPage> {
         );
       }
 
-      // Send image if selected
       if (_selectedImage != null) {
         try {
           final imageFile = File(_selectedImage!.path);
@@ -107,7 +106,7 @@ class _ChatPageState extends State<ChatPage> {
           );
         } on Exception catch (e) {
           logger.e('Error uploading image', error: e);
-          // Send with local path as fallback
+
           _discussion!.sendMessage(
             _currentUser!.id,
             _selectedImage!.path,
@@ -117,7 +116,6 @@ class _ChatPageState extends State<ChatPage> {
         }
       }
 
-      // Send audio if recorded
       if (_recordedAudioPath != null) {
         try {
           final audioFile = File(_recordedAudioPath!);
@@ -135,7 +133,7 @@ class _ChatPageState extends State<ChatPage> {
           );
         } on Exception catch (e) {
           logger.e('Error uploading audio', error: e);
-          // Send with local path as fallback
+
           _discussion!.sendMessage(
             _currentUser!.id,
             _recordedAudioPath!,
