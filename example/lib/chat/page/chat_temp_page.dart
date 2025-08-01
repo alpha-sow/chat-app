@@ -1,8 +1,7 @@
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app_package/chat_app_package.dart';
-import 'package:chat_flutter_app/chat_page.dart';
-import 'package:chat_flutter_app/widgets/widgets.dart';
+import 'package:chat_flutter_app/chat/chat.dart';
 import 'package:flutter/material.dart';
 
 class ChatTempPage extends StatefulWidget {
@@ -45,7 +44,6 @@ class _ChatTempPageState extends State<ChatTempPage> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    // Persist the discussion to database without adding the message yet
     final discussion = DiscussionService.withUsers(
       id: _discussion.id,
       title: _discussion.title,
@@ -55,14 +53,13 @@ class _ChatTempPageState extends State<ChatTempPage> {
 
     logger.i('Discussion persisted to database: ${discussion.id}');
 
-    // Navigate to ChatPage and pass the message to be added after navigation
     if (mounted) {
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (context) => ChatPage(
             discussionId: discussion.id,
             currentUser: _currentUser,
-            initialMessage: text, // Pass the message to be added after loading
+            initialMessage: text,
           ),
         ),
       );

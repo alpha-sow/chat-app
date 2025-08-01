@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
-import 'package:chat_flutter_app/widgets/widgets.dart';
+import 'package:chat_flutter_app/chat/chat.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -439,7 +439,7 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 MessageInput(
                   messageController: _messageController,
-                  onSendMessage: (message) => _sendMessage(),
+                  onSendMessage: (_) => _sendMessage(),
                   onImageSelected: _onImageSelected,
                   onAudioRecorded: _onAudioRecorded,
                   selectedImage: _selectedImage,

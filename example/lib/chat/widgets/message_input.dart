@@ -131,7 +131,8 @@ class _MessageInputState extends State<MessageInput>
     } else {
       if (await _recorder.hasPermission()) {
         final directory = await getTemporaryDirectory();
-        final audioPath = '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        final audioPath =
+            '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
         await _recorder.start(
           const RecordConfig(),
           path: audioPath,
@@ -293,16 +294,20 @@ class _MessageInputState extends State<MessageInput>
                 ),
               ),
               ASButton.ghost(
-                onPressed: widget.isSending ? null : () {
-                  widget.onSendMessage?.call(widget.messageController.text);
-                },
-                child: widget.isSending 
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: ASLoadingCircular(),
-                    )
-                  : const Icon(Icons.send),
+                onPressed: widget.isSending
+                    ? null
+                    : () {
+                        widget.onSendMessage?.call(
+                          widget.messageController.text,
+                        );
+                      },
+                child: widget.isSending
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: ASLoadingCircular(),
+                      )
+                    : const Icon(Icons.send),
               ),
             ],
           ),

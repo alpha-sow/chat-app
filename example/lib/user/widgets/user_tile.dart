@@ -1,5 +1,5 @@
 import 'package:chat_app_package/chat_app_package.dart';
-import 'package:chat_flutter_app/widgets/widgets.dart';
+import 'package:chat_flutter_app/user/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
 class UserTile extends StatelessWidget {
