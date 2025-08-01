@@ -9,11 +9,20 @@ part 'discussion_list_cubit.freezed.dart';
 
 class DiscussionListCubit extends Cubit<DiscussionListState> {
   DiscussionListCubit() : super(const DiscussionListStateLoading()) {
-    _discussionListSubscription = ChatService.watchAllDiscussions.listen((
-      data,
-    ) {
-      emit(DiscussionListState.loaded(data));
-    });
+    _discussionListSubscription = ChatService.watchAllDiscussions.listen(
+      (
+        discussions,
+      ) {
+        emit(DiscussionListState.loaded(discussions));
+      },
+      onError: (Object error) {
+        emit(
+          DiscussionListState.error(
+            error is Exception ? error : Exception(error.toString()),
+          ),
+        );
+      },
+    );
   }
 
   late StreamSubscription<List<Discussion>> _discussionListSubscription;

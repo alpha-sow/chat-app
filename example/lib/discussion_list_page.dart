@@ -250,6 +250,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                           }).toList(),
                         ).toList(),
                       ),
+              DiscussionListStateError(:final e) => Center(child: Text('$e')),
             };
           },
         ),
