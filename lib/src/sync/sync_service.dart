@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:chat_app_package/src/src.dart';
-import 'package:chat_app_package/src/utils/utils.dart';
 
 /// Service that synchronizes local Isar database with Firebase Realtime Database.
 ///

@@ -1,7 +1,6 @@
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/chat_page.dart';
-import 'package:chat_flutter_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 class TempChatPage extends StatefulWidget {

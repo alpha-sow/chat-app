@@ -5,7 +5,6 @@ import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/chat_page.dart';
 import 'package:chat_flutter_app/cubit/discussion_list_cubit.dart';
 import 'package:chat_flutter_app/discussion_new_page.dart';
-import 'package:chat_flutter_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
