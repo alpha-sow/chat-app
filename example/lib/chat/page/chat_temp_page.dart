@@ -58,7 +58,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
         MaterialPageRoute<void>(
           builder: (context) => ChatPage(
             discussionId: discussion.id,
-            currentUser: _currentUser,
+            currentUserId: _currentUser.id,
             initialMessage: text,
           ),
         ),

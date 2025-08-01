@@ -170,7 +170,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
       MaterialPageRoute<void>(
         builder: (context) => ChatPage(
           discussionId: discussion.id,
-          currentUser: _currentUser,
+          currentUserId: _currentUser.id,
           initialMessage: welcomeMessage,
         ),
       ),

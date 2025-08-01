@@ -8,13 +8,13 @@ import 'package:image_picker/image_picker.dart';
 class ChatPage extends StatefulWidget {
   const ChatPage({
     required this.discussionId,
-    required this.currentUser,
+    required this.currentUserId,
     this.initialMessage,
     super.key,
   });
 
   final String discussionId;
-  final User currentUser;
+  final String currentUserId;
   final String? initialMessage;
 
   @override
@@ -36,17 +36,22 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    _currentUser = widget.currentUser;
     _initializeChat();
   }
 
   Future<void> _initializeChat() async {
     try {
+      _currentUser = await LocalDatabaseService.instance.getUser(
+        widget.currentUserId,
+      );
+
       _discussion = await DiscussionService.loadFromDatabase(
         widget.discussionId,
       );
 
-      if (widget.initialMessage != null && widget.initialMessage!.isNotEmpty) {
+      if (widget.initialMessage != null &&
+          widget.initialMessage!.isNotEmpty &&
+          _currentUser != null) {
         _discussion!.sendMessage(_currentUser!.id, widget.initialMessage!);
         logger.d(
           'Added initial message to discussion: ${widget.initialMessage}',
