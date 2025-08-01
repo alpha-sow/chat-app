@@ -1,5 +1,4 @@
 export 'chat_service.dart';
-export 'converter.dart';
 export 'database/database.dart';
 export 'models/models.dart';
 export 'sync/sync.dart';

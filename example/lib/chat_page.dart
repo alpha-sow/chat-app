@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/widgets/widgets.dart';
@@ -208,11 +207,9 @@ class _ChatPageState extends State<ChatPage> {
 
       // Send image if selected
       if (_selectedImage != null) {
-        final imageFile = File(_selectedImage!.path);
-        final imageBytes = await Converter.imageToBytes(imageFile);
         _discussion!.sendMessage(
           _currentUser!.id,
-          imageBytes,
+          _selectedImage!.path,
           type: MessageType.image,
           replyToId: _replyToMessageId,
         );
@@ -220,18 +217,12 @@ class _ChatPageState extends State<ChatPage> {
 
       // Send audio if recorded
       if (_recordedAudioPath != null) {
-        final audioFile = File(_recordedAudioPath!);
-        if (audioFile.existsSync()) {
-          final audioBytes = await Converter.audioToBytes(audioFile);
-          _discussion!.sendMessage(
-            _currentUser!.id,
-            audioBytes,
-            type: MessageType.audio,
-            replyToId: _replyToMessageId,
-          );
-        } else {
-          logger.e('Audio file not found at path: $_recordedAudioPath');
-        }
+        _discussion!.sendMessage(
+          _currentUser!.id,
+          _recordedAudioPath!,
+          type: MessageType.audio,
+          replyToId: _replyToMessageId,
+        );
       }
 
       setState(() {
@@ -243,13 +234,13 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  void _onImageSelected(XFile image) {
+  Future<void> _onImageSelected(XFile image) async {
     setState(() {
       _selectedImage = image;
     });
   }
 
-  void _onAudioRecorded(String audioPath) {
+  Future<void> _onAudioRecorded(String audioPath) async {
     setState(() {
       _recordedAudioPath = audioPath;
     });
@@ -537,9 +528,12 @@ class _ChatPageState extends State<ChatPage> {
                   onAudioRecorded: _onAudioRecorded,
                   selectedImage: _selectedImage,
                   recordedAudioPath: _recordedAudioPath,
-                  onRemoveImage: () => setState(() => _selectedImage = null),
-                  onRemoveAudio: () =>
-                      setState(() => _recordedAudioPath = null),
+                  onRemoveImage: () => setState(() {
+                    _selectedImage = null;
+                  }),
+                  onRemoveAudio: () => setState(() {
+                    _recordedAudioPath = null;
+                  }),
                 ),
               ],
             ),
