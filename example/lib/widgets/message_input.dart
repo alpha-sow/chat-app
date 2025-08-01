@@ -18,6 +18,7 @@ class MessageInput extends StatefulWidget {
     this.recordedAudioPath,
     this.onRemoveImage,
     this.onRemoveAudio,
+    this.isSending = false,
   });
 
   final TextEditingController messageController;
@@ -28,6 +29,7 @@ class MessageInput extends StatefulWidget {
   final String? recordedAudioPath;
   final VoidCallback? onRemoveImage;
   final VoidCallback? onRemoveAudio;
+  final bool isSending;
 
   @override
   State<MessageInput> createState() => _MessageInputState();
@@ -291,10 +293,16 @@ class _MessageInputState extends State<MessageInput>
                 ),
               ),
               ASButton.ghost(
-                onPressed: () {
+                onPressed: widget.isSending ? null : () {
                   widget.onSendMessage?.call(widget.messageController.text);
                 },
-                child: const Icon(Icons.send),
+                child: widget.isSending 
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: ASLoadingCircular(),
+                    )
+                  : const Icon(Icons.send),
               ),
             ],
           ),

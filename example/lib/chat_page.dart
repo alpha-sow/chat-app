@@ -267,6 +267,7 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   User? _currentUser;
   bool _isLoading = true;
+  bool _isSending = false;
   bool _isSelectionMode = false;
   final Set<String> _selectedMessages = {};
   String? _replyToMessageId;
@@ -317,6 +318,9 @@ class _ChatPageState extends State<ChatPage> {
     final text = messageText ?? _messageController.text.trim();
 
     if (_discussion != null && _currentUser != null) {
+      setState(() {
+        _isSending = true;
+      });
       // Send text message if there is text
       if (text.isNotEmpty) {
         _discussion!.sendMessage(
@@ -387,6 +391,7 @@ class _ChatPageState extends State<ChatPage> {
         _recordedAudioPath = null;
         _messageController.clear();
         _replyToMessageId = null;
+        _isSending = false;
       });
     }
   }
@@ -685,6 +690,7 @@ class _ChatPageState extends State<ChatPage> {
                   onAudioRecorded: _onAudioRecorded,
                   selectedImage: _selectedImage,
                   recordedAudioPath: _recordedAudioPath,
+                  isSending: _isSending,
                   onRemoveImage: () => setState(() {
                     _selectedImage = null;
                   }),
