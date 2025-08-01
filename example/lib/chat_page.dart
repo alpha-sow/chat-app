@@ -2,6 +2,7 @@ import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ReplyContextWidget extends StatelessWidget {
   const ReplyContextWidget({
@@ -148,6 +149,8 @@ class _ChatPageState extends State<ChatPage> {
   bool _isSelectionMode = false;
   final Set<String> _selectedMessages = {};
   String? _replyToMessageId;
+  XFile? _selectedImage;
+  String? _recordedAudioPath;
 
   @override
   void initState() {
@@ -189,19 +192,58 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  Future<void> _sendMessage() async {
-    final text = _messageController.text.trim();
-    if (text.isNotEmpty && _discussion != null && _currentUser != null) {
+  Future<void> _sendMessage([String? messageText]) async {
+    final text = messageText ?? _messageController.text.trim();
+    
+    if (_discussion != null && _currentUser != null) {
       setState(() {
-        _discussion!.sendMessage(
-          _currentUser!.id,
-          text,
-          replyToId: _replyToMessageId,
-        );
+        // Send text message if there is text
+        if (text.isNotEmpty) {
+          _discussion!.sendMessage(
+            _currentUser!.id,
+            text,
+            replyToId: _replyToMessageId,
+          );
+        }
+        
+        // Send image if selected
+        if (_selectedImage != null) {
+          _discussion!.sendMessage(
+            _currentUser!.id,
+            _selectedImage!.path,
+            type: MessageType.image,
+            replyToId: _replyToMessageId,
+          );
+          _selectedImage = null;
+        }
+        
+        // Send audio if recorded
+        if (_recordedAudioPath != null) {
+          _discussion!.sendMessage(
+            _currentUser!.id,
+            _recordedAudioPath!,
+            type: MessageType.audio,
+            replyToId: _replyToMessageId,
+          );
+          _recordedAudioPath = null;
+        }
+        
         _messageController.clear();
         _replyToMessageId = null;
       });
     }
+  }
+
+  void _onImageSelected(XFile image) {
+    setState(() {
+      _selectedImage = image;
+    });
+  }
+
+  void _onAudioRecorded(String audioPath) {
+    setState(() {
+      _recordedAudioPath = audioPath;
+    });
   }
 
   void _toggleMessageSelection(String messageId) {
@@ -481,10 +523,13 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 MessageInput(
                   messageController: _messageController,
-                  onSendMessage: (message) {
-                    _sendMessage();
-                    _messageController.clear();
-                  },
+                  onSendMessage: (message) => _sendMessage(),
+                  onImageSelected: _onImageSelected,
+                  onAudioRecorded: _onAudioRecorded,
+                  selectedImage: _selectedImage,
+                  recordedAudioPath: _recordedAudioPath,
+                  onRemoveImage: () => setState(() => _selectedImage = null),
+                  onRemoveAudio: () => setState(() => _recordedAudioPath = null),
                 ),
               ],
             ),

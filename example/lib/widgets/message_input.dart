@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,21 +13,57 @@ class MessageInput extends StatefulWidget {
     this.onSendMessage,
     this.onImageSelected,
     this.onAudioRecorded,
+    this.selectedImage,
+    this.recordedAudioPath,
+    this.onRemoveImage,
+    this.onRemoveAudio,
   });
 
   final TextEditingController messageController;
   final ValueChanged<String>? onSendMessage;
   final ValueChanged<XFile>? onImageSelected;
   final ValueChanged<String>? onAudioRecorded;
+  final XFile? selectedImage;
+  final String? recordedAudioPath;
+  final VoidCallback? onRemoveImage;
+  final VoidCallback? onRemoveAudio;
 
   @override
   State<MessageInput> createState() => _MessageInputState();
 }
 
-class _MessageInputState extends State<MessageInput> {
+class _MessageInputState extends State<MessageInput>
+    with TickerProviderStateMixin {
   final ImagePicker _picker = ImagePicker();
   final AudioRecorder _recorder = AudioRecorder();
   bool _isRecording = false;
+  late AnimationController _recordingAnimationController;
+  late Animation<double> _recordingAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _recordingAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _recordingAnimation =
+        Tween<double>(
+          begin: 0.8,
+          end: 1.2,
+        ).animate(
+          CurvedAnimation(
+            parent: _recordingAnimationController,
+            curve: Curves.easeInOut,
+          ),
+        );
+  }
+
+  @override
+  void dispose() {
+    _recordingAnimationController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage() async {
     final image = await _picker.pickImage(source: ImageSource.gallery);
@@ -38,6 +77,10 @@ class _MessageInputState extends State<MessageInput> {
     if (image != null) {
       widget.onImageSelected?.call(image);
     }
+  }
+
+  void _removeSelectedImage() {
+    widget.onRemoveImage?.call();
   }
 
   Future<void> _showImageSourceSelection() async {
@@ -76,6 +119,9 @@ class _MessageInputState extends State<MessageInput> {
       if (path != null) {
         widget.onAudioRecorded?.call(path);
       }
+      _recordingAnimationController
+        ..stop()
+        ..reset();
       setState(() {
         _isRecording = false;
       });
@@ -85,6 +131,7 @@ class _MessageInputState extends State<MessageInput> {
           const RecordConfig(),
           path: 'audio_${DateTime.now().millisecondsSinceEpoch}.m4a',
         );
+        unawaited(_recordingAnimationController.repeat(reverse: true));
         setState(() {
           _isRecording = true;
         });
@@ -99,30 +146,154 @@ class _MessageInputState extends State<MessageInput> {
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: Colors.grey.shade300)),
       ),
-      child: Row(
-        spacing: 8,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          ASButton.ghost(
-            onPressed: _showImageSourceSelection,
-            child: const Icon(Icons.image),
-          ),
-          ASButton.ghost(
-            onPressed: _toggleRecording,
-            child: Icon(
-              _isRecording ? Icons.stop : Icons.mic,
-              color: _isRecording ? Colors.red : null,
+          if (_isRecording)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                border: Border.all(color: Colors.red.shade200),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  AnimatedBuilder(
+                    animation: _recordingAnimation,
+                    builder: (context, child) {
+                      return Container(
+                        width: 12,
+                        height: 12,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        transform: Matrix4.identity()
+                          ..scale(_recordingAnimation.value),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Recording audio...',
+                    style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Tap to stop',
+                    style: TextStyle(
+                      color: Colors.red.shade600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: ASTextField(
-              controller: widget.messageController,
-              hintText: 'Send first message to start chat...',
-              onSubmitted: (value) => widget.onSendMessage?.call(value),
+          if (widget.selectedImage != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: Image.file(
+                      File(widget.selectedImage!.path),
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.selectedImage!.name,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: _removeSelectedImage,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
             ),
-          ),
-          ASButton.ghost(
-            onPressed: () => widget.onSendMessage?.call(widget.messageController.text),
-            child: const Icon(Icons.send),
+          if (widget.recordedAudioPath != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.audiotrack, color: Colors.blue),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Audio recorded',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: widget.onRemoveAudio,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+          Row(
+            spacing: 8,
+            children: [
+              ASButton.ghost(
+                onPressed: _showImageSourceSelection,
+                child: const Icon(Icons.image),
+              ),
+              AnimatedBuilder(
+                animation: _recordingAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _isRecording ? _recordingAnimation.value : 1.0,
+                    child: ASButton.ghost(
+                      onPressed: _toggleRecording,
+                      child: Icon(
+                        _isRecording ? Icons.stop : Icons.mic,
+                        color: _isRecording ? Colors.red : null,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              Expanded(
+                child: ASTextField(
+                  controller: widget.messageController,
+                  hintText: 'Send first message to start chat...',
+                  onSubmitted: (value) => widget.onSendMessage?.call(value),
+                ),
+              ),
+              ASButton.ghost(
+                onPressed: () {
+                  widget.onSendMessage?.call(widget.messageController.text);
+                },
+                child: const Icon(Icons.send),
+              ),
+            ],
           ),
         ],
       ),
