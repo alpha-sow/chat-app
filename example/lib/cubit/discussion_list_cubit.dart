@@ -9,7 +9,7 @@ part 'discussion_list_cubit.freezed.dart';
 
 class DiscussionListCubit extends Cubit<DiscussionListState> {
   DiscussionListCubit() : super(const DiscussionListStateLoading()) {
-    _discussionListSubscription = ChatService.watchAllDiscussions.listen(
+    _discussionListSubscription = DiscussionService.watchAllDiscussions.listen(
       (
         discussions,
       ) {

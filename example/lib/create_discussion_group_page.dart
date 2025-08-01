@@ -148,7 +148,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
       '(${_isCustomTitle ? "custom" : "auto-generated"})',
     );
 
-    final discussion = ChatService.withUsers(
+    final discussion = DiscussionService.withUsers(
       title: title,
       users: _selectedUsers.toList(),
       persistToDatabase: true,
@@ -170,7 +170,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
       MaterialPageRoute<void>(
         builder: (context) => ChatPage(
           discussionId: discussion.id,
-          currentUserId: _currentUser.id,
+          currentUser: _currentUser,
           initialMessage: welcomeMessage,
         ),
       ),

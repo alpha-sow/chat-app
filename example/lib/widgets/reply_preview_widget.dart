@@ -12,7 +12,7 @@ class ReplyPreviewWidget extends StatelessWidget {
   });
 
   final String replyToMessageId;
-  final ChatService discussion;
+  final DiscussionService discussion;
   final VoidCallback onCancel;
 
   @override

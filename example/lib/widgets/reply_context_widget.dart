@@ -10,7 +10,7 @@ class ReplyContextWidget extends StatelessWidget {
   });
 
   final String replyToId;
-  final ChatService discussion;
+  final DiscussionService discussion;
 
   @override
   Widget build(BuildContext context) {

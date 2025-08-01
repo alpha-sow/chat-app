@@ -12,7 +12,7 @@ class ChatTempPage extends StatefulWidget {
     required this.otherUser,
     super.key,
   });
-  final ChatService discussion;
+  final DiscussionService discussion;
   final User currentUser;
   final User otherUser;
 
@@ -21,7 +21,7 @@ class ChatTempPage extends StatefulWidget {
 }
 
 class _ChatTempPageState extends State<ChatTempPage> {
-  late ChatService _discussion;
+  late DiscussionService _discussion;
   final TextEditingController _messageController = TextEditingController();
   late User _currentUser;
   late User _otherUser;
@@ -46,7 +46,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
     if (text.isEmpty) return;
 
     // Persist the discussion to database without adding the message yet
-    final discussion = ChatService.withUsers(
+    final discussion = DiscussionService.withUsers(
       id: _discussion.id,
       title: _discussion.title,
       users: [_currentUser, _otherUser],
@@ -61,7 +61,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
         MaterialPageRoute<void>(
           builder: (context) => ChatPage(
             discussionId: discussion.id,
-            currentUserId: _currentUser.id,
+            currentUser: _currentUser,
             initialMessage: text, // Pass the message to be added after loading
           ),
         ),
@@ -94,7 +94,9 @@ class _ChatTempPageState extends State<ChatTempPage> {
                       radius: 40,
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       backgroundImage: widget.otherUser.avatarUrl != null
-                          ? CachedNetworkImageProvider(widget.otherUser.avatarUrl!)
+                          ? CachedNetworkImageProvider(
+                              widget.otherUser.avatarUrl!,
+                            )
                           : null,
                       child: widget.otherUser.avatarUrl == null
                           ? Text(

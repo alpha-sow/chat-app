@@ -8,20 +8,20 @@ import 'package:chat_app_package/src/src.dart';
 /// discussions including message handling, participant management, and data
 /// persistence. It supports both local database storage and remote
 /// synchronization through SyncService.
-class ChatService {
+class DiscussionService {
   /// Creates a new discussion service with the specified parameters.
   ///
   /// [title] The title of the discussion.
   /// [id] Optional discussion ID. If not provided, a UUID will be generated.
   /// [participants] List of participant IDs. Can be empty initially.
   /// [persistToDatabase] Whether to enable database persistence and sync.
-  factory ChatService({
+  factory DiscussionService({
     required String title,
     String? id,
     List<String>? participants,
     bool persistToDatabase = false,
   }) {
-    return ChatService._(
+    return DiscussionService._(
       initialState: Discussion.initial(
         id: id ?? Discussion.generateId(),
         title: title,
@@ -35,13 +35,13 @@ class ChatService {
   ///
   /// This is useful when you have full User objects and want to cache them
   /// in the discussion for efficient display.
-  factory ChatService.withUsers({
+  factory DiscussionService.withUsers({
     required String title,
     String? id,
     List<User>? users,
     bool persistToDatabase = false,
   }) {
-    final discussion = ChatService._(
+    final discussion = DiscussionService._(
       initialState: Discussion.initial(
         id: id ?? Discussion.generateId(),
         title: title,
@@ -67,11 +67,11 @@ class ChatService {
   /// Creates a discussion service from a JSON representation.
   ///
   /// Used for deserializing discussions from storage or network.
-  factory ChatService.fromJson(
+  factory DiscussionService.fromJson(
     Map<String, dynamic> json, {
     bool persistToDatabase = false,
   }) {
-    return ChatService._(
+    return DiscussionService._(
       initialState: Discussion.fromJson(json),
       persistToDatabase: persistToDatabase,
     );
@@ -80,18 +80,18 @@ class ChatService {
   /// Creates a discussion service from an existing Discussion state.
   ///
   /// Useful for wrapping existing discussion data with service capabilities.
-  factory ChatService.fromState(
+  factory DiscussionService.fromState(
     Discussion state, {
     bool persistToDatabase = false,
   }) {
-    return ChatService._(
+    return DiscussionService._(
       initialState: state,
       persistToDatabase: persistToDatabase,
     );
   }
 
   /// Internal Constructor
-  ChatService._({
+  DiscussionService._({
     required Discussion initialState,
     bool persistToDatabase = false,
   }) : _state = initialState,
@@ -121,7 +121,7 @@ class ChatService {
   ///
   /// Returns null if the discussion is not found. Automatically loads
   /// associated users from the database.
-  static Future<ChatService?> loadFromDatabase(
+  static Future<DiscussionService?> loadFromDatabase(
     String discussionId,
   ) async {
     final databaseService = LocalDatabaseService.instance;
@@ -129,7 +129,7 @@ class ChatService {
 
     if (discussionState == null) return null;
 
-    final discussion = ChatService._(
+    final discussion = DiscussionService._(
       initialState: discussionState,
       persistToDatabase: true,
     );
