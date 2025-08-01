@@ -1,4 +1,5 @@
 import 'package:alphasow_ui/alphasow_ui.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/chat_page.dart';
 import 'package:chat_flutter_app/widgets/widgets.dart';
@@ -93,7 +94,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
                       radius: 40,
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       backgroundImage: widget.otherUser.avatarUrl != null
-                          ? NetworkImage(widget.otherUser.avatarUrl!)
+                          ? CachedNetworkImageProvider(widget.otherUser.avatarUrl!)
                           : null,
                       child: widget.otherUser.avatarUrl == null
                           ? Text(

@@ -1,4 +1,5 @@
 import 'package:alphasow_ui/alphasow_ui.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/chat_page.dart';
 import 'package:chat_flutter_app/utils/utils.dart';
@@ -267,7 +268,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
                                   ? Colors.green[100]
                                   : Colors.blue[100],
                               backgroundImage: user.avatarUrl != null
-                                  ? NetworkImage(user.avatarUrl!)
+                                  ? CachedNetworkImageProvider(user.avatarUrl!)
                                   : null,
                               child: user.avatarUrl == null
                                   ? Text(
@@ -436,7 +437,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
                             ? Colors.green[100]
                             : Colors.blue[100],
                         backgroundImage: user.avatarUrl != null
-                            ? NetworkImage(user.avatarUrl!)
+                            ? CachedNetworkImageProvider(user.avatarUrl!)
                             : null,
                         child: user.avatarUrl == null
                             ? Text(
