@@ -11,7 +11,7 @@ class TempChatPage extends StatefulWidget {
     required this.otherUser,
     super.key,
   });
-  final DiscussionService discussion;
+  final ChatService discussion;
   final User currentUser;
   final User otherUser;
 
@@ -20,7 +20,7 @@ class TempChatPage extends StatefulWidget {
 }
 
 class _TempChatPageState extends State<TempChatPage> {
-  late DiscussionService _discussion;
+  late ChatService _discussion;
   final TextEditingController _messageController = TextEditingController();
   late User _currentUser;
   late User _otherUser;
@@ -45,7 +45,7 @@ class _TempChatPageState extends State<TempChatPage> {
     if (text.isEmpty) return;
 
     // Persist the discussion to database without adding the message yet
-    final discussion = DiscussionService.withUsers(
+    final discussion = ChatService.withUsers(
       id: _discussion.id,
       title: _discussion.title,
       users: [_currentUser, _otherUser],

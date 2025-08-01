@@ -8,14 +8,14 @@ import 'package:isar/isar.dart';
 /// This service provides CRUD operations for discussions, messages, and users
 /// using the Isar database. It handles data conversion between domain models
 /// and Isar models, and provides both synchronous and asynchronous operations.
-class DatabaseService {
-  DatabaseService._();
-  static DatabaseService? _instance;
+class LocalDatabaseService {
+  LocalDatabaseService._();
+  static LocalDatabaseService? _instance;
   static Isar? _isar;
 
   /// Gets the singleton instance of the database service.
-  static DatabaseService get instance {
-    _instance ??= DatabaseService._();
+  static LocalDatabaseService get instance {
+    _instance ??= LocalDatabaseService._();
     return _instance!;
   }
 

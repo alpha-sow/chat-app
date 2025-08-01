@@ -15,9 +15,9 @@ void main() async {
   final appDocDir = await getApplicationDocumentsDirectory();
 
   logger.i('Initializing database at: ${appDocDir.path}');
-  await DatabaseService.initialize(directory: appDocDir.path);
+  await LocalDatabaseService.initialize(directory: appDocDir.path);
 
-  final firebaseService = FirebaseRealtimeService();
+  final firebaseService = RemoteDatabaseService();
 
   final currentUser = User.create(
     id: '1991',
@@ -30,7 +30,7 @@ void main() async {
   );
 
   SyncService.initialize(
-    localDb: DatabaseService.instance,
+    localDb: LocalDatabaseService.instance,
     firebase: firebaseService,
     currentUserId: currentUser.id,
   );

@@ -11,7 +11,7 @@ class ReplyContextWidget extends StatelessWidget {
   });
 
   final String replyToId;
-  final DiscussionService discussion;
+  final ChatService discussion;
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +67,7 @@ class ReplyPreviewWidget extends StatelessWidget {
   });
 
   final String replyToMessageId;
-  final DiscussionService discussion;
+  final ChatService discussion;
   final VoidCallback onCancel;
 
   @override
@@ -141,7 +141,7 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  DiscussionService? _discussion;
+  ChatService? _discussion;
   final TextEditingController _messageController = TextEditingController();
   User? _currentUser;
   bool _isLoading = true;
@@ -157,18 +157,18 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _initializeChat() async {
     try {
-      _currentUser = await DatabaseService.instance.getUser(
+      _currentUser = await LocalDatabaseService.instance.getUser(
         widget.currentUserId,
       );
 
-      _discussion = await DiscussionService.loadFromDatabase(
+      _discussion = await ChatService.loadFromDatabase(
         widget.discussionId,
       );
 
       if (widget.initialMessage != null &&
           widget.initialMessage!.isNotEmpty &&
           _currentUser != null) {
-        _discussion!.addMessage(_currentUser!.id, widget.initialMessage!);
+        _discussion!.sendMessage(_currentUser!.id, widget.initialMessage!);
         logger.d(
           'Added initial message to discussion: ${widget.initialMessage}',
         );
@@ -193,7 +193,7 @@ class _ChatPageState extends State<ChatPage> {
     final text = _messageController.text.trim();
     if (text.isNotEmpty && _discussion != null && _currentUser != null) {
       setState(() {
-        _discussion!.addMessage(
+        _discussion!.sendMessage(
           _currentUser!.id,
           text,
           replyToId: _replyToMessageId,

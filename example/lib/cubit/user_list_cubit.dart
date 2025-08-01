@@ -10,7 +10,7 @@ class UserListCubit extends Cubit<UserListState> {
 
   Future<void> loadUserList() async {
     try {
-      final data = await DatabaseService.instance.getAllUsers();
+      final data = await LocalDatabaseService.instance.getAllUsers();
       emit(UserListStateLoaded(data));
     } on Exception catch (e) {
       emit(UserListStateError(e));

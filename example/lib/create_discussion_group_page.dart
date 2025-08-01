@@ -147,7 +147,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
       '(${_isCustomTitle ? "custom" : "auto-generated"})',
     );
 
-    final discussion = DiscussionService.withUsers(
+    final discussion = ChatService.withUsers(
       title: title,
       users: _selectedUsers.toList(),
       persistToDatabase: true,

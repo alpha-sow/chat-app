@@ -195,7 +195,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
   }
 
   Future<void> _starChatWithUser(User user) async {
-    final tempDiscussion = DiscussionService.withUsers(
+    final tempDiscussion = ChatService.withUsers(
       title: user.displayName,
       users: [_currentUser, user],
     );
