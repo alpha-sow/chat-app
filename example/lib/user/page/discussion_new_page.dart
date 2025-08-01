@@ -1,10 +1,7 @@
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
-import 'package:chat_flutter_app/chat/page/chat_temp_page.dart';
-import 'package:chat_flutter_app/user/page/contact_add_page.dart';
-import 'package:chat_flutter_app/discussion/page/create_discussion_group_page.dart';
-import 'package:chat_flutter_app/user/cubit/user_list_cubit.dart';
-import 'package:chat_flutter_app/user/widgets/widgets.dart';
+import 'package:chat_flutter_app/chat/chat.dart';
+import 'package:chat_flutter_app/user/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
