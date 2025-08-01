@@ -42,32 +42,61 @@ class _ImageMessageWidget extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.file(
-          File(imagePath),
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(8),
+        child: _isUrl(imagePath)
+            ? Image.network(
+                imagePath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.broken_image, color: Colors.grey),
+                        SizedBox(height: 4),
+                        Text(
+                          'Image not found',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              )
+            : Image.file(
+                File(imagePath),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.broken_image, color: Colors.grey),
+                        SizedBox(height: 4),
+                        Text(
+                          'Image not found',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-              child: const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.broken_image, color: Colors.grey),
-                  SizedBox(height: 4),
-                  Text(
-                    'Image not found',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
       ),
     );
+  }
+
+  bool _isUrl(String path) {
+    return path.startsWith('http://') || path.startsWith('https://');
   }
 }
 
@@ -299,22 +328,58 @@ class _ChatPageState extends State<ChatPage> {
 
       // Send image if selected
       if (_selectedImage != null) {
-        _discussion!.sendMessage(
-          _currentUser!.id,
-          _selectedImage!.path,
-          type: MessageType.image,
-          replyToId: _replyToMessageId,
-        );
+        try {
+          final imageFile = File(_selectedImage!.path);
+          final downloadUrl = await StorageService.instance.uploadChatImage(
+            file: imageFile,
+            userId: _currentUser!.id,
+            discussionId: widget.discussionId,
+          );
+
+          _discussion!.sendMessage(
+            _currentUser!.id,
+            downloadUrl,
+            type: MessageType.image,
+            replyToId: _replyToMessageId,
+          );
+        } on Exception catch (e) {
+          logger.e('Error uploading image', error: e);
+          // Send with local path as fallback
+          _discussion!.sendMessage(
+            _currentUser!.id,
+            _selectedImage!.path,
+            type: MessageType.image,
+            replyToId: _replyToMessageId,
+          );
+        }
       }
 
       // Send audio if recorded
       if (_recordedAudioPath != null) {
-        _discussion!.sendMessage(
-          _currentUser!.id,
-          _recordedAudioPath!,
-          type: MessageType.audio,
-          replyToId: _replyToMessageId,
-        );
+        try {
+          final audioFile = File(_recordedAudioPath!);
+          final downloadUrl = await StorageService.instance.uploadChatAudio(
+            file: audioFile,
+            userId: _currentUser!.id,
+            discussionId: widget.discussionId,
+          );
+
+          _discussion!.sendMessage(
+            _currentUser!.id,
+            downloadUrl,
+            type: MessageType.audio,
+            replyToId: _replyToMessageId,
+          );
+        } on Exception catch (e) {
+          logger.e('Error uploading audio', error: e);
+          // Send with local path as fallback
+          _discussion!.sendMessage(
+            _currentUser!.id,
+            _recordedAudioPath!,
+            type: MessageType.audio,
+            replyToId: _replyToMessageId,
+          );
+        }
       }
 
       setState(() {

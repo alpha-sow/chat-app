@@ -133,13 +133,21 @@ class StorageService {
     required String userId,
     required String discussionId,
   }) async {
-    final fileName = '${discussionId}_image${path.extension(file.path)}';
-    return uploadFile(
-      file: file,
-      folder: StorageFolder.chatImages,
-      fileName: fileName,
-      userId: userId,
-    );
+    try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final fileName = '${timestamp}_image${path.extension(file.path)}';
+      final uploadPath = '$userId/$discussionId/$fileName';
+
+      final ref = _storage.ref().child(uploadPath);
+      final uploadTask = ref.putFile(file);
+
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      return downloadUrl;
+    } catch (e) {
+      throw StorageException('Failed to upload chat image: $e');
+    }
   }
 
   /// Upload a chat audio file
@@ -154,13 +162,21 @@ class StorageService {
     required String userId,
     required String discussionId,
   }) async {
-    final fileName = '${discussionId}_audio${path.extension(file.path)}';
-    return uploadFile(
-      file: file,
-      folder: StorageFolder.chatAudio,
-      fileName: fileName,
-      userId: userId,
-    );
+    try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final fileName = '${timestamp}_audio${path.extension(file.path)}';
+      final uploadPath = '$userId/$discussionId/$fileName';
+
+      final ref = _storage.ref().child(uploadPath);
+      final uploadTask = ref.putFile(file);
+
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      return downloadUrl;
+    } catch (e) {
+      throw StorageException('Failed to upload chat audio: $e');
+    }
   }
 
   /// Upload a chat document
