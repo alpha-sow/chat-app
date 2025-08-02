@@ -38,7 +38,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
   }
 
   Future<bool?> _showDeleteDiscussionConfirmation(String discussionTitle) {
-    return context.showASAlertDialog(
+    return context.showAsAlertDialog(
       title: const Text('Delete Discussion'),
       content: Column(
         mainAxisSize: MainAxisSize.min,

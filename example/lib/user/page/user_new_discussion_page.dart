@@ -30,35 +30,24 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
   }
 
   Future<bool?> _showDeleteContactConfirmation(String contactName) {
-    return context.showASAlertDialog(
+    return context.showAsActionBottomSheet(
       title: const Text('Delete Contact'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Are you sure you want to delete "$contactName"?'),
-          const SizedBox(height: 8),
-          const Text(
-            'This will permanently remove the contact from your list.',
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
       actions: [
-        AsDialogAction(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
-        ),
         AsDialogAction(
           isDestructiveAction: true,
           onPressed: () => Navigator.of(context).pop(true),
           child: const Text('Delete'),
         ),
+        const AsDialogAction(
+          isDestructiveAction: true,
+          onPressed: null,
+          child: Text('Delete and Block'),
+        ),
       ],
+      cancelAction: AsDialogAction(
+        onPressed: () => Navigator.of(context).pop(false),
+        child: const Text('Cancel'),
+      ),
     );
   }
 

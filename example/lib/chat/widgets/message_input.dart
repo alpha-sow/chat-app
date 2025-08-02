@@ -87,32 +87,28 @@ class _MessageInputState extends State<MessageInput>
   }
 
   Future<void> _showImageSourceSelection() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Wrap(
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Gallery'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Camera'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _takePicture();
-                },
-              ),
-            ],
-          ),
-        );
-      },
+    await context.showAsActionBottomSheet<void>(
+      title: const Text('Select Image Source'),
+      actions: [
+        AsDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop();
+            _pickImage();
+          },
+          child: const Text('Gallery'),
+        ),
+        AsDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop();
+            _takePicture();
+          },
+          child: const Text('Camera'),
+        ),
+      ],
+      cancelAction: AsDialogAction(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('Cancel'),
+      ),
     );
   }
 
