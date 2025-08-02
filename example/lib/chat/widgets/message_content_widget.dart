@@ -21,7 +21,10 @@ class MessageContentWidget extends StatelessWidget {
       case MessageType.text:
       case MessageType.file:
       case MessageType.video:
-        return Text(message.content);
+        return Text(
+          message.content,
+          style: TextStyle(color: Theme.of(context).primaryColor),
+        );
     }
   }
 }

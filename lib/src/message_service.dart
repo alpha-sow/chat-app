@@ -49,4 +49,8 @@ class MessageService {
   Future<void> deleteMessage(String messageId, String discussionId) async {
     await _syncService.deleteMessage(messageId, discussionId);
   }
+
+  Future<Message?> getMessage(String replyToMessageId) async {
+    return _database.getMessage(replyToMessageId);
+  }
 }

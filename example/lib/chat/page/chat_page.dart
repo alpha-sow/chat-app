@@ -376,8 +376,8 @@ class _ChatPageState extends State<ChatPage> {
                                       children: [
                                         if (message.replyToId != null)
                                           ReplyContextWidget(
-                                            replyToMessage: message,
-                                            discussion: _discussion!,
+                                            replyToMessageId:
+                                                message.replyToId!,
                                           ),
                                         Row(
                                           mainAxisSize: MainAxisSize.min,
