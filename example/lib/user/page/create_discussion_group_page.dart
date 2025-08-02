@@ -184,7 +184,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
         title: const Text('Create Group Discussion'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          ASButton.ghost(
+          AsButton.ghost(
             onPressed: _createDiscussion,
             child: const Text(
               'Create',
@@ -206,7 +206,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
-                  child: ASTextField(
+                  child: AsTextField(
                     controller: _titleController,
                     label: 'Discussion Title',
                     hintText: _selectedUsers.isEmpty
@@ -215,7 +215,7 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                ASButton.outline(
+                AsButton.outlined(
                   onPressed: () {
                     final randomName = _generateRandomGroupName();
                     setState(() {

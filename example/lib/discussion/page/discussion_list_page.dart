@@ -57,11 +57,12 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         ],
       ),
       actions: [
-        ASButton(
+        AsDialogAction(
           onPressed: () => Navigator.of(context).pop(false),
           child: const Text('Cancel'),
         ),
-        ASButton.destructive(
+        AsDialogAction(
+          isDestructiveAction: true,
           onPressed: () => Navigator.of(context).pop(true),
           child: const Text('Delete'),
         ),
@@ -71,12 +72,12 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return AsScaffold(
+      appBar: AsAppBar(
         title: const Text('Discussions'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          ASButton.ghost(
+          AsButton.ghost(
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -95,7 +96,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
           builder: (context, state) {
             return switch (state) {
               DiscussionListStateLoading() => const Center(
-                child: ASLoadingCircular(),
+                child: AsLoadingCircular(),
               ),
               DiscussionListStateLoaded(:final data) =>
                 data.isEmpty
@@ -240,7 +241,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                     MaterialPageRoute<void>(
                                       builder: (context) => ChatPage(
                                         discussionId: discussion.id,
-                                        currentUser: widget.currentUser,
+                                        currentUserId: widget.currentUser.id,
                                       ),
                                     ),
                                   );

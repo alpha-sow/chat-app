@@ -51,7 +51,7 @@ class ReplyPreviewWidget extends StatelessWidget {
                 ],
               ),
             ),
-            ASButton.ghost(
+            AsButton.ghost(
               onPressed: onCancel,
               child: const Icon(Icons.close, size: 18),
             ),

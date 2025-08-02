@@ -68,8 +68,8 @@ class _ChatTempPageState extends State<ChatTempPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return AsScaffold(
+      appBar: AsAppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.otherUser.displayName),
       ),

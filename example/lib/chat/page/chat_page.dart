@@ -263,11 +263,12 @@ class _ChatPageState extends State<ChatPage> {
         'Are you sure you want to delete $messageCount selected messages?',
       ),
       actions: [
-        ASButton.ghost(
+        AsDialogAction(
           onPressed: () => Navigator.of(context).pop(false),
           child: const Text('Cancel'),
         ),
-        ASButton.destructive(
+        AsDialogAction(
+          isDestructiveAction: true,
           onPressed: () => Navigator.of(context).pop(true),
           child: const Text('Delete All'),
         ),
@@ -283,12 +284,12 @@ class _ChatPageState extends State<ChatPage> {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: const Text('Loading...'),
         ),
-        body: const Center(child: ASLoadingCircular()),
+        body: const Center(child: AsLoadingCircular()),
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
+    return AsScaffold(
+      appBar: AsAppBar(
         backgroundColor: _isSelectionMode
             ? Colors.red[100]
             : Theme.of(context).colorScheme.inversePrimary,
@@ -296,14 +297,14 @@ class _ChatPageState extends State<ChatPage> {
             ? Text('${_selectedMessages.length} selected')
             : Text(_discussion!.title),
         leading: _isSelectionMode
-            ? ASButton.ghost(
+            ? AsButton.ghost(
                 onPressed: _exitSelectionMode,
                 child: const Icon(Icons.close),
               )
             : null,
         actions: [
           if (_isSelectionMode)
-            ASButton.ghost(
+            AsButton.ghost(
               onPressed: _deleteSelectedMessages,
               child: const Icon(Icons.delete),
             ),

@@ -119,8 +119,8 @@ class _ContactAddPageState extends State<ContactAddPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return AsScaffold(
+      appBar: AsAppBar(
         title: const Text('Add Contact'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
@@ -130,11 +130,11 @@ class _ContactAddPageState extends State<ContactAddPage> {
               child: SizedBox(
                 width: 20,
                 height: 20,
-                child: ASLoadingCircular(),
+                child: AsLoadingCircular(),
               ),
             )
           else
-            ASButton.ghost(
+            AsButton.ghost(
               onPressed: _saveContact,
               child: const Text(
                 'Save',
@@ -145,51 +145,49 @@ class _ContactAddPageState extends State<ContactAddPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
-            Center(
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: Colors.blue[100],
-                  shape: BoxShape.circle,
+            Column(
+              spacing: 10,
+              children: [
+                Center(
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.blue[100],
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.person_add,
+                      size: 50,
+                      color: Colors.blue[800],
+                    ),
+                  ),
                 ),
-                child: Icon(
-                  Icons.person_add,
-                  size: 50,
-                  color: Colors.blue[800],
+                AsTextField(
+                  controller: _displayNameController,
+                  label: 'Name *',
+                  hintText: 'Enter contact name',
                 ),
-              ),
-            ),
-            const SizedBox(height: 32),
+                AsTextField(
+                  controller: _phoneController,
+                  label: 'Phone Number',
+                  hintText: 'Enter phone number (optional)',
+                ),
 
-            ASTextField(
-              controller: _displayNameController,
-              label: 'Name *',
-              hintText: 'Enter contact name',
-            ),
-            const SizedBox(height: 16),
+                AsTextField(
+                  controller: _emailController,
+                  label: 'Email',
+                  hintText: 'Enter email address (optional)',
+                ),
 
-            ASTextField(
-              controller: _phoneController,
-              label: 'Phone Number',
-              hintText: 'Enter phone number (optional)',
-            ),
-            const SizedBox(height: 16),
-
-            ASTextField(
-              controller: _emailController,
-              label: 'Email',
-              hintText: 'Enter email address (optional)',
-            ),
-            const SizedBox(height: 24),
-
-            const ASAlertBanner(
-              message:
-                  'Name is required. Email and phone are optional but '
-                  'help identify contacts.',
+                const ASAlertBanner(
+                  message:
+                      'Name is required. Email and phone are optional but '
+                      'help identify contacts.',
+                ),
+              ],
             ),
           ],
         ),

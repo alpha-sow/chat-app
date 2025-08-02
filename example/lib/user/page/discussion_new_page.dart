@@ -49,11 +49,12 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
         ],
       ),
       actions: [
-        ASButton.ghost(
+        AsDialogAction(
           onPressed: () => Navigator.of(context).pop(false),
           child: const Text('Cancel'),
         ),
-        ASButton.destructive(
+        AsDialogAction(
+          isDestructiveAction: true,
           onPressed: () => Navigator.of(context).pop(true),
           child: const Text('Delete'),
         ),
@@ -99,12 +100,12 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => UserListCubit(),
-      child: Scaffold(
-        appBar: AppBar(
+      child: AsScaffold(
+        appBar: AsAppBar(
           title: const Text('New Discussion'),
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           actions: [
-            ASButton.ghost(
+            AsButton.ghost(
               onPressed: _addContact,
               child: const Icon(Icons.person_add),
             ),
@@ -114,7 +115,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
           builder: (context, state) {
             return switch (state) {
               UserListStateLoading() => const Center(
-                child: ASLoadingCircular(),
+                child: AsLoadingCircular(),
               ),
               UserListStateLoaded(:final data) =>
                 data.isEmpty
