@@ -1,3 +1,4 @@
+import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +10,7 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CircleAvatar(
+    return AsAvatar(
       backgroundColor: Theme.of(context).colorScheme.primary,
       backgroundImage: user.avatarUrl != null
           ? CachedNetworkImageProvider(user.avatarUrl!)

@@ -104,12 +104,6 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
         appBar: AsAppBar(
           title: const Text('New Discussion'),
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          actions: [
-            AsButton.ghost(
-              onPressed: _addContact,
-              child: const Icon(Icons.person_add),
-            ),
-          ],
         ),
         body: BlocBuilder<UserListCubit, UserListState>(
           builder: (context, state) {
@@ -129,7 +123,12 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
                         children: ASListTile.divideTiles(
                           tiles: [
                             ASListTile(
-                              leading: const Icon(Icons.group),
+                              title: const Text('Add Contact'),
+                              onTap: _addContact,
+                              leading: AsAvatar.icon(icon: Icons.person_add),
+                            ),
+                            ASListTile(
+                              leading: AsAvatar.icon(icon: Icons.group),
                               title: const Text('New Group'),
                               onTap: () => _createGroupDiscussion(data),
                             ),
