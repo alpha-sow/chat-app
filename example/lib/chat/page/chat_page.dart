@@ -123,35 +123,6 @@ class _ChatPageState extends State<ChatPage> {
         }
       }
 
-      if (_recordedAudioPath != null) {
-        try {
-          final audioFile = File(_recordedAudioPath!);
-          final downloadUrl = await StorageService.instance.uploadChatAudio(
-            file: audioFile,
-            userId: _currentUser.id,
-            discussionId: widget.discussion.id,
-          );
-
-          await MessageService.instance.sendMessage(
-            discussionId: _discussion!.id,
-            senderId: _currentUser.id,
-            content: downloadUrl,
-            type: MessageType.audio,
-            replyToId: _replyToMessage?.id,
-          );
-        } on Exception catch (e) {
-          logger.e('Error uploading audio', error: e);
-
-          await MessageService.instance.sendMessage(
-            discussionId: _discussion!.id,
-            senderId: _currentUser.id,
-            content: _recordedAudioPath!,
-            type: MessageType.audio,
-            replyToId: _replyToMessage?.id,
-          );
-        }
-      }
-
       setState(() {
         _selectedImage = null;
         _recordedAudioPath = null;
