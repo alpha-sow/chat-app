@@ -167,12 +167,16 @@ class _UserNewGroupDiscussionPageState
     final welcomeMessage = faker.randomGenerator.element(welcomeMessages);
     logger.d('Added welcome message to discussion: ${discussion.id}');
 
+    discussion.sendMessage(
+      _currentUser.id,
+      welcomeMessage,
+    );
+
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
         builder: (context) => ChatPage(
-          discussionId: discussion.id,
-          currentUserId: _currentUser.id,
-          initialMessage: welcomeMessage,
+          discussion: discussion.state,
+          currentUser: _currentUser,
         ),
       ),
     );

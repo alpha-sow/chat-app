@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app_package/chat_app_package.dart';
@@ -27,7 +29,6 @@ class _ChatTempPageState extends State<ChatTempPage> {
   late User _otherUser;
   XFile? _selectedImage;
   String? _recordedAudioPath;
-  bool _isSending = false;
 
   @override
   void initState() {
@@ -62,10 +63,6 @@ class _ChatTempPageState extends State<ChatTempPage> {
       return;
     }
 
-    setState(() {
-      _isSending = true;
-    });
-
     final discussion = DiscussionService.withUsers(
       id: _discussion.id,
       title: _discussion.title,
@@ -75,21 +72,73 @@ class _ChatTempPageState extends State<ChatTempPage> {
 
     logger.i('Discussion persisted to database: ${discussion.id}');
 
+    if (text.isNotEmpty) {
+      discussion.sendMessage(
+        _currentUser.id,
+        text,
+      );
+    }
+
+    if (_selectedImage != null) {
+      try {
+        final imageFile = File(_selectedImage!.path);
+        final downloadUrl = await StorageService.instance.uploadChatImage(
+          file: imageFile,
+          userId: _currentUser.id,
+          discussionId: widget.discussion.id,
+        );
+
+        discussion.sendMessage(
+          _currentUser.id,
+          downloadUrl,
+          type: MessageType.image,
+        );
+      } on Exception catch (e) {
+        logger.e('Error uploading image', error: e);
+
+        discussion.sendMessage(
+          _currentUser.id,
+          _selectedImage!.path,
+          type: MessageType.image,
+        );
+      }
+    }
+
+    if (_recordedAudioPath != null) {
+      try {
+        final audioFile = File(_recordedAudioPath!);
+        final downloadUrl = await StorageService.instance.uploadChatAudio(
+          file: audioFile,
+          userId: _currentUser.id,
+          discussionId: widget.discussion.id,
+        );
+
+        discussion.sendMessage(
+          _currentUser.id,
+          downloadUrl,
+          type: MessageType.audio,
+        );
+      } on Exception catch (e) {
+        logger.e('Error uploading audio', error: e);
+
+        discussion.sendMessage(
+          _currentUser.id,
+          _recordedAudioPath!,
+          type: MessageType.audio,
+        );
+      }
+    }
+
     if (mounted) {
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (context) => ChatPage(
-            discussionId: discussion.id,
-            currentUserId: _currentUser.id,
-            initialMessage: text.isNotEmpty ? text : null,
+            discussion: discussion.state,
+            currentUser: _currentUser,
           ),
         ),
       );
     }
-
-    setState(() {
-      _isSending = false;
-    });
   }
 
   @override
@@ -158,7 +207,6 @@ class _ChatTempPageState extends State<ChatTempPage> {
               onAudioRecorded: _onAudioRecorded,
               selectedImage: _selectedImage,
               recordedAudioPath: _recordedAudioPath,
-              isSending: _isSending,
               onRemoveImage: () => setState(() {
                 _selectedImage = null;
               }),

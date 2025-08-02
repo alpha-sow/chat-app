@@ -240,8 +240,8 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                   Navigator.of(context).push(
                                     MaterialPageRoute<void>(
                                       builder: (context) => ChatPage(
-                                        discussionId: discussion.id,
-                                        currentUserId: widget.currentUser.id,
+                                        discussion: discussion,
+                                        currentUser: widget.currentUser,
                                       ),
                                     ),
                                   );

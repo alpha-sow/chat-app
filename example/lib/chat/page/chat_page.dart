@@ -2,20 +2,20 @@ import 'dart:io';
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/chat/chat.dart';
+import 'package:chat_flutter_app/chat/cubit/chat_list_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({
-    required this.discussionId,
-    required this.currentUserId,
-    this.initialMessage,
+    required this.discussion,
+    required this.currentUser,
     super.key,
   });
 
-  final String discussionId;
-  final String currentUserId;
-  final String? initialMessage;
+  final Discussion discussion;
+  final User currentUser;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -25,8 +25,7 @@ class _ChatPageState extends State<ChatPage> {
   DiscussionService? _discussion;
   final TextEditingController _messageController = TextEditingController();
   final FocusNode _messageFocusNode = FocusNode();
-  User? _currentUser;
-  bool _isLoading = true;
+  late User _currentUser;
   bool _isSending = false;
   bool _isSelectionMode = false;
   final Set<String> _selectedMessages = {};
@@ -37,35 +36,9 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    _initializeChat();
+    _discussion = DiscussionService.create(widget.discussion);
+    _currentUser = widget.currentUser;
     _messageFocusNode.requestFocus();
-  }
-
-  Future<void> _initializeChat() async {
-    try {
-      _currentUser = await LocalDatabaseService.instance.getUser(
-        widget.currentUserId,
-      );
-
-      _discussion = await DiscussionService.loadFromDatabase(
-        widget.discussionId,
-      );
-
-      if (widget.initialMessage != null &&
-          widget.initialMessage!.isNotEmpty &&
-          _currentUser != null) {
-        _discussion!.sendMessage(_currentUser!.id, widget.initialMessage!);
-        logger.d(
-          'Added initial message to discussion: ${widget.initialMessage}',
-        );
-      }
-    } on Exception catch (e) {
-      logger.e('Error loading chat', error: e);
-    }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   @override
@@ -79,14 +52,14 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _sendMessage([String? messageText]) async {
     final text = messageText ?? _messageController.text.trim();
 
-    if (_discussion != null && _currentUser != null) {
+    if (_discussion != null) {
       setState(() {
         _isSending = true;
       });
 
       if (text.isNotEmpty) {
         _discussion!.sendMessage(
-          _currentUser!.id,
+          _currentUser.id,
           text,
           replyToId: _replyToMessageId,
         );
@@ -97,12 +70,12 @@ class _ChatPageState extends State<ChatPage> {
           final imageFile = File(_selectedImage!.path);
           final downloadUrl = await StorageService.instance.uploadChatImage(
             file: imageFile,
-            userId: _currentUser!.id,
-            discussionId: widget.discussionId,
+            userId: _currentUser.id,
+            discussionId: widget.discussion.id,
           );
 
           _discussion!.sendMessage(
-            _currentUser!.id,
+            _currentUser.id,
             downloadUrl,
             type: MessageType.image,
             replyToId: _replyToMessageId,
@@ -111,7 +84,7 @@ class _ChatPageState extends State<ChatPage> {
           logger.e('Error uploading image', error: e);
 
           _discussion!.sendMessage(
-            _currentUser!.id,
+            _currentUser.id,
             _selectedImage!.path,
             type: MessageType.image,
             replyToId: _replyToMessageId,
@@ -124,12 +97,12 @@ class _ChatPageState extends State<ChatPage> {
           final audioFile = File(_recordedAudioPath!);
           final downloadUrl = await StorageService.instance.uploadChatAudio(
             file: audioFile,
-            userId: _currentUser!.id,
-            discussionId: widget.discussionId,
+            userId: _currentUser.id,
+            discussionId: widget.discussion.id,
           );
 
           _discussion!.sendMessage(
-            _currentUser!.id,
+            _currentUser.id,
             downloadUrl,
             type: MessageType.audio,
             replyToId: _replyToMessageId,
@@ -138,7 +111,7 @@ class _ChatPageState extends State<ChatPage> {
           logger.e('Error uploading audio', error: e);
 
           _discussion!.sendMessage(
-            _currentUser!.id,
+            _currentUser.id,
             _recordedAudioPath!,
             type: MessageType.audio,
             replyToId: _replyToMessageId,
@@ -244,15 +217,13 @@ class _ChatPageState extends State<ChatPage> {
     final shouldDelete = await _showBulkDeleteConfirmation(
       _selectedMessages.length,
     );
-    if ((shouldDelete ?? false) &&
-        _discussion != null &&
-        _currentUser != null) {
+    if ((shouldDelete ?? false) && _discussion != null) {
       for (final messageId in _selectedMessages) {
         await SyncService.instance.deleteMessage(
           messageId,
-          widget.discussionId,
+          widget.discussion.id,
         );
-        _discussion!.deleteMessage(messageId, _currentUser!.id);
+        _discussion!.deleteMessage(messageId, _currentUser.id);
       }
 
       setState(_exitSelectionMode);
@@ -281,16 +252,6 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading || _currentUser == null || _discussion == null) {
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: const Text('Loading...'),
-        ),
-        body: const Center(child: AsLoadingCircular()),
-      );
-    }
-
     return AsScaffold(
       appBar: AsAppBar(
         backgroundColor: _isSelectionMode
@@ -313,164 +274,191 @@ class _ChatPageState extends State<ChatPage> {
             ),
         ],
       ),
-      body: GestureDetector(
-        onTap: _messageFocusNode.unfocus,
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _discussion?.messages.length ?? 0,
-                  itemBuilder: (context, index) {
-                    final message = _discussion!.messages[index];
-                    final user = _discussion!.getUser(message.senderId);
-                    final isCurrentUser = message.senderId == _currentUser!.id;
-                    final isSelected = _selectedMessages.contains(message.id);
+      body: BlocProvider(
+        create: (context) => ChatListCubit(widget.discussion.id),
+        child: BlocBuilder<ChatListCubit, ChatListState>(
+          builder: (context, state) {
+            return switch (state) {
+              ChatListStateLoading() => const Center(
+                child: AsLoadingCircular(),
+              ),
+              ChatListStateLoaded(:final messages) => GestureDetector(
+                onTap: _messageFocusNode.unfocus,
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: messages.length,
+                          itemBuilder: (context, index) {
+                            final message = messages[index];
+                            final user = _discussion!.getUser(message.senderId);
+                            final isCurrentUser =
+                                message.senderId == _currentUser.id;
+                            final isSelected = _selectedMessages.contains(
+                              message.id,
+                            );
 
-                    return Container(
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 2,
-                        horizontal: 8,
-                      ),
-                      child: Align(
-                        alignment: isCurrentUser
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: GestureDetector(
-                          onTap: _isSelectionMode && isCurrentUser
-                              ? () => _toggleMessageSelection(message.id)
-                              : null,
-                          onLongPress: () =>
-                              _showMessageContextMenu(context, message.id),
-                          child: Container(
-                            constraints: const BoxConstraints(maxWidth: 280),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? Colors.red[200]
-                                  : isCurrentUser
-                                  ? Colors.blue[100]
-                                  : Colors.grey[200],
-                              borderRadius: BorderRadius.circular(12),
-                              border: isSelected
-                                  ? Border.all(
-                                      color: Colors.red[400]!,
-                                      width: 2,
-                                    )
-                                  : null,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (message.replyToId != null)
-                                  ReplyContextWidget(
-                                    replyToId: message.replyToId!,
-                                    discussion: _discussion!,
+                            return Container(
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 2,
+                                horizontal: 8,
+                              ),
+                              child: Align(
+                                alignment: isCurrentUser
+                                    ? Alignment.centerRight
+                                    : Alignment.centerLeft,
+                                child: GestureDetector(
+                                  onTap: _isSelectionMode && isCurrentUser
+                                      ? () =>
+                                            _toggleMessageSelection(message.id)
+                                      : null,
+                                  onLongPress: () => _showMessageContextMenu(
+                                    context,
+                                    message.id,
                                   ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (isSelected)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 8,
-                                        ),
-                                        child: Icon(
-                                          Icons.check_circle,
-                                          size: 16,
-                                          color: Colors.red[600],
-                                        ),
-                                      ),
-                                    Expanded(
-                                      child: Text(
-                                        user?.displayName ?? message.senderId,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
+                                  child: Container(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 280,
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                MessageContentWidget(message: message),
-                                const SizedBox(height: 4),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      '${message.timestamp.hour}:'
-                                      '${message.timestamp.minute.toString().padLeft(2, '0')}',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey[600],
-                                      ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 12,
                                     ),
-                                    if (isCurrentUser && !_isSelectionMode) ...[
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Long press for options',
-                                        style: TextStyle(
-                                          fontSize: 8,
-                                          color: Colors.grey[500],
-                                          fontStyle: FontStyle.italic,
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? Colors.red[200]
+                                          : isCurrentUser
+                                          ? Colors.blue[100]
+                                          : Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: isSelected
+                                          ? Border.all(
+                                              color: Colors.red[400]!,
+                                              width: 2,
+                                            )
+                                          : null,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (message.replyToId != null)
+                                          ReplyContextWidget(
+                                            replyToId: message.replyToId!,
+                                            discussion: _discussion!,
+                                          ),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (isSelected)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  right: 8,
+                                                ),
+                                                child: Icon(
+                                                  Icons.check_circle,
+                                                  size: 16,
+                                                  color: Colors.red[600],
+                                                ),
+                                              ),
+                                            Expanded(
+                                              child: Text(
+                                                user?.displayName ??
+                                                    message.senderId,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    ],
-                                    if (isCurrentUser && _isSelectionMode) ...[
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Tap to toggle',
-                                        style: TextStyle(
-                                          fontSize: 8,
-                                          color: Colors.grey[500],
-                                          fontStyle: FontStyle.italic,
+                                        const SizedBox(height: 4),
+                                        MessageContentWidget(message: message),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              '${message.timestamp.hour}:'
+                                              '${message.timestamp.minute.toString().padLeft(2, '0')}',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                            if (isCurrentUser &&
+                                                !_isSelectionMode) ...[
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Long press for options',
+                                                style: TextStyle(
+                                                  fontSize: 8,
+                                                  color: Colors.grey[500],
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                              ),
+                                            ],
+                                            if (isCurrentUser &&
+                                                _isSelectionMode) ...[
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Tap to toggle',
+                                                style: TextStyle(
+                                                  fontSize: 8,
+                                                  color: Colors.grey[500],
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
                                         ),
-                                      ),
-                                    ],
-                                  ],
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                    );
-                  },
+                      Column(
+                        children: [
+                          if (_replyToMessageId != null)
+                            ReplyPreviewWidget(
+                              replyToMessageId: _replyToMessageId!,
+                              discussion: _discussion!,
+                              onCancel: _cancelReply,
+                            ),
+                          MessageInput(
+                            focusNode: _messageFocusNode,
+                            messageController: _messageController,
+                            onSendMessage: (_) => _sendMessage(),
+                            onImageSelected: _onImageSelected,
+                            onAudioRecorded: _onAudioRecorded,
+                            selectedImage: _selectedImage,
+                            recordedAudioPath: _recordedAudioPath,
+                            isSending: _isSending,
+                            onRemoveImage: () => setState(() {
+                              _selectedImage = null;
+                            }),
+                            onRemoveAudio: () => setState(() {
+                              _recordedAudioPath = null;
+                            }),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              Column(
-                children: [
-                  if (_replyToMessageId != null)
-                    ReplyPreviewWidget(
-                      replyToMessageId: _replyToMessageId!,
-                      discussion: _discussion!,
-                      onCancel: _cancelReply,
-                    ),
-                  MessageInput(
-                    focusNode: _messageFocusNode,
-                    messageController: _messageController,
-                    onSendMessage: (_) => _sendMessage(),
-                    onImageSelected: _onImageSelected,
-                    onAudioRecorded: _onAudioRecorded,
-                    selectedImage: _selectedImage,
-                    recordedAudioPath: _recordedAudioPath,
-                    isSending: _isSending,
-                    onRemoveImage: () => setState(() {
-                      _selectedImage = null;
-                    }),
-                    onRemoveAudio: () => setState(() {
-                      _recordedAudioPath = null;
-                    }),
-                  ),
-                ],
+              ChatListStateError() => const Center(
+                child: Text('Error loading messages'),
               ),
-            ],
-          ),
+            };
+          },
         ),
       ),
     );

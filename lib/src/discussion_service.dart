@@ -31,6 +31,19 @@ class DiscussionService {
     );
   }
 
+  /// Loads a discussion service from the database by ID.
+  ///
+  /// Returns null if the discussion is not found. Automatically loads
+  /// associated users from the database.
+  factory DiscussionService.create(
+    Discussion discussionState,
+  ) {
+    return DiscussionService._(
+      initialState: discussionState,
+      persistToDatabase: true,
+    );
+  }
+
   /// Creates a discussion service with User objects instead of just IDs.
   ///
   /// This is useful when you have full User objects and want to cache them
@@ -116,29 +129,6 @@ class DiscussionService {
   _messageStreamController;
   final StreamController<MapEntry<ParticipantEvent, String>>
   _participantStreamController;
-
-  /// Loads a discussion service from the database by ID.
-  ///
-  /// Returns null if the discussion is not found. Automatically loads
-  /// associated users from the database.
-  static Future<DiscussionService?> loadFromDatabase(
-    String discussionId,
-  ) async {
-    final databaseService = LocalDatabaseService.instance;
-    final discussionState = await databaseService.getDiscussion(discussionId);
-
-    if (discussionState == null) return null;
-
-    final discussion = DiscussionService._(
-      initialState: discussionState,
-      persistToDatabase: true,
-    );
-
-    /// Load users from database
-    await discussion.loadUsersFromDatabase();
-
-    return discussion;
-  }
 
   /// Gets the current discussion state.
   Discussion get state => _state;
