@@ -4,23 +4,17 @@ import 'package:flutter/material.dart';
 
 class ReplyContextWidget extends StatelessWidget {
   const ReplyContextWidget({
-    required this.replyToId,
     required this.discussion,
+    required this.replyToMessage,
     super.key,
   });
 
-  final String replyToId;
-  final DiscussionService discussion;
+  final Discussion discussion;
+  final Message replyToMessage;
 
   @override
   Widget build(BuildContext context) {
     try {
-      final replyToMessage = discussion.state.messages.firstWhere(
-        (Message m) => m.id == replyToId,
-      );
-
-      final replyToUser = discussion.getUser(replyToMessage.senderId);
-
       return Container(
         margin: const EdgeInsets.only(bottom: 4),
         padding: const EdgeInsets.all(8),
@@ -34,7 +28,7 @@ class ReplyContextWidget extends StatelessWidget {
           children: [
             Text(
               'Replying to '
-              '${replyToUser?.displayName ?? replyToMessage.senderId}',
+              '${replyToMessage.senderId}',
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,

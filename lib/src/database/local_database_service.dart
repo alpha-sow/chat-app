@@ -77,11 +77,7 @@ class LocalDatabaseService {
 
     if (isarDiscussion == null) return null;
 
-    // Load messages for this discussion
-    final messages = await getMessagesForDiscussion(discussionId);
-    final discussion = isarDiscussion.toDiscussion();
-
-    return discussion.copyWith(messages: messages);
+    return isarDiscussion.toDiscussion();
   }
 
   /// Get All Discussions
@@ -94,11 +90,8 @@ class LocalDatabaseService {
     final discussions = <Discussion>[];
 
     for (final isarDiscussion in isarDiscussions) {
-      final messages = await getMessagesForDiscussion(
-        isarDiscussion.discussionId!,
-      );
       final discussion = isarDiscussion.toDiscussion();
-      discussions.add(discussion.copyWith(messages: messages));
+      discussions.add(discussion);
     }
 
     return discussions;
@@ -243,7 +236,6 @@ class LocalDatabaseService {
     });
   }
 
-
   /// Watches all discussions for real-time updates.
   ///
   /// Returns a stream that emits the current list of discussions
@@ -254,11 +246,8 @@ class LocalDatabaseService {
     ) async {
       final discussions = <Discussion>[];
       for (final isarDiscussion in isarDiscussions) {
-        final messages = await getMessagesForDiscussion(
-          isarDiscussion.discussionId!,
-        );
         final discussion = isarDiscussion.toDiscussion();
-        discussions.add(discussion.copyWith(messages: messages));
+        discussions.add(discussion);
       }
       return discussions;
     });
@@ -273,5 +262,19 @@ class LocalDatabaseService {
         .where()
         .watch(fireImmediately: true)
         .map((isarUsers) => isarUsers.map((iu) => iu.toUser()).toList());
+  }
+
+  /// Watches messages for a specific discussion in real-time.
+  /// Returns a stream that emits the current list of messages
+  /// for the discussion whenever they change in the database.
+  Stream<List<Message>> watchMessagesForDiscussion(String discussionId) {
+    return isar.isarMessages
+        .where()
+        .discussionIdEqualTo(discussionId)
+        .sortByTimestamp()
+        .watch(fireImmediately: true)
+        .map((List<IsarMessage> isarMessages) {
+          return isarMessages.map((IsarMessage im) => im.toMessage()).toList();
+        });
   }
 }

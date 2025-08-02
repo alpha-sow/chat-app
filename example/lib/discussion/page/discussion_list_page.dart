@@ -217,21 +217,6 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                   ),
                                 ),
                                 title: Text(discussion.title),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${discussion.participantCount} participants',
-                                    ),
-                                    Text(
-                                      '${discussion.messageCount} messages',
-                                      style: TextStyle(
-                                        color: Colors.green[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
                                 trailing: Icon(
                                   Icons.arrow_forward_ios,
                                   color: Colors.grey[400],

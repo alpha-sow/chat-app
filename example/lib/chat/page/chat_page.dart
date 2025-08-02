@@ -22,21 +22,21 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  DiscussionService? _discussion;
+  Discussion? _discussion;
   final TextEditingController _messageController = TextEditingController();
   final FocusNode _messageFocusNode = FocusNode();
   late User _currentUser;
   bool _isSending = false;
   bool _isSelectionMode = false;
   final Set<String> _selectedMessages = {};
-  String? _replyToMessageId;
+  Message? _replyToMessage;
   XFile? _selectedImage;
   String? _recordedAudioPath;
 
   @override
   void initState() {
     super.initState();
-    _discussion = DiscussionService.create(widget.discussion);
+    _discussion = widget.discussion;
     _currentUser = widget.currentUser;
     _messageFocusNode.requestFocus();
   }
@@ -57,10 +57,11 @@ class _ChatPageState extends State<ChatPage> {
       });
 
       if (text.isNotEmpty) {
-        _discussion!.sendMessage(
-          _currentUser.id,
-          text,
-          replyToId: _replyToMessageId,
+        MessageService.instance.sendMessage(
+          discussionId: _discussion!.id,
+          senderId: _currentUser.id,
+          content: text,
+          replyToId: _replyToMessage?.id,
         );
       }
 
@@ -73,20 +74,22 @@ class _ChatPageState extends State<ChatPage> {
             discussionId: widget.discussion.id,
           );
 
-          _discussion!.sendMessage(
-            _currentUser.id,
-            downloadUrl,
+          MessageService.instance.sendMessage(
+            discussionId: _discussion!.id,
+            senderId: _currentUser.id,
+            content: downloadUrl,
             type: MessageType.image,
-            replyToId: _replyToMessageId,
+            replyToId: _replyToMessage?.id,
           );
         } on Exception catch (e) {
           logger.e('Error uploading image', error: e);
 
-          _discussion!.sendMessage(
-            _currentUser.id,
-            _selectedImage!.path,
+          MessageService.instance.sendMessage(
+            discussionId: _discussion!.id,
+            senderId: _currentUser.id,
+            content: _selectedImage!.path,
             type: MessageType.image,
-            replyToId: _replyToMessageId,
+            replyToId: _replyToMessage?.id,
           );
         }
       }
@@ -100,20 +103,51 @@ class _ChatPageState extends State<ChatPage> {
             discussionId: widget.discussion.id,
           );
 
-          _discussion!.sendMessage(
-            _currentUser.id,
-            downloadUrl,
+          MessageService.instance.sendMessage(
+            discussionId: _discussion!.id,
+            senderId: _currentUser.id,
+            content: downloadUrl,
             type: MessageType.audio,
-            replyToId: _replyToMessageId,
+            replyToId: _replyToMessage?.id,
           );
         } on Exception catch (e) {
           logger.e('Error uploading audio', error: e);
 
-          _discussion!.sendMessage(
-            _currentUser.id,
-            _recordedAudioPath!,
+          MessageService.instance.sendMessage(
+            discussionId: _discussion!.id,
+            senderId: _currentUser.id,
+            content: _recordedAudioPath!,
             type: MessageType.audio,
-            replyToId: _replyToMessageId,
+            replyToId: _replyToMessage?.id,
+          );
+        }
+      }
+
+      if (_recordedAudioPath != null) {
+        try {
+          final audioFile = File(_recordedAudioPath!);
+          final downloadUrl = await StorageService.instance.uploadChatAudio(
+            file: audioFile,
+            userId: _currentUser.id,
+            discussionId: widget.discussion.id,
+          );
+
+          MessageService.instance.sendMessage(
+            discussionId: _discussion!.id,
+            senderId: _currentUser.id,
+            content: downloadUrl,
+            type: MessageType.audio,
+            replyToId: _replyToMessage?.id,
+          );
+        } on Exception catch (e) {
+          logger.e('Error uploading audio', error: e);
+
+          MessageService.instance.sendMessage(
+            discussionId: _discussion!.id,
+            senderId: _currentUser.id,
+            content: _recordedAudioPath!,
+            type: MessageType.audio,
+            replyToId: _replyToMessage?.id,
           );
         }
       }
@@ -122,7 +156,7 @@ class _ChatPageState extends State<ChatPage> {
         _selectedImage = null;
         _recordedAudioPath = null;
         _messageController.clear();
-        _replyToMessageId = null;
+        _replyToMessage = null;
         _isSending = false;
       });
     }
@@ -154,7 +188,7 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  void _showMessageContextMenu(BuildContext context, String messageId) {
+  void _showMessageContextMenu(BuildContext context, Message message) {
     showMenu(
       context: context,
       position: const RelativeRect.fromLTRB(100, 100, 100, 100),
@@ -182,16 +216,16 @@ class _ChatPageState extends State<ChatPage> {
       ],
     ).then((value) {
       if (value == 'reply') {
-        _replyToMessage(messageId);
+        _setReplyToMessage(message);
       } else if (value == 'delete') {
-        _toggleMessageSelection(messageId);
+        _toggleMessageSelection(message.id);
       }
     });
   }
 
-  void _replyToMessage(String messageId) {
+  void _setReplyToMessage(Message message) {
     setState(() {
-      _replyToMessageId = messageId;
+      _replyToMessage = message;
     });
 
     _messageFocusNode.requestFocus();
@@ -199,7 +233,7 @@ class _ChatPageState extends State<ChatPage> {
 
   void _cancelReply() {
     setState(() {
-      _replyToMessageId = null;
+      _replyToMessage = null;
     });
   }
 
@@ -222,7 +256,7 @@ class _ChatPageState extends State<ChatPage> {
           messageId,
           widget.discussion.id,
         );
-        _discussion!.deleteMessage(messageId, _currentUser.id);
+        MessageService.instance.deleteMessage(messageId);
       }
 
       setState(_exitSelectionMode);
@@ -278,9 +312,6 @@ class _ChatPageState extends State<ChatPage> {
         child: BlocBuilder<ChatListCubit, ChatListState>(
           builder: (context, state) {
             return switch (state) {
-              ChatListStateLoading() => const Center(
-                child: AsLoadingCircular(),
-              ),
               ChatListStateLoaded(:final messages) => GestureDetector(
                 onTap: _messageFocusNode.unfocus,
                 child: SafeArea(
@@ -291,7 +322,6 @@ class _ChatPageState extends State<ChatPage> {
                           itemCount: messages.length,
                           itemBuilder: (context, index) {
                             final message = messages[index];
-                            final user = _discussion!.getUser(message.senderId);
                             final isCurrentUser =
                                 message.senderId == _currentUser.id;
                             final isSelected = _selectedMessages.contains(
@@ -312,10 +342,8 @@ class _ChatPageState extends State<ChatPage> {
                                       ? () =>
                                             _toggleMessageSelection(message.id)
                                       : null,
-                                  onLongPress: () => _showMessageContextMenu(
-                                    context,
-                                    message.id,
-                                  ),
+                                  onLongPress: () =>
+                                      _showMessageContextMenu(context, message),
                                   child: Container(
                                     constraints: const BoxConstraints(
                                       maxWidth: 280,
@@ -345,7 +373,7 @@ class _ChatPageState extends State<ChatPage> {
                                       children: [
                                         if (message.replyToId != null)
                                           ReplyContextWidget(
-                                            replyToId: message.replyToId!,
+                                            replyToMessage: message,
                                             discussion: _discussion!,
                                           ),
                                         Row(
@@ -364,8 +392,7 @@ class _ChatPageState extends State<ChatPage> {
                                               ),
                                             Expanded(
                                               child: Text(
-                                                user?.displayName ??
-                                                    message.senderId,
+                                                message.senderId,
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
@@ -425,9 +452,9 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                       Column(
                         children: [
-                          if (_replyToMessageId != null)
+                          if (_replyToMessage != null)
                             ReplyPreviewWidget(
-                              replyToMessageId: _replyToMessageId!,
+                              replyToMessage: _replyToMessage!,
                               discussion: _discussion!,
                               onCancel: _cancelReply,
                             ),

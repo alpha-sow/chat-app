@@ -44,7 +44,6 @@ class UserService {
     return LocalDatabaseService.instance.watchAllUsers();
   }
 
-
   /// Deletes a user from the system
   ///
   /// [userId] The ID of the user to delete
@@ -52,4 +51,7 @@ class UserService {
     await SyncService.instance.deleteUser(userId);
   }
 
+  Future<User?> getUser(String senderId) {
+    return LocalDatabaseService.instance.getUser(senderId);
+  }
 }

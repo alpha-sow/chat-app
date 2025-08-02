@@ -149,10 +149,9 @@ class _UserNewGroupDiscussionPageState
       '(${_isCustomTitle ? "custom" : "auto-generated"})',
     );
 
-    final discussion = DiscussionService.withUsers(
+    final discussion = DiscussionService.instance.withUsers(
       title: title,
       users: _selectedUsers.toList(),
-      persistToDatabase: true,
     );
 
     final welcomeMessages = [
@@ -167,15 +166,16 @@ class _UserNewGroupDiscussionPageState
     final welcomeMessage = faker.randomGenerator.element(welcomeMessages);
     logger.d('Added welcome message to discussion: ${discussion.id}');
 
-    discussion.sendMessage(
-      _currentUser.id,
-      welcomeMessage,
+    MessageService.instance.sendMessage(
+      discussionId: discussion.id,
+      senderId: _currentUser.id,
+      content: welcomeMessage,
     );
 
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
         builder: (context) => ChatPage(
-          discussion: discussion.state,
+          discussion: discussion,
           currentUser: _currentUser,
         ),
       ),
@@ -194,7 +194,6 @@ class _UserNewGroupDiscussionPageState
             child: const Text(
               'Create',
               style: TextStyle(
-                color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),

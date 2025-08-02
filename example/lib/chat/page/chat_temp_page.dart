@@ -14,7 +14,7 @@ class ChatTempPage extends StatefulWidget {
     required this.otherUser,
     super.key,
   });
-  final DiscussionService discussion;
+  final Discussion discussion;
   final User currentUser;
   final User otherUser;
 
@@ -23,7 +23,7 @@ class ChatTempPage extends StatefulWidget {
 }
 
 class _ChatTempPageState extends State<ChatTempPage> {
-  late DiscussionService _discussion;
+  late Discussion _discussion;
   final TextEditingController _messageController = TextEditingController();
   late User _currentUser;
   late User _otherUser;
@@ -62,19 +62,18 @@ class _ChatTempPageState extends State<ChatTempPage> {
       return;
     }
 
-    final discussion = DiscussionService.withUsers(
-      id: _discussion.id,
+    final discussion = DiscussionService.instance.withUsers(
       title: _discussion.title,
       users: [_currentUser, _otherUser],
-      persistToDatabase: true,
     );
 
     logger.i('Discussion persisted to database: ${discussion.id}');
 
     if (text.isNotEmpty) {
-      discussion.sendMessage(
-        _currentUser.id,
-        text,
+      MessageService.instance.sendMessage(
+        discussionId: discussion.id,
+        senderId: _currentUser.id,
+        content: text,
       );
     }
 
@@ -87,17 +86,19 @@ class _ChatTempPageState extends State<ChatTempPage> {
           discussionId: widget.discussion.id,
         );
 
-        discussion.sendMessage(
-          _currentUser.id,
-          downloadUrl,
+        MessageService.instance.sendMessage(
+          discussionId: discussion.id,
+          senderId: _currentUser.id,
+          content: downloadUrl,
           type: MessageType.image,
         );
       } on Exception catch (e) {
         logger.e('Error uploading image', error: e);
 
-        discussion.sendMessage(
-          _currentUser.id,
-          _selectedImage!.path,
+        MessageService.instance.sendMessage(
+          discussionId: discussion.id,
+          senderId: _currentUser.id,
+          content: _selectedImage!.path,
           type: MessageType.image,
         );
       }
@@ -112,17 +113,19 @@ class _ChatTempPageState extends State<ChatTempPage> {
           discussionId: widget.discussion.id,
         );
 
-        discussion.sendMessage(
-          _currentUser.id,
-          downloadUrl,
+        MessageService.instance.sendMessage(
+          discussionId: discussion.id,
+          senderId: _currentUser.id,
+          content: downloadUrl,
           type: MessageType.audio,
         );
       } on Exception catch (e) {
         logger.e('Error uploading audio', error: e);
 
-        discussion.sendMessage(
-          _currentUser.id,
-          _recordedAudioPath!,
+        MessageService.instance.sendMessage(
+          discussionId: discussion.id,
+          senderId: _currentUser.id,
+          content: _recordedAudioPath!,
           type: MessageType.audio,
         );
       }
@@ -132,7 +135,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (context) => ChatPage(
-            discussion: discussion.state,
+            discussion: discussion,
             currentUser: _currentUser,
           ),
         ),

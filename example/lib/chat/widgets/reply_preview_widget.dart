@@ -5,25 +5,19 @@ import 'package:flutter/material.dart';
 
 class ReplyPreviewWidget extends StatelessWidget {
   const ReplyPreviewWidget({
-    required this.replyToMessageId,
+    required this.replyToMessage,
     required this.discussion,
     required this.onCancel,
     super.key,
   });
 
-  final String replyToMessageId;
-  final DiscussionService discussion;
+  final Message replyToMessage;
+  final Discussion discussion;
   final VoidCallback onCancel;
 
   @override
   Widget build(BuildContext context) {
     try {
-      final replyToMessage = discussion.state.messages.firstWhere(
-        (Message m) => m.id == replyToMessageId,
-      );
-
-      final replyToUser = discussion.getUser(replyToMessage.senderId);
-
       return Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -40,7 +34,7 @@ class ReplyPreviewWidget extends StatelessWidget {
                 children: [
                   Text(
                     'Replying to '
-                    '${replyToUser?.displayName ?? replyToMessage.senderId}',
+                    '${replyToMessage.senderId}',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,

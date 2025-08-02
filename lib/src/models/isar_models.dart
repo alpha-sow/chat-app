@@ -132,7 +132,6 @@ class IsarDiscussion {
       id: discussionId!,
       title: title!,
       participants: participantIds.toSet(),
-      messages: [],
       createdAt: createdAt!,
       lastActivity: lastActivity!,
       isActive: isActive,
