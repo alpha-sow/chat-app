@@ -124,73 +124,61 @@ class _UserAddPageState extends State<UserAddPage> {
         title: const Text('Add Contact'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: AsLoadingCircular(),
-              ),
-            )
-          else
-            AsButton.ghost(
-              onPressed: _saveContact,
-              child: const Text(
-                'Save',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
+          AsButton.ghost(
+            onPressed: _saveContact,
+            child: const Text(
+              'Save',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
+          ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            Column(
-              spacing: 10,
-              children: [
-                Center(
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.blue[100],
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.person_add,
-                      size: 50,
-                      color: Colors.blue[800],
-                    ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          Column(
+            spacing: 10,
+            children: [
+              Center(
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.blue[100],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.person_add,
+                    size: 50,
+                    color: Colors.blue[800],
                   ),
                 ),
-                AsTextField(
-                  controller: _displayNameController,
-                  label: 'Name *',
-                  hintText: 'Enter contact name',
-                ),
-                AsTextField(
-                  controller: _phoneController,
-                  label: 'Phone Number',
-                  hintText: 'Enter phone number (optional)',
-                ),
+              ),
+              AsTextField(
+                controller: _displayNameController,
+                label: 'Name *',
+                hintText: 'Enter contact name',
+              ),
+              AsTextField(
+                controller: _phoneController,
+                label: 'Phone Number',
+                hintText: 'Enter phone number (optional)',
+              ),
 
-                AsTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  hintText: 'Enter email address (optional)',
-                ),
+              AsTextField(
+                controller: _emailController,
+                label: 'Email',
+                hintText: 'Enter email address (optional)',
+              ),
 
-                const ASAlertBanner(
-                  message:
-                      'Name is required. Email and phone are optional but '
-                      'help identify contacts.',
-                ),
-              ],
-            ),
-          ],
-        ),
+              const ASAlertBanner(
+                message:
+                    'Name is required. Email and phone are optional but '
+                    'help identify contacts.',
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
