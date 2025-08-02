@@ -82,7 +82,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (context) =>
-                      DiscussionNewPage(currentUser: widget.currentUser),
+                      UserNewDiscussionPage(currentUser: widget.currentUser),
                 ),
               );
             },

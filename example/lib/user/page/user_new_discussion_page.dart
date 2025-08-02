@@ -5,16 +5,16 @@ import 'package:chat_flutter_app/user/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class DiscussionNewPage extends StatefulWidget {
-  const DiscussionNewPage({required this.currentUser, super.key});
+class UserNewDiscussionPage extends StatefulWidget {
+  const UserNewDiscussionPage({required this.currentUser, super.key});
 
   final User currentUser;
 
   @override
-  State<DiscussionNewPage> createState() => _DiscussionNewPageState();
+  State<UserNewDiscussionPage> createState() => _UserNewDiscussionPageState();
 }
 
-class _DiscussionNewPageState extends State<DiscussionNewPage> {
+class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
   late User _currentUser;
 
   @override
@@ -25,7 +25,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
 
   Future<void> _addContact() async {
     await Navigator.of(context).push<User>(
-      MaterialPageRoute(builder: (context) => const ContactAddPage()),
+      MaterialPageRoute(builder: (context) => const UserAddPage()),
     );
   }
 
@@ -88,7 +88,7 @@ class _DiscussionNewPageState extends State<DiscussionNewPage> {
   Future<void> _createGroupDiscussion(List<User> users) async {
     await Navigator.of(context).push<Map<String, dynamic>>(
       MaterialPageRoute(
-        builder: (context) => CreateDiscussionGroupPage(
+        builder: (context) => UserNewGroupDiscussionPage(
           availableUsers: users,
           currentUser: _currentUser,
         ),

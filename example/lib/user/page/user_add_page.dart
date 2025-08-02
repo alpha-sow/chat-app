@@ -2,14 +2,14 @@ import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:flutter/material.dart';
 
-class ContactAddPage extends StatefulWidget {
-  const ContactAddPage({super.key});
+class UserAddPage extends StatefulWidget {
+  const UserAddPage({super.key});
 
   @override
-  State<ContactAddPage> createState() => _ContactAddPageState();
+  State<UserAddPage> createState() => _UserAddPageState();
 }
 
-class _ContactAddPageState extends State<ContactAddPage> {
+class _UserAddPageState extends State<UserAddPage> {
   final _displayNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();

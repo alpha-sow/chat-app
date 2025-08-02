@@ -5,8 +5,8 @@ import 'package:chat_flutter_app/chat/chat.dart';
 import 'package:chat_flutter_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 
-class CreateDiscussionGroupPage extends StatefulWidget {
-  const CreateDiscussionGroupPage({
+class UserNewGroupDiscussionPage extends StatefulWidget {
+  const UserNewGroupDiscussionPage({
     required this.availableUsers,
     required this.currentUser,
     super.key,
@@ -16,11 +16,12 @@ class CreateDiscussionGroupPage extends StatefulWidget {
   final User currentUser;
 
   @override
-  State<CreateDiscussionGroupPage> createState() =>
-      _CreateDiscussionGroupPageState();
+  State<UserNewGroupDiscussionPage> createState() =>
+      _UserNewGroupDiscussionPageState();
 }
 
-class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
+class _UserNewGroupDiscussionPageState
+    extends State<UserNewGroupDiscussionPage> {
   final _titleController = TextEditingController();
   late User _currentUser;
   final Set<User> _selectedUsers = {};

@@ -1,3 +1,3 @@
-export 'contact_add_page.dart';
-export 'create_discussion_group_page.dart';
-export 'discussion_new_page.dart';
+export 'user_add_page.dart';
+export 'user_new_discussion_page.dart';
+export 'user_new_group_discussion_page.dart';
