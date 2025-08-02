@@ -77,43 +77,13 @@ class DiscussionService {
     return discussion;
   }
 
-  /// Creates a discussion service from a JSON representation.
-  ///
-  /// Used for deserializing discussions from storage or network.
-  factory DiscussionService.fromJson(
-    Map<String, dynamic> json, {
-    bool persistToDatabase = false,
-  }) {
-    return DiscussionService._(
-      initialState: Discussion.fromJson(json),
-      persistToDatabase: persistToDatabase,
-    );
-  }
-
-  /// Creates a discussion service from an existing Discussion state.
-  ///
-  /// Useful for wrapping existing discussion data with service capabilities.
-  factory DiscussionService.fromState(
-    Discussion state, {
-    bool persistToDatabase = false,
-  }) {
-    return DiscussionService._(
-      initialState: state,
-      persistToDatabase: persistToDatabase,
-    );
-  }
-
   /// Internal Constructor
   DiscussionService._({
     required Discussion initialState,
     bool persistToDatabase = false,
   }) : _state = initialState,
        _persistToDatabase = persistToDatabase,
-       _syncService = persistToDatabase ? SyncService.instance : null,
-       _messageStreamController =
-           StreamController<MapEntry<DiscussionEvent, dynamic>>.broadcast(),
-       _participantStreamController =
-           StreamController<MapEntry<ParticipantEvent, String>>.broadcast() {
+       _syncService = persistToDatabase ? SyncService.instance : null {
     /// Save initial state to database if persistence is enabled
     if (_persistToDatabase && _syncService != null) {
       _syncService!.saveDiscussion(_state);
@@ -124,12 +94,6 @@ class DiscussionService {
   SyncService? _syncService;
   final Map<String, User> _users = {};
 
-  /// Stream controllers for real-time events
-  final StreamController<MapEntry<DiscussionEvent, dynamic>>
-  _messageStreamController;
-  final StreamController<MapEntry<ParticipantEvent, String>>
-  _participantStreamController;
-
   /// Gets the current discussion state.
   Discussion get state => _state;
 
@@ -138,21 +102,6 @@ class DiscussionService {
 
   /// Gets the discussion title.
   String get title => _state.title;
-
-  /// Gets the set of participant IDs.
-  Set<String> get participants => _state.participants;
-
-  /// Gets all messages in the discussion.
-  List<Message> get messages => _state.messages;
-
-  /// Gets when the discussion was created.
-  DateTime get createdAt => _state.createdAt;
-
-  /// Gets the timestamp of the last activity.
-  DateTime get lastActivity => _state.lastActivity;
-
-  /// Gets whether the discussion is active (not archived).
-  bool get isActive => _state.isActive;
 
   /// Gets a cached User object by ID.
   ///
@@ -197,9 +146,6 @@ class DiscussionService {
       _syncService!.saveDiscussion(_state);
     }
 
-    _messageStreamController.add(
-      MapEntry(DiscussionEvent.messageAdded, message),
-    );
     return message;
   }
 
@@ -236,28 +182,8 @@ class DiscussionService {
       _syncService!.saveDiscussion(_state);
     }
 
-    _messageStreamController.add(
-      MapEntry(DiscussionEvent.messageDeleted, deletedMessage),
-    );
-
     return deletedMessage;
   }
-
-  /// Loads user information from database for all participants.
-  ///
-  /// This method fetches and caches User objects for all participants
-  /// in the discussion from the database.
-  Future<void> loadUsersFromDatabase() async {
-    for (final participantId in _state.participants) {
-      final user = await LocalDatabaseService.instance.getUser(participantId);
-      if (user != null) {
-        _users[participantId] = user;
-      }
-    }
-  }
-
-  /// Serialization
-  Map<String, dynamic> toJson() => _state.toJson();
 
   /// Watches all discussions for real-time updates.
   ///
@@ -265,14 +191,5 @@ class DiscussionService {
   /// whenever they change.
   static Stream<List<Discussion>> get watchAllDiscussions {
     return LocalDatabaseService.instance.watchAllDiscussions();
-  }
-
-  /// Disposes of the discussion service and closes streams.
-  ///
-  /// Call this when the discussion service is no longer needed
-  /// to prevent memory leaks.
-  void dispose() {
-    _messageStreamController.close();
-    _participantStreamController.close();
   }
 }

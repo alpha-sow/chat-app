@@ -18,8 +18,8 @@ class ReplyPreviewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     try {
-      final replyToMessage = discussion.messages.firstWhere(
-        (m) => m.id == replyToMessageId,
+      final replyToMessage = discussion.state.messages.firstWhere(
+        (Message m) => m.id == replyToMessageId,
       );
 
       final replyToUser = discussion.getUser(replyToMessage.senderId);

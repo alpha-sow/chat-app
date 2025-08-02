@@ -15,8 +15,8 @@ class ReplyContextWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     try {
-      final replyToMessage = discussion.messages.firstWhere(
-        (m) => m.id == replyToId,
+      final replyToMessage = discussion.state.messages.firstWhere(
+        (Message m) => m.id == replyToId,
       );
 
       final replyToUser = discussion.getUser(replyToMessage.senderId);

@@ -41,7 +41,6 @@ class _ChatTempPageState extends State<ChatTempPage> {
   @override
   void dispose() {
     _messageController.dispose();
-    _discussion.dispose();
     super.dispose();
   }
 
