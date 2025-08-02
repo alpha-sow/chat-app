@@ -49,8 +49,8 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  Future<void> _sendMessage([String? messageText]) async {
-    final text = messageText ?? _messageController.text.trim();
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
 
     if (_discussion != null) {
       setState(() {
