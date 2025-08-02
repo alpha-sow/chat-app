@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/chat/chat.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ChatTempPage extends StatefulWidget {
   const ChatTempPage({
@@ -24,6 +25,9 @@ class _ChatTempPageState extends State<ChatTempPage> {
   final TextEditingController _messageController = TextEditingController();
   late User _currentUser;
   late User _otherUser;
+  XFile? _selectedImage;
+  String? _recordedAudioPath;
+  bool _isSending = false;
 
   @override
   void initState() {
@@ -40,9 +44,27 @@ class _ChatTempPageState extends State<ChatTempPage> {
     super.dispose();
   }
 
+  Future<void> _onImageSelected(XFile image) async {
+    setState(() {
+      _selectedImage = image;
+    });
+  }
+
+  Future<void> _onAudioRecorded(String audioPath) async {
+    setState(() {
+      _recordedAudioPath = audioPath;
+    });
+  }
+
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && _selectedImage == null && _recordedAudioPath == null) {
+      return;
+    }
+
+    setState(() {
+      _isSending = true;
+    });
 
     final discussion = DiscussionService.withUsers(
       id: _discussion.id,
@@ -59,11 +81,15 @@ class _ChatTempPageState extends State<ChatTempPage> {
           builder: (context) => ChatPage(
             discussionId: discussion.id,
             currentUserId: _currentUser.id,
-            initialMessage: text,
+            initialMessage: text.isNotEmpty ? text : null,
           ),
         ),
       );
     }
+
+    setState(() {
+      _isSending = false;
+    });
   }
 
   @override
@@ -128,6 +154,17 @@ class _ChatTempPageState extends State<ChatTempPage> {
                 _sendMessage();
                 _messageController.clear();
               },
+              onImageSelected: _onImageSelected,
+              onAudioRecorded: _onAudioRecorded,
+              selectedImage: _selectedImage,
+              recordedAudioPath: _recordedAudioPath,
+              isSending: _isSending,
+              onRemoveImage: () => setState(() {
+                _selectedImage = null;
+              }),
+              onRemoveAudio: () => setState(() {
+                _recordedAudioPath = null;
+              }),
             ),
           ],
         ),
