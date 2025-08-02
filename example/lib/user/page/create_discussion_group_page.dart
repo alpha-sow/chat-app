@@ -179,8 +179,8 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return AsScaffold(
+      appBar: AsAppBar(
         title: const Text('Create Group Discussion'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
@@ -246,76 +246,33 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
                   children: [
                     Text(
                       'Selected Participants (${_selectedUsers.length})',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue[800],
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        spacing: 8,
-                        children: _selectedUsers.map((user) {
-                          final isCurrentUser =
-                              user.id == widget.currentUser.id;
-                          return Chip(
-                            avatar: CircleAvatar(
-                              backgroundColor: isCurrentUser
-                                  ? Colors.green[100]
-                                  : Colors.blue[100],
-                              backgroundImage: user.avatarUrl != null
-                                  ? CachedNetworkImageProvider(user.avatarUrl!)
-                                  : null,
-                              child: user.avatarUrl == null
-                                  ? Text(
-                                      user.initials,
-                                      style: TextStyle(
-                                        color: isCurrentUser
-                                            ? Colors.green[800]
-                                            : Colors.blue[800],
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                            label: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(user.displayName),
-                                if (isCurrentUser) ...[
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '(You)',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.green[700],
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            onDeleted: isCurrentUser
-                                ? null
-                                : () {
-                                    setState(() {
-                                      _selectedUsers.remove(user);
-                                      _updateTitle();
-                                    });
-                                  },
-                            backgroundColor: isCurrentUser
-                                ? Colors.green[50]
-                                : null,
-                            side: isCurrentUser
-                                ? BorderSide(color: Colors.green[300]!)
-                                : null,
-                          );
-                        }).toList(),
-                      ),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _selectedUsers.map((user) {
+                        final isCurrentUser = user.id == widget.currentUser.id;
+                        return _ParticipantCard(
+                          user: user,
+                          isCurrentUser: isCurrentUser,
+                          onRemove: isCurrentUser
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _selectedUsers.remove(user);
+                                    _updateTitle();
+                                  });
+                                },
+                        );
+                      }).toList(),
                     ),
                   ],
                 ),
@@ -458,6 +415,89 @@ class _CreateDiscussionGroupPageState extends State<CreateDiscussionGroupPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ParticipantCard extends StatelessWidget {
+  const _ParticipantCard({
+    required this.user,
+    required this.isCurrentUser,
+    this.onRemove,
+  });
+
+  final User user;
+  final bool isCurrentUser;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isCurrentUser ? Colors.green[50] : Colors.grey[100],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isCurrentUser ? Colors.green[300]! : Colors.grey[300]!,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AsAvatar(
+            radius: 12,
+            backgroundColor: isCurrentUser
+                ? Colors.green[100]
+                : Colors.blue[100],
+            backgroundImage: user.avatarUrl != null
+                ? CachedNetworkImageProvider(user.avatarUrl!)
+                : null,
+            child: user.avatarUrl == null
+                ? Text(
+                    user.initials,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isCurrentUser
+                          ? Colors.green[800]
+                          : Colors.blue[800],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            user.displayName,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: isCurrentUser ? Colors.green[800] : Colors.grey[800],
+            ),
+          ),
+          if (isCurrentUser) ...[
+            const SizedBox(width: 4),
+            Text(
+              '(You)',
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.green[700],
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+          if (onRemove != null) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onRemove,
+              child: Icon(
+                Icons.close,
+                size: 16,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
