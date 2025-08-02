@@ -11,6 +11,7 @@ class MessageInput extends StatefulWidget {
   const MessageInput({
     required this.messageController,
     super.key,
+    this.focusNode,
     this.onSendMessage,
     this.onImageSelected,
     this.onAudioRecorded,
@@ -22,6 +23,7 @@ class MessageInput extends StatefulWidget {
   });
 
   final TextEditingController messageController;
+  final FocusNode? focusNode;
   final ValueChanged<String>? onSendMessage;
   final ValueChanged<XFile>? onImageSelected;
   final ValueChanged<String>? onAudioRecorded;
@@ -42,10 +44,12 @@ class _MessageInputState extends State<MessageInput>
   bool _isRecording = false;
   late AnimationController _recordingAnimationController;
   late Animation<double> _recordingAnimation;
+  late FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
+    _focusNode = widget.focusNode ?? FocusNode();
     _recordingAnimationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -65,6 +69,9 @@ class _MessageInputState extends State<MessageInput>
   @override
   void dispose() {
     _recordingAnimationController.dispose();
+    if (widget.focusNode == null) {
+      _focusNode.dispose();
+    }
     super.dispose();
   }
 
@@ -285,6 +292,7 @@ class _MessageInputState extends State<MessageInput>
               Expanded(
                 child: AsTextField(
                   controller: widget.messageController,
+                  focusNode: _focusNode,
                   hintText: 'Send first message to start chat...',
                   onSubmitted: (value) => widget.onSendMessage?.call(value),
                 ),

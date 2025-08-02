@@ -24,6 +24,7 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   DiscussionService? _discussion;
   final TextEditingController _messageController = TextEditingController();
+  final FocusNode _messageFocusNode = FocusNode();
   User? _currentUser;
   bool _isLoading = true;
   bool _isSending = false;
@@ -37,6 +38,7 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     _initializeChat();
+    _messageFocusNode.requestFocus();
   }
 
   Future<void> _initializeChat() async {
@@ -69,6 +71,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void dispose() {
     _messageController.dispose();
+    _messageFocusNode.dispose();
     _discussion?.dispose();
     super.dispose();
   }
@@ -219,7 +222,7 @@ class _ChatPageState extends State<ChatPage> {
       _replyToMessageId = messageId;
     });
 
-    FocusScope.of(context).requestFocus(FocusNode());
+    _messageFocusNode.requestFocus();
   }
 
   void _cancelReply() {
@@ -310,155 +313,164 @@ class _ChatPageState extends State<ChatPage> {
             ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: _discussion?.messages.length ?? 0,
-                itemBuilder: (context, index) {
-                  final message = _discussion!.messages[index];
-                  final user = _discussion!.getUser(message.senderId);
-                  final isCurrentUser = message.senderId == _currentUser!.id;
-                  final isSelected = _selectedMessages.contains(message.id);
+      body: GestureDetector(
+        onTap: _messageFocusNode.unfocus,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _discussion?.messages.length ?? 0,
+                  itemBuilder: (context, index) {
+                    final message = _discussion!.messages[index];
+                    final user = _discussion!.getUser(message.senderId);
+                    final isCurrentUser = message.senderId == _currentUser!.id;
+                    final isSelected = _selectedMessages.contains(message.id);
 
-                  return Container(
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 2,
-                      horizontal: 8,
-                    ),
-                    child: Align(
-                      alignment: isCurrentUser
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: GestureDetector(
-                        onTap: _isSelectionMode && isCurrentUser
-                            ? () => _toggleMessageSelection(message.id)
-                            : null,
-                        onLongPress: () =>
-                            _showMessageContextMenu(context, message.id),
-                        child: Container(
-                          constraints: const BoxConstraints(maxWidth: 280),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? Colors.red[200]
-                                : isCurrentUser
-                                ? Colors.blue[100]
-                                : Colors.grey[200],
-                            borderRadius: BorderRadius.circular(12),
-                            border: isSelected
-                                ? Border.all(color: Colors.red[400]!, width: 2)
-                                : null,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (message.replyToId != null)
-                                ReplyContextWidget(
-                                  replyToId: message.replyToId!,
-                                  discussion: _discussion!,
+                    return Container(
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 2,
+                        horizontal: 8,
+                      ),
+                      child: Align(
+                        alignment: isCurrentUser
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: GestureDetector(
+                          onTap: _isSelectionMode && isCurrentUser
+                              ? () => _toggleMessageSelection(message.id)
+                              : null,
+                          onLongPress: () =>
+                              _showMessageContextMenu(context, message.id),
+                          child: Container(
+                            constraints: const BoxConstraints(maxWidth: 280),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? Colors.red[200]
+                                  : isCurrentUser
+                                  ? Colors.blue[100]
+                                  : Colors.grey[200],
+                              borderRadius: BorderRadius.circular(12),
+                              border: isSelected
+                                  ? Border.all(
+                                      color: Colors.red[400]!,
+                                      width: 2,
+                                    )
+                                  : null,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (message.replyToId != null)
+                                  ReplyContextWidget(
+                                    replyToId: message.replyToId!,
+                                    discussion: _discussion!,
+                                  ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isSelected)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 8,
+                                        ),
+                                        child: Icon(
+                                          Icons.check_circle,
+                                          size: 16,
+                                          color: Colors.red[600],
+                                        ),
+                                      ),
+                                    Expanded(
+                                      child: Text(
+                                        user?.displayName ?? message.senderId,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (isSelected)
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: Icon(
-                                        Icons.check_circle,
-                                        size: 16,
-                                        color: Colors.red[600],
-                                      ),
-                                    ),
-                                  Expanded(
-                                    child: Text(
-                                      user?.displayName ?? message.senderId,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              MessageContentWidget(message: message),
-                              const SizedBox(height: 4),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '${message.timestamp.hour}:'
-                                    '${message.timestamp.minute.toString().padLeft(2, '0')}',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                  if (isCurrentUser && !_isSelectionMode) ...[
-                                    const SizedBox(width: 8),
+                                const SizedBox(height: 4),
+                                MessageContentWidget(message: message),
+                                const SizedBox(height: 4),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
                                     Text(
-                                      'Long press for options',
+                                      '${message.timestamp.hour}:'
+                                      '${message.timestamp.minute.toString().padLeft(2, '0')}',
                                       style: TextStyle(
-                                        fontSize: 8,
-                                        color: Colors.grey[500],
-                                        fontStyle: FontStyle.italic,
+                                        fontSize: 10,
+                                        color: Colors.grey[600],
                                       ),
                                     ),
-                                  ],
-                                  if (isCurrentUser && _isSelectionMode) ...[
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Tap to toggle',
-                                      style: TextStyle(
-                                        fontSize: 8,
-                                        color: Colors.grey[500],
-                                        fontStyle: FontStyle.italic,
+                                    if (isCurrentUser && !_isSelectionMode) ...[
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Long press for options',
+                                        style: TextStyle(
+                                          fontSize: 8,
+                                          color: Colors.grey[500],
+                                          fontStyle: FontStyle.italic,
+                                        ),
                                       ),
-                                    ),
+                                    ],
+                                    if (isCurrentUser && _isSelectionMode) ...[
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Tap to toggle',
+                                        style: TextStyle(
+                                          fontSize: 8,
+                                          color: Colors.grey[500],
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                    ],
                                   ],
-                                ],
-                              ),
-                            ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Column(
-              children: [
-                if (_replyToMessageId != null)
-                  ReplyPreviewWidget(
-                    replyToMessageId: _replyToMessageId!,
-                    discussion: _discussion!,
-                    onCancel: _cancelReply,
-                  ),
-                MessageInput(
-                  messageController: _messageController,
-                  onSendMessage: (_) => _sendMessage(),
-                  onImageSelected: _onImageSelected,
-                  onAudioRecorded: _onAudioRecorded,
-                  selectedImage: _selectedImage,
-                  recordedAudioPath: _recordedAudioPath,
-                  isSending: _isSending,
-                  onRemoveImage: () => setState(() {
-                    _selectedImage = null;
-                  }),
-                  onRemoveAudio: () => setState(() {
-                    _recordedAudioPath = null;
-                  }),
+                    );
+                  },
                 ),
-              ],
-            ),
-          ],
+              ),
+              Column(
+                children: [
+                  if (_replyToMessageId != null)
+                    ReplyPreviewWidget(
+                      replyToMessageId: _replyToMessageId!,
+                      discussion: _discussion!,
+                      onCancel: _cancelReply,
+                    ),
+                  MessageInput(
+                    focusNode: _messageFocusNode,
+                    messageController: _messageController,
+                    onSendMessage: (_) => _sendMessage(),
+                    onImageSelected: _onImageSelected,
+                    onAudioRecorded: _onAudioRecorded,
+                    selectedImage: _selectedImage,
+                    recordedAudioPath: _recordedAudioPath,
+                    isSending: _isSending,
+                    onRemoveImage: () => setState(() {
+                      _selectedImage = null;
+                    }),
+                    onRemoveAudio: () => setState(() {
+                      _recordedAudioPath = null;
+                    }),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
