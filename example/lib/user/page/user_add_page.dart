@@ -13,7 +13,6 @@ class _UserAddPageState extends State<UserAddPage> {
   final _displayNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -76,10 +75,6 @@ class _UserAddPageState extends State<UserAddPage> {
       }
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
       final contact = User.create(
         name: _displayNameController.text.trim(),
@@ -107,12 +102,6 @@ class _UserAddPageState extends State<UserAddPage> {
           message: 'Failed to add contact: $e',
           type: AlertType.error,
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
   }
