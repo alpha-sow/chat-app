@@ -21,13 +21,13 @@ class MessageService {
     );
   }
 
-  void sendMessage({
+  Future<void> sendMessage({
     required String discussionId,
     required String senderId,
     required String content,
     MessageType type = MessageType.text,
     String? replyToId,
-  }) {
+  }) async {
     final message = Message(
       id: const Uuid().v4(),
       senderId: senderId,
@@ -36,13 +36,17 @@ class MessageService {
       replyToId: replyToId,
       timestamp: DateTime.now(),
     );
-
-    _database.saveMessage(message, discussionId);
-    unawaited(_syncService.syncMessages());
+    await Future.wait([
+      _syncService.saveMessage(message, discussionId),
+      _syncService.updateDiscussionById(
+        id: discussionId,
+        lastMessage: message,
+        lastActivity: message.timestamp,
+      ),
+    ]);
   }
 
-  void deleteMessage(String messageId) {
-    _database.deleteMessage(messageId);
-    unawaited(_syncService.syncMessages());
+  Future<void> deleteMessage(String messageId, String discussionId) async {
+    await _syncService.deleteMessage(messageId, discussionId);
   }
 }

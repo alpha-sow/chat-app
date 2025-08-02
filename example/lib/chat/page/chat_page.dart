@@ -57,7 +57,7 @@ class _ChatPageState extends State<ChatPage> {
       });
 
       if (text.isNotEmpty) {
-        MessageService.instance.sendMessage(
+        await MessageService.instance.sendMessage(
           discussionId: _discussion!.id,
           senderId: _currentUser.id,
           content: text,
@@ -74,7 +74,7 @@ class _ChatPageState extends State<ChatPage> {
             discussionId: widget.discussion.id,
           );
 
-          MessageService.instance.sendMessage(
+          await MessageService.instance.sendMessage(
             discussionId: _discussion!.id,
             senderId: _currentUser.id,
             content: downloadUrl,
@@ -84,7 +84,7 @@ class _ChatPageState extends State<ChatPage> {
         } on Exception catch (e) {
           logger.e('Error uploading image', error: e);
 
-          MessageService.instance.sendMessage(
+          await MessageService.instance.sendMessage(
             discussionId: _discussion!.id,
             senderId: _currentUser.id,
             content: _selectedImage!.path,
@@ -103,7 +103,7 @@ class _ChatPageState extends State<ChatPage> {
             discussionId: widget.discussion.id,
           );
 
-          MessageService.instance.sendMessage(
+          await MessageService.instance.sendMessage(
             discussionId: _discussion!.id,
             senderId: _currentUser.id,
             content: downloadUrl,
@@ -113,7 +113,7 @@ class _ChatPageState extends State<ChatPage> {
         } on Exception catch (e) {
           logger.e('Error uploading audio', error: e);
 
-          MessageService.instance.sendMessage(
+          await MessageService.instance.sendMessage(
             discussionId: _discussion!.id,
             senderId: _currentUser.id,
             content: _recordedAudioPath!,
@@ -132,7 +132,7 @@ class _ChatPageState extends State<ChatPage> {
             discussionId: widget.discussion.id,
           );
 
-          MessageService.instance.sendMessage(
+          await MessageService.instance.sendMessage(
             discussionId: _discussion!.id,
             senderId: _currentUser.id,
             content: downloadUrl,
@@ -142,7 +142,7 @@ class _ChatPageState extends State<ChatPage> {
         } on Exception catch (e) {
           logger.e('Error uploading audio', error: e);
 
-          MessageService.instance.sendMessage(
+          await MessageService.instance.sendMessage(
             discussionId: _discussion!.id,
             senderId: _currentUser.id,
             content: _recordedAudioPath!,
@@ -256,7 +256,10 @@ class _ChatPageState extends State<ChatPage> {
           messageId,
           widget.discussion.id,
         );
-        MessageService.instance.deleteMessage(messageId);
+        await MessageService.instance.deleteMessage(
+          messageId,
+          widget.discussion.id,
+        );
       }
 
       setState(_exitSelectionMode);

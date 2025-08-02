@@ -62,7 +62,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
       return;
     }
 
-    final discussion = DiscussionService.instance.withUsers(
+    final discussion = await DiscussionService.instance.withUsers(
       title: _discussion.title,
       users: [_currentUser, _otherUser],
     );
@@ -70,7 +70,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
     logger.i('Discussion persisted to database: ${discussion.id}');
 
     if (text.isNotEmpty) {
-      MessageService.instance.sendMessage(
+      await MessageService.instance.sendMessage(
         discussionId: discussion.id,
         senderId: _currentUser.id,
         content: text,
@@ -86,7 +86,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
           discussionId: widget.discussion.id,
         );
 
-        MessageService.instance.sendMessage(
+        await MessageService.instance.sendMessage(
           discussionId: discussion.id,
           senderId: _currentUser.id,
           content: downloadUrl,
@@ -95,7 +95,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
       } on Exception catch (e) {
         logger.e('Error uploading image', error: e);
 
-        MessageService.instance.sendMessage(
+        await MessageService.instance.sendMessage(
           discussionId: discussion.id,
           senderId: _currentUser.id,
           content: _selectedImage!.path,
@@ -113,7 +113,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
           discussionId: widget.discussion.id,
         );
 
-        MessageService.instance.sendMessage(
+        await MessageService.instance.sendMessage(
           discussionId: discussion.id,
           senderId: _currentUser.id,
           content: downloadUrl,
@@ -122,7 +122,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
       } on Exception catch (e) {
         logger.e('Error uploading audio', error: e);
 
-        MessageService.instance.sendMessage(
+        await MessageService.instance.sendMessage(
           discussionId: discussion.id,
           senderId: _currentUser.id,
           content: _recordedAudioPath!,

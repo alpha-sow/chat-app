@@ -851,4 +851,16 @@ class SyncService {
     _pendingSyncOperations.clear();
     _instance = null;
   }
+
+  Future<void> updateDiscussionById({
+    required String id,
+    required Message lastMessage,
+    required DateTime lastActivity,
+  }) async {
+    await _localDb.updateDiscussionById(
+      id: id,
+      lastMessage: lastMessage,
+      lastActivity: lastActivity,
+    );
+  }
 }

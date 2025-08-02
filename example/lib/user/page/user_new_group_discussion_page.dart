@@ -117,7 +117,7 @@ class _UserNewGroupDiscussionPageState
     }
   }
 
-  void _createDiscussion() {
+  Future<void> _createDiscussion() async {
     final title = _titleController.text.trim();
 
     if (title.isEmpty && _selectedUsers.isNotEmpty) {
@@ -149,7 +149,7 @@ class _UserNewGroupDiscussionPageState
       '(${_isCustomTitle ? "custom" : "auto-generated"})',
     );
 
-    final discussion = DiscussionService.instance.withUsers(
+    final discussion = await DiscussionService.instance.withUsers(
       title: title,
       users: _selectedUsers.toList(),
     );
@@ -166,20 +166,22 @@ class _UserNewGroupDiscussionPageState
     final welcomeMessage = faker.randomGenerator.element(welcomeMessages);
     logger.d('Added welcome message to discussion: ${discussion.id}');
 
-    MessageService.instance.sendMessage(
+    await MessageService.instance.sendMessage(
       discussionId: discussion.id,
       senderId: _currentUser.id,
       content: welcomeMessage,
     );
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
-        builder: (context) => ChatPage(
-          discussion: discussion,
-          currentUser: _currentUser,
+    if (mounted) {
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (context) => ChatPage(
+            discussion: discussion,
+            currentUser: _currentUser,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override

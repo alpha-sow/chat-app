@@ -277,4 +277,24 @@ class LocalDatabaseService {
           return isarMessages.map((IsarMessage im) => im.toMessage()).toList();
         });
   }
+
+  Future<void> updateDiscussionById({
+    required String id,
+    required Message lastMessage,
+    required DateTime lastActivity,
+  }) async {
+    final discussion = await getDiscussion(id);
+
+    if (discussion != null) {
+      await isar.writeTxn(() async {
+        await isar.isarDiscussions.putByDiscussionId(
+          IsarDiscussion.fromDiscussion(
+            discussion.copyWith(
+              lastActivity: lastActivity,
+            ),
+          ),
+        );
+      });
+    }
+  }
 }

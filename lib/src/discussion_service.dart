@@ -19,7 +19,10 @@ class DiscussionService {
     return _database.watchAllDiscussions();
   }
 
-  Discussion withUsers({required String title, required List<User> users}) {
+  Future<Discussion> withUsers({
+    required String title,
+    required List<User> users,
+  }) async {
     final discussion = Discussion(
       id: const Uuid().v4(),
       title: title,
@@ -27,8 +30,7 @@ class DiscussionService {
       createdAt: DateTime.now(),
       lastActivity: DateTime.now(),
     );
-    _database.saveDiscussion(discussion);
-    unawaited(_syncService.syncDiscussions());
+    await _syncService.saveDiscussion(discussion);
     return discussion;
   }
 
@@ -43,8 +45,7 @@ class DiscussionService {
     return discussion;
   }
 
-  void deleteDiscussion(String discussionId) {
-    _database.deleteDiscussion(discussionId);
-    unawaited(_syncService.syncDiscussions());
+  Future<void> deleteDiscussion(String discussionId) async {
+    await _syncService.deleteDiscussion(discussionId);
   }
 }
