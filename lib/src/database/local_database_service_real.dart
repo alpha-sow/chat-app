@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:chat_app_package/src/models/isar_models_real.dart';
-import 'package:chat_app_package/src/src.dart' hide IsarDiscussion, IsarMessage, IsarUser;
+import 'package:chat_app_package/src/src.dart'
+    hide IsarDiscussion, IsarMessage, IsarUser;
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
 /// Local database service using Isar for data persistence.
@@ -26,17 +28,32 @@ class LocalDatabaseService {
   /// database with schemas for messages, discussions, and users.
   ///
   /// [directory] The directory path where the database files will be stored.
+  /// For web, this parameter is ignored as IndexedDB is used instead.
   static Future<void> initialize({required String directory}) async {
     if (_isar != null) return;
 
-    _isar = await Isar.open(
-      [
-        IsarMessageSchema,
-        IsarDiscussionSchema,
-        IsarUserSchema,
-      ],
-      directory: directory,
-    );
+    if (kIsWeb) {
+      // For web, use empty directory string (IndexedDB is used instead)
+      _isar = await Isar.open(
+        [
+          IsarMessageSchema,
+          IsarDiscussionSchema,
+          IsarUserSchema,
+        ],
+        directory: '',
+        name: 'chat_app_db',
+      );
+    } else {
+      // For mobile/desktop, use the provided directory
+      _isar = await Isar.open(
+        [
+          IsarMessageSchema,
+          IsarDiscussionSchema,
+          IsarUserSchema,
+        ],
+        directory: directory,
+      );
+    }
   }
 
   /// Gets the initialized Isar database instance.
