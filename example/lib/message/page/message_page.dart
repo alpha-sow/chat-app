@@ -2,13 +2,12 @@ import 'dart:io';
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/message/message.dart';
-import 'package:chat_flutter_app/message/cubit/chat_list_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ChatPage extends StatefulWidget {
-  const ChatPage({
+class MessagePage extends StatefulWidget {
+  const MessagePage({
     required this.discussion,
     required this.currentUser,
     super.key,
@@ -18,10 +17,10 @@ class ChatPage extends StatefulWidget {
   final User currentUser;
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  State<MessagePage> createState() => _MessagePageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _MessagePageState extends State<MessagePage> {
   Discussion? _discussion;
   final TextEditingController _messageController = TextEditingController();
   final FocusNode _messageFocusNode = FocusNode();
@@ -247,11 +246,11 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
       body: BlocProvider(
-        create: (context) => ChatListCubit(widget.discussion.id),
-        child: BlocBuilder<ChatListCubit, ChatListState>(
+        create: (context) => MassageListCubit(widget.discussion.id),
+        child: BlocBuilder<MassageListCubit, MessageListState>(
           builder: (context, state) {
             return switch (state) {
-              ChatListStateLoaded(:final messages) => GestureDetector(
+              MessageListStateLoaded(:final messages) => GestureDetector(
                 onTap: _messageFocusNode.unfocus,
                 child: SafeArea(
                   child: Column(
@@ -455,7 +454,7 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
               ),
-              ChatListStateError() => const Center(
+              MessageListStateError() => const Center(
                 child: Text('Error loading messages'),
               ),
             };

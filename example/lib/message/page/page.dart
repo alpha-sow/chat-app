@@ -1,2 +1,2 @@
-export 'chat_page.dart';
-export 'chat_temp_page.dart';
+export 'message_page.dart';
+export 'message_temp_page.dart';

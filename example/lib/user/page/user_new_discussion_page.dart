@@ -180,7 +180,7 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
   Future<void> _starChatWithUser(User user) async {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (context) => ChatTempPage(
+        builder: (context) => MessageTempPage(
           discussion: DiscussionService.instance.tempWithUsers(
             title: user.displayName,
             users: [_currentUser, user],

@@ -181,7 +181,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute<void>(
-                                      builder: (context) => ChatPage(
+                                      builder: (context) => MessagePage(
                                         discussion: discussion,
                                         currentUser: widget.currentUser,
                                       ),

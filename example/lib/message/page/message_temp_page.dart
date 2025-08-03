@@ -7,8 +7,8 @@ import 'package:chat_flutter_app/message/message.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ChatTempPage extends StatefulWidget {
-  const ChatTempPage({
+class MessageTempPage extends StatefulWidget {
+  const MessageTempPage({
     required this.discussion,
     required this.currentUser,
     required this.otherUser,
@@ -19,10 +19,10 @@ class ChatTempPage extends StatefulWidget {
   final User otherUser;
 
   @override
-  State<ChatTempPage> createState() => _ChatTempPageState();
+  State<MessageTempPage> createState() => _MessageTempPageState();
 }
 
-class _ChatTempPageState extends State<ChatTempPage> {
+class _MessageTempPageState extends State<MessageTempPage> {
   late Discussion _discussion;
   final TextEditingController _messageController = TextEditingController();
   late User _currentUser;
@@ -134,7 +134,7 @@ class _ChatTempPageState extends State<ChatTempPage> {
     if (mounted) {
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-          builder: (context) => ChatPage(
+          builder: (context) => MessagePage(
             discussion: discussion,
             currentUser: _currentUser,
           ),

@@ -175,7 +175,7 @@ class _UserNewGroupDiscussionPageState
     if (mounted) {
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-          builder: (context) => ChatPage(
+          builder: (context) => MessagePage(
             discussion: discussion,
             currentUser: _currentUser,
           ),

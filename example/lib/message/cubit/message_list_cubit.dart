@@ -4,25 +4,25 @@ import 'package:bloc/bloc.dart';
 import 'package:chat_app_package/chat_app_package.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'chat_list_state.dart';
-part 'chat_list_cubit.freezed.dart';
+part 'message_list_state.dart';
+part 'message_list_cubit.freezed.dart';
 
-class ChatListCubit extends Cubit<ChatListState> {
-  ChatListCubit(String discussionId)
+class MassageListCubit extends Cubit<MessageListState> {
+  MassageListCubit(String discussionId)
     : _discussionId = discussionId,
-      super(const ChatListStateLoaded([])) {
+      super(const MessageListStateLoaded([])) {
     _messageStreamSubscription = MessageService.instance
         .watchMessagesForDiscussion(_discussionId)
         .listen(
           (messages) {
             if (messages.isEmpty) {
-              emit(const ChatListStateLoaded([]));
+              emit(const MessageListStateLoaded([]));
             } else {
-              emit(ChatListStateLoaded(messages));
+              emit(MessageListStateLoaded(messages));
             }
           },
           onError: (Object error) {
-            emit(ChatListStateError(error as Exception));
+            emit(MessageListStateError(error as Exception));
           },
         );
   }
