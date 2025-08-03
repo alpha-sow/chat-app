@@ -38,35 +38,19 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
   }
 
   Future<bool?> _showDeleteDiscussionConfirmation(String discussionTitle) {
-    return context.showAsAlertDialog(
-      title: const Text('Delete Discussion'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Are you sure you want to delete "$discussionTitle"?'),
-          const SizedBox(height: 8),
-          const Text(
-            'This will permanently delete all messages and cannot be undone.',
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+    return context.showAsActionBottomSheet(
+      title: Text('Delete the discussion "$discussionTitle"?'),
       actions: [
-        AsDialogAction(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
-        ),
         AsDialogAction(
           isDestructiveAction: true,
           onPressed: () => Navigator.of(context).pop(true),
           child: const Text('Delete'),
         ),
       ],
+      cancelAction: AsDialogAction(
+        onPressed: () => Navigator.of(context).pop(false),
+        child: const Text('Cancel'),
+      ),
     );
   }
 
@@ -77,7 +61,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         title: const Text('Discussions'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          AsButton.ghost(
+          AsIconButton.ghost(
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -86,7 +70,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                 ),
               );
             },
-            child: const Icon(Icons.add_circle),
+            icon: Icons.add_circle,
           ),
         ],
       ),
@@ -175,36 +159,6 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                   discussion.title,
                                 );
                               },
-                              onDismissed: (direction) async {
-                                try {
-                                  logger.w(
-                                    'Deleting discussion: ${discussion.title} (${discussion.id})',
-                                  );
-                                  await SyncService.instance.deleteDiscussion(
-                                    discussion.id,
-                                  );
-
-                                  if (mounted && context.mounted) {
-                                    context.showBanner(
-                                      message:
-                                          'Discussion "${discussion.title}" deleted',
-                                      type: AlertType.success,
-                                    );
-                                  }
-                                } on Exception catch (e) {
-                                  logger.e(
-                                    'Error deleting discussion',
-                                    error: e,
-                                  );
-                                  if (mounted && context.mounted) {
-                                    context.showBanner(
-                                      message:
-                                          'Failed to delete discussion: $e',
-                                      type: AlertType.error,
-                                    );
-                                  }
-                                }
-                              },
                               child: ASListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: Colors.blue[100],
@@ -217,7 +171,9 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                   ),
                                 ),
                                 title: Text(discussion.title),
-                                subtitle: LastMessageSubtitle(message: discussion.lastMessage),
+                                subtitle: LastMessageSubtitle(
+                                  message: discussion.lastMessage,
+                                ),
                                 trailing: Icon(
                                   Icons.arrow_forward_ios,
                                   color: Colors.grey[400],
@@ -244,7 +200,6 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
       ),
     );
   }
-
 }
 
 class LastMessageSubtitle extends StatelessWidget {
