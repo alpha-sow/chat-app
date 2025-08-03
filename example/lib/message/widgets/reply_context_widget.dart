@@ -1,5 +1,5 @@
 import 'package:chat_app_package/chat_app_package.dart';
-import 'package:chat_flutter_app/chat/chat.dart';
+import 'package:chat_flutter_app/message/message.dart';
 import 'package:flutter/material.dart';
 
 class ReplyContextWidget extends StatefulWidget {
