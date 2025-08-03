@@ -290,6 +290,7 @@ class LocalDatabaseService {
         await isar.isarDiscussions.putByDiscussionId(
           IsarDiscussion.fromDiscussion(
             discussion.copyWith(
+              lastMessage: lastMessage,
               lastActivity: lastActivity,
             ),
           ),

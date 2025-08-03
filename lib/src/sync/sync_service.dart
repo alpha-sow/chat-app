@@ -193,7 +193,7 @@ class SyncService {
       if (remoteDiscussionsData != null) {
         for (final entry in remoteDiscussionsData.entries) {
           try {
-            final discussionData = Map<String, dynamic>.from(
+            final discussionData = _convertToStringDynamicMap(
               entry.value as Map,
             );
             discussionData['id'] = entry.key;
@@ -581,6 +581,9 @@ class SyncService {
   Future<void> deleteMessage(String messageId, String discussionId) async {
     await _localDb.deleteMessage(messageId);
 
+    // Update discussion with new last message after deletion
+    await _updateDiscussionAfterMessageDelete(discussionId);
+
     if (_isOnline) {
       try {
         await _firebase.delete(
@@ -659,7 +662,7 @@ class SyncService {
   Future<void> _handleRemoteDiscussionChanges(Map<String, dynamic> data) async {
     for (final entry in data.entries) {
       try {
-        final discussionData = Map<String, dynamic>.from(entry.value as Map);
+        final discussionData = _convertToStringDynamicMap(entry.value as Map);
         discussionData['id'] = entry.key;
         final remoteDiscussion = Discussion.fromJson(discussionData);
 
@@ -862,5 +865,123 @@ class SyncService {
       lastMessage: lastMessage,
       lastActivity: lastActivity,
     );
+
+    // Sync the updated discussion to Firebase
+    final updatedDiscussion = await _localDb.getDiscussion(id);
+    if (updatedDiscussion == null) {
+      logger.w('Discussion with ID $id not found for update');
+      return;
+    }
+
+    if (_isOnline) {
+      try {
+        await _firebase.set(
+          'users/$_currentUserId/discussions/$id',
+          updatedDiscussion.toJson(),
+        );
+      } on Exception catch (e) {
+        logger.e('Error updating discussion in remote: $e');
+        _queueSyncOperation(
+          SyncOperation(
+            type: SyncOperationType.discussions,
+            operation: 'update',
+            entityId: id,
+            data: updatedDiscussion.toJson(),
+          ),
+        );
+      }
+    } else {
+      _queueSyncOperation(
+        SyncOperation(
+          type: SyncOperationType.discussions,
+          operation: 'update',
+          entityId: id,
+          data: updatedDiscussion.toJson(),
+        ),
+      );
+    }
+  }
+
+  /// Updates discussion with new last message after a message deletion.
+  Future<void> _updateDiscussionAfterMessageDelete(String discussionId) async {
+    // Get all messages for this discussion and find the most recent one
+    final messages = await _localDb.getMessagesForDiscussion(discussionId);
+    final lastMessage = messages.isNotEmpty ? messages.last : null;
+    
+    if (lastMessage != null) {
+      // Update discussion with the new last message
+      await updateDiscussionById(
+        id: discussionId,
+        lastMessage: lastMessage,
+        lastActivity: DateTime.now(),
+      );
+    } else {
+      // No messages left, update with null last message
+      final discussion = await _localDb.getDiscussion(discussionId);
+      if (discussion != null) {
+        final updatedDiscussion = discussion.copyWith(
+          lastMessage: null,
+          lastActivity: DateTime.now(),
+        );
+        await _localDb.saveDiscussion(updatedDiscussion);
+        
+        // Sync to Firebase
+        if (_isOnline) {
+          try {
+            await _firebase.set(
+              'users/$_currentUserId/discussions/$discussionId',
+              updatedDiscussion.toJson(),
+            );
+          } on Exception catch (e) {
+            logger.e('Error updating discussion in remote: $e');
+            _queueSyncOperation(
+              SyncOperation(
+                type: SyncOperationType.discussions,
+                operation: 'update',
+                entityId: discussionId,
+                data: updatedDiscussion.toJson(),
+              ),
+            );
+          }
+        } else {
+          _queueSyncOperation(
+            SyncOperation(
+              type: SyncOperationType.discussions,
+              operation: 'update',
+              entityId: discussionId,
+              data: updatedDiscussion.toJson(),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  /// Recursively converts a Map to `Map<String, dynamic>` to handle
+  /// nested structures from Firebase that may have Object? keys.
+  Map<String, dynamic> _convertToStringDynamicMap(
+    Map<dynamic, dynamic> source,
+  ) {
+    final result = <String, dynamic>{};
+
+    for (final entry in source.entries) {
+      final key = entry.key.toString();
+      final value = entry.value;
+
+      if (value is Map) {
+        result[key] = _convertToStringDynamicMap(value);
+      } else if (value is List) {
+        result[key] = value.map((item) {
+          if (item is Map) {
+            return _convertToStringDynamicMap(item);
+          }
+          return item;
+        }).toList();
+      } else {
+        result[key] = value;
+      }
+    }
+
+    return result;
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:chat_app_package/src/src.dart';
 import 'package:isar/isar.dart';
 
@@ -117,6 +119,8 @@ class IsarDiscussion {
 
   String? metadataJson;
 
+  String? lastMessageJson;
+
   static IsarDiscussion fromDiscussion(Discussion state) {
     return IsarDiscussion()
       ..discussionId = state.id
@@ -124,7 +128,8 @@ class IsarDiscussion {
       ..participantIds = state.participants.toList()
       ..createdAt = state.createdAt
       ..lastActivity = state.lastActivity
-      ..isActive = state.isActive;
+      ..isActive = state.isActive
+      ..lastMessageJson = _encodeMessage(state.lastMessage);
   }
 
   Discussion toDiscussion() {
@@ -134,8 +139,27 @@ class IsarDiscussion {
       participants: participantIds.toSet(),
       createdAt: createdAt!,
       lastActivity: lastActivity!,
+      lastMessage: _decodeMessage(lastMessageJson),
       isActive: isActive,
     );
+  }
+
+  static String? _encodeMessage(Message? message) {
+    if (message == null) return null;
+    return jsonEncode(message.toJson());
+  }
+
+  static Message? _decodeMessage(String? messageJson) {
+    if (messageJson == null || messageJson.isEmpty) return null;
+    try {
+      final dynamic decoded = jsonDecode(messageJson);
+      if (decoded is Map<String, dynamic>) {
+        return Message.fromJson(decoded);
+      }
+      return null;
+    } on Exception {
+      return null;
+    }
   }
 }
 

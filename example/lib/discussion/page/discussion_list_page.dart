@@ -217,6 +217,14 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                   ),
                                 ),
                                 title: Text(discussion.title),
+                                subtitle: Text(
+                                  discussion.lastMessage?.content ??
+                                      'No messages yet',
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
                                 trailing: Icon(
                                   Icons.arrow_forward_ios,
                                   color: Colors.grey[400],

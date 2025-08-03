@@ -1,3 +1,4 @@
+import 'package:chat_app_package/src/models/message.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -19,6 +20,7 @@ sealed class Discussion with _$Discussion {
   /// [participants] Set of participant user IDs.
   /// [createdAt] When the discussion was created.
   /// [lastActivity] Timestamp of the last activity.
+  /// [lastMessage] The most recent message in the discussion.
   /// [isActive] Whether the discussion is active (default: true).
   const factory Discussion({
     required String id,
@@ -26,6 +28,7 @@ sealed class Discussion with _$Discussion {
     required Set<String> participants,
     required DateTime createdAt,
     required DateTime lastActivity,
+    Message? lastMessage,
     @Default(true) bool isActive,
   }) = _Discussion;
 
