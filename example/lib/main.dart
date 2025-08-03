@@ -4,6 +4,7 @@ import 'package:chat_flutter_app/discussion/page/discussion_list_page.dart';
 import 'package:chat_flutter_app/firebase_options.dart';
 import 'package:chat_flutter_app/utils/utils.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -12,10 +13,18 @@ void main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  final appDocDir = await getApplicationDocumentsDirectory();
-
-  logger.i('Initializing database at: ${appDocDir.path}');
-  await LocalDatabaseService.initialize(directory: appDocDir.path);
+  String dbPath;
+  if (kIsWeb) {
+    // Web doesn't support getApplicationDocumentsDirectory
+    dbPath = '/web_db';
+    logger.i('Initializing database for web at: $dbPath');
+  } else {
+    final appDocDir = await getApplicationDocumentsDirectory();
+    dbPath = appDocDir.path;
+    logger.i('Initializing database at: $dbPath');
+  }
+  
+  await LocalDatabaseService.initialize(directory: dbPath);
 
   final firebaseService = RemoteDatabaseService();
 
