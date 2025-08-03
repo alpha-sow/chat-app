@@ -32,13 +32,13 @@ class LocalDatabaseService {
   Future<void> saveDiscussion(Discussion discussion) async {
     final discussions = await getAllDiscussions();
     final index = discussions.indexWhere((d) => d.id == discussion.id);
-    
+
     if (index >= 0) {
       discussions[index] = discussion;
     } else {
       discussions.add(discussion);
     }
-    
+
     final discussionsJson = discussions.map((d) => d.toJson()).toList();
     await prefs.setString('discussions', jsonEncode(discussionsJson));
   }
@@ -47,7 +47,7 @@ class LocalDatabaseService {
     final discussions = await getAllDiscussions();
     try {
       return discussions.firstWhere((d) => d.id == discussionId);
-    } catch (e) {
+    } on Exception catch (_) {
       return null;
     }
   }
@@ -55,13 +55,13 @@ class LocalDatabaseService {
   Future<List<Discussion>> getAllDiscussions() async {
     final discussionsString = prefs.getString('discussions');
     if (discussionsString == null) return [];
-    
+
     try {
-      final List<dynamic> discussionsJson = jsonDecode(discussionsString) as List<dynamic>;
+      final discussionsJson = jsonDecode(discussionsString) as List<dynamic>;
       return discussionsJson
           .map((json) => Discussion.fromJson(json as Map<String, dynamic>))
           .toList();
-    } catch (e) {
+    } on Exception catch (_) {
       return [];
     }
   }
@@ -69,10 +69,10 @@ class LocalDatabaseService {
   Future<void> deleteDiscussion(String discussionId) async {
     final discussions = await getAllDiscussions();
     discussions.removeWhere((d) => d.id == discussionId);
-    
+
     final discussionsJson = discussions.map((d) => d.toJson()).toList();
     await prefs.setString('discussions', jsonEncode(discussionsJson));
-    
+
     // Also delete related messages
     final messages = await getAllMessages();
     messages.removeWhere((m) => m['discussion_id'] == discussionId);
@@ -91,14 +91,14 @@ class LocalDatabaseService {
       'type': message.type.toString(),
       'reply_to_id': message.replyToId,
     };
-    
+
     final index = messages.indexWhere((m) => m['id'] == message.id);
     if (index >= 0) {
       messages[index] = messageData;
     } else {
       messages.add(messageData);
     }
-    
+
     await prefs.setString('messages', jsonEncode(messages));
   }
 
@@ -107,7 +107,7 @@ class LocalDatabaseService {
     try {
       final messageData = messages.firstWhere((m) => m['id'] == messageId);
       return _messageFromMap(messageData);
-    } catch (e) {
+    } on Exception catch (_) {
       return null;
     }
   }
@@ -118,15 +118,18 @@ class LocalDatabaseService {
     int offset = 0,
   }) async {
     final messages = await getAllMessages();
-    final discussionMessages = messages
-        .where((m) => m['discussion_id'] == discussionId)
-        .map(_messageFromMap)
-        .toList();
-    
-    discussionMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    
+    final discussionMessages =
+        messages
+            .where((m) => m['discussion_id'] == discussionId)
+            .map(_messageFromMap)
+            .toList()
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
     final endIndex = (offset + limit).clamp(0, discussionMessages.length);
-    return discussionMessages.sublist(offset.clamp(0, discussionMessages.length), endIndex);
+    return discussionMessages.sublist(
+      offset.clamp(0, discussionMessages.length),
+      endIndex,
+    );
   }
 
   Future<void> updateMessage(Message message, String discussionId) async {
@@ -148,13 +151,13 @@ class LocalDatabaseService {
   Future<void> saveUser(User user) async {
     final users = await getAllUsers();
     final index = users.indexWhere((u) => u.id == user.id);
-    
+
     if (index >= 0) {
       users[index] = user;
     } else {
       users.add(user);
     }
-    
+
     final usersJson = users.map((u) => u.toJson()).toList();
     await prefs.setString('users', jsonEncode(usersJson));
   }
@@ -163,7 +166,7 @@ class LocalDatabaseService {
     final users = await getAllUsers();
     try {
       return users.firstWhere((u) => u.id == userId);
-    } catch (e) {
+    } on Exception catch (_) {
       return null;
     }
   }
@@ -171,13 +174,13 @@ class LocalDatabaseService {
   Future<List<User>> getAllUsers() async {
     final usersString = prefs.getString('users');
     if (usersString == null) return [];
-    
+
     try {
-      final List<dynamic> usersJson = jsonDecode(usersString) as List<dynamic>;
+      final usersJson = jsonDecode(usersString) as List<dynamic>;
       return usersJson
           .map((json) => User.fromJson(json as Map<String, dynamic>))
           .toList();
-    } catch (e) {
+    } on Exception catch (_) {
       return [];
     }
   }
@@ -185,28 +188,31 @@ class LocalDatabaseService {
   Future<void> deleteUser(String userId) async {
     final users = await getAllUsers();
     users.removeWhere((u) => u.id == userId);
-    
+
     final usersJson = users.map((u) => u.toJson()).toList();
     await prefs.setString('users', jsonEncode(usersJson));
   }
 
   // Watch methods (simplified for web - periodic updates)
   Stream<List<Discussion>> watchAllDiscussions() {
-    return Stream.periodic(const Duration(seconds: 1), (_) => getAllDiscussions())
-        .asyncMap((future) => future)
-        .distinct();
+    return Stream.periodic(
+      const Duration(seconds: 1),
+      (_) => getAllDiscussions(),
+    ).asyncMap((future) => future).distinct();
   }
 
   Stream<List<Message>> watchMessagesForDiscussion(String discussionId) {
-    return Stream.periodic(const Duration(seconds: 1), (_) => getMessagesForDiscussion(discussionId))
-        .asyncMap((future) => future)
-        .distinct();
+    return Stream.periodic(
+      const Duration(seconds: 1),
+      (_) => getMessagesForDiscussion(discussionId),
+    ).asyncMap((future) => future).distinct();
   }
 
   Stream<List<User>> watchAllUsers() {
-    return Stream.periodic(const Duration(seconds: 1), (_) => getAllUsers())
-        .asyncMap((future) => future)
-        .distinct();
+    return Stream.periodic(
+      const Duration(seconds: 1),
+      (_) => getAllUsers(),
+    ).asyncMap((future) => future).distinct();
   }
 
   Future<void> updateDiscussionById({
@@ -215,13 +221,13 @@ class LocalDatabaseService {
     required DateTime lastActivity,
   }) async {
     final discussion = await getDiscussion(id);
-    
+
     if (discussion != null) {
       final updatedDiscussion = discussion.copyWith(
         lastMessage: lastMessage,
         lastActivity: lastActivity,
       );
-      
+
       await saveDiscussion(updatedDiscussion);
     }
   }
@@ -230,11 +236,11 @@ class LocalDatabaseService {
   Future<List<Map<String, dynamic>>> getAllMessages() async {
     final messagesString = prefs.getString('messages');
     if (messagesString == null) return [];
-    
+
     try {
-      final List<dynamic> messagesJson = jsonDecode(messagesString) as List<dynamic>;
+      final messagesJson = jsonDecode(messagesString) as List<dynamic>;
       return messagesJson.cast<Map<String, dynamic>>();
-    } catch (e) {
+    } on Exception catch (_) {
       return [];
     }
   }
@@ -252,5 +258,4 @@ class LocalDatabaseService {
       replyToId: map['reply_to_id'] as String?,
     );
   }
-
 }

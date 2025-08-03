@@ -7,6 +7,7 @@ part 'isar_models_real.g.dart';
 
 /// Fast hash function for generating Isar IDs from strings
 int fastHash(String string) {
+  // ignore: avoid_js_rounded_ints
   var hash = 0xcbf29ce484222325;
 
   for (var i = 0; i < string.length; i++) {
