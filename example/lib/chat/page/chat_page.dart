@@ -159,41 +159,6 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  void _showMessageContextMenu(BuildContext context, Message message) {
-    showMenu(
-      context: context,
-      position: const RelativeRect.fromLTRB(100, 100, 100, 100),
-      items: [
-        const PopupMenuItem(
-          value: 'reply',
-          child: Row(
-            children: [
-              Icon(Icons.reply, size: 18),
-              SizedBox(width: 8),
-              Text('Reply'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'delete',
-          child: Row(
-            children: [
-              Icon(Icons.delete, size: 18, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Delete', style: TextStyle(color: Colors.red)),
-            ],
-          ),
-        ),
-      ],
-    ).then((value) {
-      if (value == 'reply') {
-        _setReplyToMessage(message);
-      } else if (value == 'delete') {
-        _toggleMessageSelection(message.id);
-      }
-    });
-  }
-
   void _setReplyToMessage(Message message) {
     setState(() {
       _replyToMessage = message;
@@ -311,111 +276,147 @@ class _ChatPageState extends State<ChatPage> {
                                 alignment: isCurrentUser
                                     ? Alignment.centerRight
                                     : Alignment.centerLeft,
-                                child: GestureDetector(
-                                  onTap: _isSelectionMode && isCurrentUser
-                                      ? () =>
-                                            _toggleMessageSelection(message.id)
-                                      : null,
-                                  onLongPress: () =>
-                                      _showMessageContextMenu(context, message),
-                                  child: Container(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 280,
+                                child: AsMenuDown(
+                                  triggerMode: MenuTriggerMode.longPress,
+                                  items: [
+                                    AsMenuDownItem(
+                                      onTap: () => _setReplyToMessage(message),
+                                      child: const Row(
+                                        children: [
+                                          Icon(Icons.reply, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('Reply'),
+                                        ],
+                                      ),
                                     ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                      horizontal: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Colors.red[200]
-                                          : isCurrentUser
-                                          ? Colors.blue[100]
-                                          : Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: isSelected
-                                          ? Border.all(
-                                              color: Colors.red[400]!,
-                                              width: 2,
-                                            )
-                                          : null,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        if (message.replyToId != null)
-                                          ReplyContextWidget(
-                                            replyToMessageId:
-                                                message.replyToId!,
+                                    const AsMenuDownItem.divider(),
+                                    AsMenuDownItem(
+                                      onTap: () =>
+                                          _toggleMessageSelection(message.id),
+                                      child: const Row(
+                                        children: [
+                                          Icon(
+                                            Icons.delete,
+                                            size: 18,
+                                            color: Colors.red,
                                           ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (isSelected)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  right: 8,
-                                                ),
-                                                child: Icon(
-                                                  Icons.check_circle,
-                                                  size: 16,
-                                                  color: Colors.red[600],
-                                                ),
-                                              ),
-                                            Expanded(
-                                              child: Text(
-                                                message.senderId,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'Delete',
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  child: GestureDetector(
+                                    onTap: _isSelectionMode && isCurrentUser
+                                        ? () => _toggleMessageSelection(
+                                            message.id,
+                                          )
+                                        : null,
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 280,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                        horizontal: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? Colors.red[200]
+                                            : isCurrentUser
+                                            ? Colors.blue[100]
+                                            : Colors.grey[200],
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: isSelected
+                                            ? Border.all(
+                                                color: Colors.red[400]!,
+                                                width: 2,
+                                              )
+                                            : null,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (message.replyToId != null)
+                                            ReplyContextWidget(
+                                              replyToMessageId:
+                                                  message.replyToId!,
                                             ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        MessageContentWidget(message: message),
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              '${message.timestamp.hour}:'
-                                              '${message.timestamp.minute.toString().padLeft(2, '0')}',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.grey[600],
-                                              ),
-                                            ),
-                                            if (isCurrentUser &&
-                                                !_isSelectionMode) ...[
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                'Long press for options',
-                                                style: TextStyle(
-                                                  fontSize: 8,
-                                                  color: Colors.grey[500],
-                                                  fontStyle: FontStyle.italic,
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (isSelected)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        right: 8,
+                                                      ),
+                                                  child: Icon(
+                                                    Icons.check_circle,
+                                                    size: 16,
+                                                    color: Colors.red[600],
+                                                  ),
+                                                ),
+                                              Expanded(
+                                                child: Text(
+                                                  message.senderId,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 12,
+                                                  ),
                                                 ),
                                               ),
                                             ],
-                                            if (isCurrentUser &&
-                                                _isSelectionMode) ...[
-                                              const SizedBox(width: 8),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          MessageContentWidget(
+                                            message: message,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
                                               Text(
-                                                'Tap to toggle',
+                                                '${message.timestamp.hour}:'
+                                                '${message.timestamp.minute.toString().padLeft(2, '0')}',
                                                 style: TextStyle(
-                                                  fontSize: 8,
-                                                  color: Colors.grey[500],
-                                                  fontStyle: FontStyle.italic,
+                                                  fontSize: 10,
+                                                  color: Colors.grey[600],
                                                 ),
                                               ),
+                                              if (isCurrentUser &&
+                                                  !_isSelectionMode) ...[
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'Right click for options',
+                                                  style: TextStyle(
+                                                    fontSize: 8,
+                                                    color: Colors.grey[500],
+                                                    fontStyle: FontStyle.italic,
+                                                  ),
+                                                ),
+                                              ],
+                                              if (isCurrentUser &&
+                                                  _isSelectionMode) ...[
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'Tap to toggle',
+                                                  style: TextStyle(
+                                                    fontSize: 8,
+                                                    color: Colors.grey[500],
+                                                    fontStyle: FontStyle.italic,
+                                                  ),
+                                                ),
+                                              ],
                                             ],
-                                          ],
-                                        ),
-                                      ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
