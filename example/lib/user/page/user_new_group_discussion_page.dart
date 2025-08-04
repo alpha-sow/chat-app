@@ -136,10 +136,9 @@ class _UserNewGroupDiscussionPageState
     }
 
     if (_selectedUsers.length <= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select at least one other participant'),
-        ),
+      context.showBanner(
+        message: 'Please select at least one other participant',
+        type: AlertType.error,
       );
       return;
     }
