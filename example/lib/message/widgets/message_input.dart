@@ -151,7 +151,7 @@ class _MessageInputState extends State<MessageInput>
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: Colors.grey.shade300)),
       ),
@@ -269,27 +269,8 @@ class _MessageInputState extends State<MessageInput>
             ),
           if (widget.selectedImage == null && widget.recordedAudioPath == null)
             Row(
-              spacing: 8,
+              spacing: 16,
               children: [
-                AsButton.ghost(
-                  onPressed: _showImageSourceSelection,
-                  child: const Icon(Icons.image),
-                ),
-                AnimatedBuilder(
-                  animation: _recordingAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _isRecording ? _recordingAnimation.value : 1.0,
-                      child: AsButton.ghost(
-                        onPressed: _toggleRecording,
-                        child: Icon(
-                          _isRecording ? Icons.stop : Icons.mic,
-                          color: _isRecording ? Colors.red : null,
-                        ),
-                      ),
-                    );
-                  },
-                ),
                 Expanded(
                   child: AsTextField(
                     controller: widget.messageController,
@@ -298,14 +279,35 @@ class _MessageInputState extends State<MessageInput>
                     onSubmitted: (value) => widget.onSendMessage?.call(value),
                   ),
                 ),
-                AsButton.ghost(
-                  isLoading: widget.isSending,
+                Row(
+                  spacing: 16,
+                  children: [
+                    AsIconButton.ghost(
+                      onPressed: _showImageSourceSelection,
+                      icon: Icons.image,
+                    ),
+                    AnimatedBuilder(
+                      animation: _recordingAnimation,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: _isRecording ? _recordingAnimation.value : 1.0,
+                          child: AsIconButton.ghost(
+                            iconColor: _isRecording ? Colors.red : null,
+                            onPressed: _toggleRecording,
+                            icon: _isRecording ? Icons.stop : Icons.mic,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                AsIconButton.ghost(
                   onPressed: () {
                     widget.onSendMessage?.call(
                       widget.messageController.text,
                     );
                   },
-                  child: const Icon(Icons.send),
+                  icon: Icons.send,
                 ),
               ],
             )
