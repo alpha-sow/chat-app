@@ -139,7 +139,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                         ),
                       )
                     : ListView(
-                        children: ASListTile.divideTiles(
+                        children: AsListTile.divideTiles(
                           tiles: data.map((discussion) {
                             return Dismissible(
                               key: Key(discussion.id),
@@ -159,7 +159,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                   discussion.title,
                                 );
                               },
-                              child: ASListTile(
+                              child: AsListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: Colors.blue[100],
                                   child: Text(

@@ -109,14 +109,14 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
                         ),
                       )
                     : ListView(
-                        children: ASListTile.divideTiles(
+                        children: AsListTile.divideTiles(
                           tiles: [
-                            ASListTile(
+                            AsListTile(
                               title: const Text('Add Contact'),
                               onTap: _addContact,
                               leading: AsAvatar.icon(icon: Icons.person_add),
                             ),
-                            ASListTile(
+                            AsListTile(
                               leading: AsAvatar.icon(icon: Icons.group),
                               title: const Text('New Group'),
                               onTap: () => _createGroupDiscussion(data),
@@ -145,7 +145,7 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
                                 onDismissed: (direction) async {
                                   await _deleteContact(user);
                                 },
-                                child: ASListTile(
+                                child: AsListTile(
                                   leading: UserAvatar(user),
                                   title: Text(
                                     user.displayName,

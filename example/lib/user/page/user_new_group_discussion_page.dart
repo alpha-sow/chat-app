@@ -342,28 +342,44 @@ class _UserNewGroupDiscussionPageState
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: ListView.builder(
-                itemCount: widget.availableUsers.length,
-                itemBuilder: (context, index) {
-                  final user = widget.availableUsers[index];
-                  final isSelected = _selectedUsers.contains(user);
-                  final isCurrentUser = user.id == widget.currentUser.id;
+              child: ListView(
+                children: AsListTile.divideTiles(
+                  tiles: widget.availableUsers.map((user) {
+                    final isSelected = _selectedUsers.contains(user);
+                    final isCurrentUser = user.id == widget.currentUser.id;
 
-                  return Card(
-                    child: CheckboxListTile(
-                      value: isSelected,
-                      onChanged: isCurrentUser
+                    return AsListTile(
+                      onTap: isCurrentUser
                           ? null
-                          : (selected) {
+                          : () {
                               setState(() {
-                                if (selected ?? false) {
-                                  _selectedUsers.add(user);
-                                } else {
+                                if (isSelected) {
                                   _selectedUsers.remove(user);
+                                } else {
+                                  _selectedUsers.add(user);
                                 }
                                 _updateTitle();
                               });
                             },
+                      leading: CircleAvatar(
+                        backgroundColor: isCurrentUser
+                            ? Colors.green[100]
+                            : Colors.blue[100],
+                        backgroundImage: user.avatarUrl != null
+                            ? CachedNetworkImageProvider(user.avatarUrl!)
+                            : null,
+                        child: user.avatarUrl == null
+                            ? Text(
+                                user.initials,
+                                style: TextStyle(
+                                  color: isCurrentUser
+                                      ? Colors.green[800]
+                                      : Colors.blue[800],
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : null,
+                      ),
                       title: Row(
                         children: [
                           Expanded(child: Text(user.displayName)),
@@ -394,28 +410,12 @@ class _UserNewGroupDiscussionPageState
                             ? '${user.email ?? 'No email'} • Always included'
                             : user.email ?? 'No email',
                       ),
-                      secondary: CircleAvatar(
-                        backgroundColor: isCurrentUser
-                            ? Colors.green[100]
-                            : Colors.blue[100],
-                        backgroundImage: user.avatarUrl != null
-                            ? CachedNetworkImageProvider(user.avatarUrl!)
-                            : null,
-                        child: user.avatarUrl == null
-                            ? Text(
-                                user.initials,
-                                style: TextStyle(
-                                  color: isCurrentUser
-                                      ? Colors.green[800]
-                                      : Colors.blue[800],
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
-                            : null,
-                      ),
-                    ),
-                  );
-                },
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle)
+                          : const Icon(Icons.radio_button_unchecked),
+                    );
+                  }),
+                ).toList(),
               ),
             ),
           ],
