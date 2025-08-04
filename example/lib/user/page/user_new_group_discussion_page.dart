@@ -202,11 +202,9 @@ class _UserNewGroupDiscussionPageState
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: ListView(
           children: [
-            const SizedBox(height: 16),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -282,141 +280,86 @@ class _UserNewGroupDiscussionPageState
                   ],
                 ),
               ),
-            const SizedBox(height: 8),
-            if (_selectedUsers.isNotEmpty && !_isCustomTitle)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green[50],
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.green[200]!),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.auto_awesome,
-                      size: 14,
-                      color: Colors.green[600],
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Auto-generated title',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.green[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            if (_isCustomTitle)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.blue[200]!),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.edit, size: 14, color: Colors.blue[600]),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Custom title',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             const SizedBox(height: 24),
             Text(
               'Select Participants',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            Expanded(
-              child: ListView(
-                children: AsListTile.divideTiles(
-                  tiles: widget.availableUsers.map((user) {
-                    final isSelected = _selectedUsers.contains(user);
-                    final isCurrentUser = user.id == widget.currentUser.id;
+            Column(
+              children: AsListTile.divideTiles(
+                tiles: widget.availableUsers.map((user) {
+                  final isSelected = _selectedUsers.contains(user);
+                  final isCurrentUser = user.id == widget.currentUser.id;
 
-                    return AsListTile(
-                      onTap: isCurrentUser
-                          ? null
-                          : () {
-                              setState(() {
-                                if (isSelected) {
-                                  _selectedUsers.remove(user);
-                                } else {
-                                  _selectedUsers.add(user);
-                                }
-                                _updateTitle();
-                              });
-                            },
-                      leading: CircleAvatar(
-                        backgroundColor: isCurrentUser
-                            ? Colors.green[100]
-                            : Colors.blue[100],
-                        backgroundImage: user.avatarUrl != null
-                            ? CachedNetworkImageProvider(user.avatarUrl!)
-                            : null,
-                        child: user.avatarUrl == null
-                            ? Text(
-                                user.initials,
-                                style: TextStyle(
-                                  color: isCurrentUser
-                                      ? Colors.green[800]
-                                      : Colors.blue[800],
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
-                            : null,
-                      ),
-                      title: Row(
-                        children: [
-                          Expanded(child: Text(user.displayName)),
-                          if (isCurrentUser)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
+                  return AsListTile(
+                    onTap: isCurrentUser
+                        ? null
+                        : () {
+                            setState(() {
+                              if (isSelected) {
+                                _selectedUsers.remove(user);
+                              } else {
+                                _selectedUsers.add(user);
+                              }
+                              _updateTitle();
+                            });
+                          },
+                    leading: CircleAvatar(
+                      backgroundColor: isCurrentUser
+                          ? Colors.green[100]
+                          : Colors.blue[100],
+                      backgroundImage: user.avatarUrl != null
+                          ? CachedNetworkImageProvider(user.avatarUrl!)
+                          : null,
+                      child: user.avatarUrl == null
+                          ? Text(
+                              user.initials,
+                              style: TextStyle(
+                                color: isCurrentUser
+                                    ? Colors.green[800]
+                                    : Colors.blue[800],
+                                fontWeight: FontWeight.bold,
                               ),
-                              decoration: BoxDecoration(
-                                color: Colors.green[100],
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.green[300]!),
-                              ),
-                              child: Text(
-                                'You',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.green[700],
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            )
+                          : null,
+                    ),
+                    title: Row(
+                      children: [
+                        Expanded(child: Text(user.displayName)),
+                        if (isCurrentUser)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green[100],
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.green[300]!),
+                            ),
+                            child: Text(
+                              'You',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.green[700],
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                        ],
-                      ),
-                      subtitle: Text(
-                        isCurrentUser
-                            ? '${user.email ?? 'No email'} • Always included'
-                            : user.email ?? 'No email',
-                      ),
-                      trailing: isSelected
-                          ? const Icon(Icons.check_circle)
-                          : const Icon(Icons.radio_button_unchecked),
-                    );
-                  }),
-                ).toList(),
-              ),
+                          ),
+                      ],
+                    ),
+                    subtitle: Text(
+                      isCurrentUser
+                          ? '${user.email ?? 'No email'} • Always included'
+                          : user.email ?? 'No email',
+                    ),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_circle)
+                        : const Icon(Icons.radio_button_unchecked),
+                  );
+                }),
+              ).toList(),
             ),
           ],
         ),
