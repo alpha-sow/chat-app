@@ -279,35 +279,53 @@ class _MessageInputState extends State<MessageInput>
                     onSubmitted: (value) => widget.onSendMessage?.call(value),
                   ),
                 ),
-                Row(
-                  spacing: 16,
-                  children: [
-                    AsIconButton.ghost(
-                      onPressed: _showImageSourceSelection,
-                      icon: Icons.image,
-                    ),
-                    AnimatedBuilder(
-                      animation: _recordingAnimation,
-                      builder: (context, child) {
-                        return Transform.scale(
-                          scale: _isRecording ? _recordingAnimation.value : 1.0,
-                          child: AsIconButton.ghost(
-                            iconColor: _isRecording ? Colors.red : null,
-                            onPressed: _toggleRecording,
-                            icon: _isRecording ? Icons.stop : Icons.mic,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                AsIconButton.ghost(
-                  onPressed: () {
-                    widget.onSendMessage?.call(
-                      widget.messageController.text,
+                ListenableBuilder(
+                  listenable: widget.messageController,
+                  builder: (context, state) {
+                    if (widget.messageController.text.isNotEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Row(
+                      spacing: 16,
+                      children: [
+                        AsIconButton.ghost(
+                          onPressed: _showImageSourceSelection,
+                          icon: Icons.image,
+                        ),
+                        AnimatedBuilder(
+                          animation: _recordingAnimation,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: _isRecording
+                                  ? _recordingAnimation.value
+                                  : 1.0,
+                              child: AsIconButton.ghost(
+                                iconColor: _isRecording ? Colors.red : null,
+                                onPressed: _toggleRecording,
+                                icon: _isRecording ? Icons.stop : Icons.mic,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     );
                   },
-                  icon: Icons.send,
+                ),
+                ListenableBuilder(
+                  listenable: widget.messageController,
+                  builder: (context, state) {
+                    if (widget.messageController.text.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return AsIconButton.ghost(
+                      onPressed: () {
+                        widget.onSendMessage?.call(
+                          widget.messageController.text,
+                        );
+                      },
+                      icon: Icons.send,
+                    );
+                  },
                 ),
               ],
             )
