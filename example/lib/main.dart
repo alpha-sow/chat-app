@@ -24,7 +24,7 @@ void main() async {
     dbPath = appDocDir.path;
     logger.i('Initializing database at: $dbPath');
   }
-  
+
   await LocalDatabaseService.initialize(directory: dbPath);
 
   final firebaseService = RemoteDatabaseService();
@@ -59,6 +59,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlphasowUiApp(
+      debugShowCheckedModeBanner: false,
       title: 'Chat App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
