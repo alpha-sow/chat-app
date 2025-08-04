@@ -267,54 +267,64 @@ class _MessageInputState extends State<MessageInput>
                 ],
               ),
             ),
-          Row(
-            spacing: 8,
-            children: [
-              AsButton.ghost(
-                onPressed: _showImageSourceSelection,
-                child: const Icon(Icons.image),
-              ),
-              AnimatedBuilder(
-                animation: _recordingAnimation,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _isRecording ? _recordingAnimation.value : 1.0,
-                    child: AsButton.ghost(
-                      onPressed: _toggleRecording,
-                      child: Icon(
-                        _isRecording ? Icons.stop : Icons.mic,
-                        color: _isRecording ? Colors.red : null,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              Expanded(
-                child: AsTextField(
-                  controller: widget.messageController,
-                  focusNode: _focusNode,
-                  hintText: 'Send first message to start chat...',
-                  onSubmitted: (value) => widget.onSendMessage?.call(value),
+          if (widget.selectedImage == null && widget.recordedAudioPath == null)
+            Row(
+              spacing: 8,
+              children: [
+                AsButton.ghost(
+                  onPressed: _showImageSourceSelection,
+                  child: const Icon(Icons.image),
                 ),
-              ),
-              AsButton.ghost(
-                onPressed: widget.isSending
-                    ? null
-                    : () {
-                        widget.onSendMessage?.call(
-                          widget.messageController.text,
-                        );
-                      },
-                child: widget.isSending
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: AsLoadingCircular(),
-                      )
-                    : const Icon(Icons.send),
-              ),
-            ],
-          ),
+                AnimatedBuilder(
+                  animation: _recordingAnimation,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _isRecording ? _recordingAnimation.value : 1.0,
+                      child: AsButton.ghost(
+                        onPressed: _toggleRecording,
+                        child: Icon(
+                          _isRecording ? Icons.stop : Icons.mic,
+                          color: _isRecording ? Colors.red : null,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                Expanded(
+                  child: AsTextField(
+                    controller: widget.messageController,
+                    focusNode: _focusNode,
+                    hintText: 'Send first message to start chat...',
+                    onSubmitted: (value) => widget.onSendMessage?.call(value),
+                  ),
+                ),
+                AsButton.ghost(
+                  isLoading: widget.isSending,
+                  onPressed: () {
+                    widget.onSendMessage?.call(
+                      widget.messageController.text,
+                    );
+                  },
+                  child: const Icon(Icons.send),
+                ),
+              ],
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: AsButton(
+                    isLoading: widget.isSending,
+                    child: const Text('Send'),
+                    onPressed: () {
+                      widget.onSendMessage?.call(
+                        widget.messageController.text,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );
