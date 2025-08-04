@@ -9,7 +9,20 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 get: ## Install dependencies
-	dart pub get
+	PUB_HOSTED_URL=https://repo.alphasow.dev/artifactory/api/pub/repo-pub dart pub get
+
+add: ## Add a package (usage: make add PACKAGE=package_name or make add package_name)
+	@if [ -n "$(PACKAGE)" ]; then \
+		PUB_HOSTED_URL=https://repo.alphasow.dev/artifactory/api/pub/repo-pub dart pub add $(PACKAGE); \
+	elif [ -n "$(filter-out add,$(MAKECMDGOALS))" ]; then \
+		PUB_HOSTED_URL=https://repo.alphasow.dev/artifactory/api/pub/repo-pub dart pub add $(filter-out add,$(MAKECMDGOALS)); \
+	else \
+		echo "Usage: make add PACKAGE=package_name or make add package_name"; \
+		exit 1; \
+	fi
+
+%:
+	@:
 
 build: ## Generate code with build_runner
 	dart run build_runner build --delete-conflicting-outputs
