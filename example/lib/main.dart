@@ -6,6 +6,7 @@ import 'package:chat_flutter_app/utils/utils.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() async {
@@ -61,6 +62,18 @@ class MyApp extends StatelessWidget {
       title: 'Chat App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        textTheme: GoogleFonts.robotoTextTheme().copyWith(
+          // Add fallback fonts that include better Unicode support
+          bodyLarge: GoogleFonts.roboto().copyWith(
+            fontFamilyFallback: ['Noto Sans', 'Noto Color Emoji'],
+          ),
+          bodyMedium: GoogleFonts.roboto().copyWith(
+            fontFamilyFallback: ['Noto Sans', 'Noto Color Emoji'],
+          ),
+          bodySmall: GoogleFonts.roboto().copyWith(
+            fontFamilyFallback: ['Noto Sans', 'Noto Color Emoji'],
+          ),
+        ),
       ),
       home: DiscussionListPage(currentUser: currentUser),
     );

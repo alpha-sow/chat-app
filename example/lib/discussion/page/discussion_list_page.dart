@@ -155,9 +155,15 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                 ),
                               ),
                               confirmDismiss: (direction) async {
-                                return _showDeleteDiscussionConfirmation(
-                                  discussion.title,
-                                );
+                                final cubit = context.read<DiscussionListCubit>();
+                                final shouldDelete =
+                                    await _showDeleteDiscussionConfirmation(
+                                      discussion.title,
+                                    );
+                                if (shouldDelete ?? false) {
+                                  await cubit.deleteDiscussion(discussion.id);
+                                }
+                                return shouldDelete;
                               },
                               child: AsListTile(
                                 leading: CircleAvatar(

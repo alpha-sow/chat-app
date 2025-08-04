@@ -12,10 +12,12 @@ class DiscussionListCubit extends Cubit<DiscussionListState> {
     _discussionListSubscription = DiscussionService.instance
         .watchAllDiscussions()
         .listen(
-          (
-            discussions,
-          ) {
-            emit(DiscussionListState.loaded(discussions));
+          (discussions) {
+            if (discussions.isEmpty) {
+              emit(const DiscussionListStateLoaded([]));
+            } else {
+              emit(DiscussionListState.loaded(discussions));
+            }
           },
           onError: (Object error) {
             emit(
@@ -28,6 +30,16 @@ class DiscussionListCubit extends Cubit<DiscussionListState> {
   }
 
   late StreamSubscription<List<Discussion>> _discussionListSubscription;
+
+  Future<void> deleteDiscussion(String discussionId) async {
+    try {
+      await DiscussionService.instance.deleteDiscussion(discussionId);
+    } on Exception catch (e) {
+      emit(DiscussionListState.error(e));
+    } catch (e) {
+      emit(DiscussionListState.error(Exception(e.toString())));
+    }
+  }
 
   @override
   Future<void> close() {
