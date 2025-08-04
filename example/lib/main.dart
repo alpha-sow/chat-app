@@ -63,18 +63,6 @@ class MyApp extends StatelessWidget {
       title: 'Chat App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        textTheme: GoogleFonts.robotoTextTheme().copyWith(
-          // Add fallback fonts that include better Unicode support
-          bodyLarge: GoogleFonts.roboto().copyWith(
-            fontFamilyFallback: ['Noto Sans', 'Noto Color Emoji'],
-          ),
-          bodyMedium: GoogleFonts.roboto().copyWith(
-            fontFamilyFallback: ['Noto Sans', 'Noto Color Emoji'],
-          ),
-          bodySmall: GoogleFonts.roboto().copyWith(
-            fontFamilyFallback: ['Noto Sans', 'Noto Color Emoji'],
-          ),
-        ),
       ),
       home: DiscussionListPage(currentUser: currentUser),
     );

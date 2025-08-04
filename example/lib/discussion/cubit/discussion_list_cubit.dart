@@ -36,8 +36,6 @@ class DiscussionListCubit extends Cubit<DiscussionListState> {
       await DiscussionService.instance.deleteDiscussion(discussionId);
     } on Exception catch (e) {
       emit(DiscussionListState.error(e));
-    } catch (e) {
-      emit(DiscussionListState.error(Exception(e.toString())));
     }
   }
 
