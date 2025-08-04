@@ -115,10 +115,7 @@ class _UserAddPageState extends State<UserAddPage> {
         actions: [
           AsButton.ghost(
             onPressed: _saveContact,
-            child: const Text(
-              'Save',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
+            child: const Text('Save'),
           ),
         ],
       ),
