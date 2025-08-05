@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/alpha-sow/chat-app/compare/v1.1.0...v1.1.1) (2025-08-05)
+
+
+### Bug Fixes
+
+* remove global navigator key usage in DiscussionLoadedTile ([4e1b203](https://github.com/alpha-sow/chat-app/commit/4e1b20315b8c4d5dce915fb0555ac7ff14a1df11))
+
 # [1.1.0](https://github.com/alpha-sow/chat-app/compare/v1.0.1...v1.1.0) (2025-08-05)
 
 
