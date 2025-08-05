@@ -26,11 +26,6 @@ dist/
 ehthumbs.db
 Thumbs.db
 
-# Code generation
-*.g.dart
-*.freezed.dart
-*.config.dart
-
 # Coverage
 coverage/
 
