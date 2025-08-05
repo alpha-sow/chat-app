@@ -1,4 +1,5 @@
 import 'package:chat_app_package/chat_app_package.dart';
+import 'package:chat_flutter_app/discussion/widgets/discussion_constants.dart';
 import 'package:flutter/material.dart';
 
 class LastMessageSubtitle extends StatelessWidget {
@@ -11,23 +12,15 @@ class LastMessageSubtitle extends StatelessWidget {
     if (message == null) {
       return const Text(
         'No messages yet',
-        style: TextStyle(
-          color: Colors.grey,
-          fontSize: 12,
-        ),
+        style: DiscussionConstants.subtitleTextStyle,
       );
     }
-
-    const style = TextStyle(
-      color: Colors.grey,
-      fontSize: 12,
-    );
 
     switch (message!.type) {
       case MessageType.text:
         return Text(
           message!.content,
-          style: style,
+          style: DiscussionConstants.subtitleTextStyle,
         );
       case MessageType.image:
         return const Row(
@@ -35,13 +28,13 @@ class LastMessageSubtitle extends StatelessWidget {
           children: <Widget>[
             Icon(
               Icons.image,
-              size: 16,
-              color: Colors.grey,
+              size: DiscussionConstants.iconSize,
+              color: DiscussionConstants.subtitleColor,
             ),
-            SizedBox(width: 4),
+            SizedBox(width: DiscussionConstants.spacing),
             Text(
               'Image',
-              style: style,
+              style: DiscussionConstants.subtitleTextStyle,
             ),
           ],
         );
@@ -51,13 +44,13 @@ class LastMessageSubtitle extends StatelessWidget {
           children: <Widget>[
             Icon(
               Icons.mic,
-              size: 16,
-              color: Colors.grey,
+              size: DiscussionConstants.iconSize,
+              color: DiscussionConstants.subtitleColor,
             ),
-            SizedBox(width: 4),
+            SizedBox(width: DiscussionConstants.spacing),
             Text(
               'Audio',
-              style: style,
+              style: DiscussionConstants.subtitleTextStyle,
             ),
           ],
         );
@@ -67,13 +60,13 @@ class LastMessageSubtitle extends StatelessWidget {
           children: <Widget>[
             Icon(
               Icons.videocam,
-              size: 16,
-              color: Colors.grey,
+              size: DiscussionConstants.iconSize,
+              color: DiscussionConstants.subtitleColor,
             ),
-            SizedBox(width: 4),
+            SizedBox(width: DiscussionConstants.spacing),
             Text(
               'Video',
-              style: style,
+              style: DiscussionConstants.subtitleTextStyle,
             ),
           ],
         );
@@ -83,13 +76,13 @@ class LastMessageSubtitle extends StatelessWidget {
           children: <Widget>[
             Icon(
               Icons.attach_file,
-              size: 16,
-              color: Colors.grey,
+              size: DiscussionConstants.iconSize,
+              color: DiscussionConstants.subtitleColor,
             ),
-            SizedBox(width: 4),
+            SizedBox(width: DiscussionConstants.spacing),
             Text(
               'File',
-              style: style,
+              style: DiscussionConstants.subtitleTextStyle,
             ),
           ],
         );

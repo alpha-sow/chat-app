@@ -51,7 +51,7 @@ class UserService {
     await SyncService.instance.deleteUser(userId);
   }
 
-  Future<User?> getUser(String senderId) {
-    return LocalDatabaseService.instance.getUser(senderId);
+  Future<User?> getUserById(String id) {
+    return LocalDatabaseService.instance.getUser(id);
   }
 }

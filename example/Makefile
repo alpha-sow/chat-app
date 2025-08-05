@@ -18,7 +18,7 @@ test-specific: ## Run specific test file (usage: make test-specific FILE=test/ch
 analyze: ## Run static analysis
 	flutter analyze
 
-build-gen-clean: ## Clean rebuild with conflicting outputs deletion
+build: ## Clean rebuild with conflicting outputs deletion
 	flutter packages pub run build_runner build --delete-conflicting-outputs
 
 build-gen-watch: ## Watch for changes and rebuild
