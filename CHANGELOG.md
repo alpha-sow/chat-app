@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/alpha-sow/chat-app/compare/v1.0.1...v1.1.0) (2025-08-05)
+
+
+### Features
+
+* implement global navigator key for improved navigation handling ([d436848](https://github.com/alpha-sow/chat-app/commit/d4368488f82959adeccce6312715788812edb7b7))
+
 ## [1.0.1](https://github.com/alpha-sow/chat-app/compare/v1.0.0...v1.0.1) (2025-08-05)
 
 
