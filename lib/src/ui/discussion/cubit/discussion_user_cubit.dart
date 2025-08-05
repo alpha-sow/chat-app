@@ -16,7 +16,7 @@ class DiscussionUserCubit extends Cubit<DiscussionUserState> {
 
   Future<void> _loadUser(String userId) async {
     try {
-      final user = await UserService.instance.getUserById(userId);
+      final user = await UserService.instance().getUserById(userId);
       if (user == null) {
         emit(const DiscussionUserState.error('User not found'));
         return;

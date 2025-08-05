@@ -3,13 +3,14 @@ import 'package:chat_app_package/src/src.dart';
 /// Service class for managing users in the chat application.
 class UserService {
   UserService._();
-  static UserService? _instance;
-
+  
   /// Gets the singleton instance of the user service.
-  static UserService get instance {
+  factory UserService.instance() {
     _instance ??= UserService._();
     return _instance!;
   }
+  
+  static UserService? _instance;
 
   /// Creates a new user and saves it to the database
   ///
@@ -32,7 +33,7 @@ class UserService {
       avatarUrl: avatarUrl,
     );
 
-    await SyncService.instance.saveUser(user);
+    await SyncService.instance().saveUser(user);
 
     return user;
   }
@@ -41,17 +42,17 @@ class UserService {
   ///
   /// Returns a stream of all User objects that updates in real-time
   Stream<List<User>> watchAllUsers() {
-    return LocalDatabaseService.instance.watchAllUsers();
+    return LocalDatabaseService.instance().watchAllUsers();
   }
 
   /// Deletes a user from the system
   ///
   /// [userId] The ID of the user to delete
   Future<void> deleteUser(String userId) async {
-    await SyncService.instance.deleteUser(userId);
+    await SyncService.instance().deleteUser(userId);
   }
 
   Future<User?> getUserById(String id) {
-    return LocalDatabaseService.instance.getUser(id);
+    return LocalDatabaseService.instance().getUser(id);
   }
 }

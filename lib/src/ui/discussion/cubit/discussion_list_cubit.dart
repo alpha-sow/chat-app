@@ -9,7 +9,7 @@ part 'discussion_list_cubit.freezed.dart';
 
 class DiscussionListCubit extends Cubit<DiscussionListState> {
   DiscussionListCubit() : super(const DiscussionListStateLoading()) {
-    _discussionListSubscription = DiscussionService.instance
+    _discussionListSubscription = DiscussionService.instance()
         .watchAllDiscussions()
         .listen(
           (discussions) {
@@ -33,7 +33,7 @@ class DiscussionListCubit extends Cubit<DiscussionListState> {
 
   Future<void> deleteDiscussion(String discussionId) async {
     try {
-      await DiscussionService.instance.deleteDiscussion(discussionId);
+      await DiscussionService.instance().deleteDiscussion(discussionId);
     } on Exception catch (e) {
       emit(DiscussionListState.error(e));
     }

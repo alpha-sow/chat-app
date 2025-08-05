@@ -15,7 +15,7 @@ void main() {
 
       // Initialize the database
       await LocalDatabaseService.initialize(directory: tempDir.path);
-      db = LocalDatabaseService.instance;
+      db = LocalDatabaseService.instance();
     });
 
     tearDownAll(() async {

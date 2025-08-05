@@ -36,7 +36,8 @@ class RemoteDatabaseService {
 
   /// Updates specific fields at the specified [path].
   ///
-  /// Performs a partial update, only modifying the fields specified in [updates].
+  /// Performs a partial update, only modifying the fields specified in
+  /// [updates].
   /// Existing fields not included in [updates] remain unchanged.
   Future<void> update(String path, Map<String, dynamic> updates) async {
     final ref = _database.ref(path);

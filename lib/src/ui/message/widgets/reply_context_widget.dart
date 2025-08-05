@@ -27,7 +27,7 @@ class _ReplyContextWidgetState extends State<ReplyContextWidget> {
 
   Future<void> _loadMessage() async {
     try {
-      final replyToMessage = await MessageService.instance.getMessage(
+      final replyToMessage = await MessageService.instance().getMessage(
         _replyToMessageId,
       );
       if (replyToMessage != null) {

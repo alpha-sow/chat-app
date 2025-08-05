@@ -8,7 +8,7 @@ part 'user_list_cubit.freezed.dart';
 
 class UserListCubit extends Cubit<UserListState> {
   UserListCubit() : super(const UserListStateLoading()) {
-    _userSubscription = UserService.instance.watchAllUsers().listen(
+    _userSubscription = UserService.instance().watchAllUsers().listen(
       (users) {
         emit(UserListStateLoaded(users));
       },

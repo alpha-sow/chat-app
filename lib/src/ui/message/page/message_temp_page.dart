@@ -61,7 +61,7 @@ class _MessageTempPageState extends State<MessageTempPage> {
       return;
     }
 
-    final discussion = await DiscussionService.instance.withUsers(
+    final discussion = await DiscussionService.instance().withUsers(
       title: _discussion.title,
       users: [_currentUser, _otherUser],
     );
@@ -69,7 +69,7 @@ class _MessageTempPageState extends State<MessageTempPage> {
     logger.i('Discussion persisted to database: ${discussion.id}');
 
     if (text.isNotEmpty) {
-      await MessageService.instance.sendMessage(
+      await MessageService.instance().sendMessage(
         discussionId: discussion.id,
         senderId: _currentUser.id,
         content: text,
@@ -79,13 +79,13 @@ class _MessageTempPageState extends State<MessageTempPage> {
     if (_selectedImage != null) {
       try {
         final imageFile = File(_selectedImage!.path);
-        final downloadUrl = await StorageService.instance.uploadChatImage(
+        final downloadUrl = await StorageService.instance().uploadChatImage(
           file: imageFile,
           userId: _currentUser.id,
           discussionId: widget.discussion.id,
         );
 
-        await MessageService.instance.sendMessage(
+        await MessageService.instance().sendMessage(
           discussionId: discussion.id,
           senderId: _currentUser.id,
           content: downloadUrl,
@@ -94,7 +94,7 @@ class _MessageTempPageState extends State<MessageTempPage> {
       } on Exception catch (e) {
         logger.e('Error uploading image', error: e);
 
-        await MessageService.instance.sendMessage(
+        await MessageService.instance().sendMessage(
           discussionId: discussion.id,
           senderId: _currentUser.id,
           content: _selectedImage!.path,
@@ -106,13 +106,13 @@ class _MessageTempPageState extends State<MessageTempPage> {
     if (_recordedAudioPath != null) {
       try {
         final audioFile = File(_recordedAudioPath!);
-        final downloadUrl = await StorageService.instance.uploadChatAudio(
+        final downloadUrl = await StorageService.instance().uploadChatAudio(
           file: audioFile,
           userId: _currentUser.id,
           discussionId: widget.discussion.id,
         );
 
-        await MessageService.instance.sendMessage(
+        await MessageService.instance().sendMessage(
           discussionId: discussion.id,
           senderId: _currentUser.id,
           content: downloadUrl,
@@ -121,7 +121,7 @@ class _MessageTempPageState extends State<MessageTempPage> {
       } on Exception catch (e) {
         logger.e('Error uploading audio', error: e);
 
-        await MessageService.instance.sendMessage(
+        await MessageService.instance().sendMessage(
           discussionId: discussion.id,
           senderId: _currentUser.id,
           content: _recordedAudioPath!,

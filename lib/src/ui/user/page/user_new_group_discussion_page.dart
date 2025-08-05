@@ -76,7 +76,8 @@ class _UserNewGroupDiscussionPageState
         adjectives[faker.randomGenerator.integer(adjectives.length)];
     final noun = nouns[faker.randomGenerator.integer(nouns.length)];
 
-    return '${adjective.substring(0, 1).toUpperCase()}${adjective.substring(1)} $noun';
+    return '${adjective.substring(0, 1).toUpperCase()}'
+        '${adjective.substring(1)} $noun';
   }
 
   String _generateDefaultTitle(Set<User> users) {
@@ -146,7 +147,7 @@ class _UserNewGroupDiscussionPageState
       '(${_isCustomTitle ? "custom" : "auto-generated"})',
     );
 
-    final discussion = await DiscussionService.instance.withUsers(
+    final discussion = await DiscussionService.instance().withUsers(
       title: title,
       users: _selectedUsers.toList(),
       type: DiscussionType.group,
@@ -164,7 +165,7 @@ class _UserNewGroupDiscussionPageState
     final welcomeMessage = faker.randomGenerator.element(welcomeMessages);
     logger.d('Added welcome message to discussion: ${discussion.id}');
 
-    await MessageService.instance.sendMessage(
+    await MessageService.instance().sendMessage(
       discussionId: discussion.id,
       senderId: _currentUser.id,
       content: welcomeMessage,

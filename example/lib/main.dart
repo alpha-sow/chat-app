@@ -37,13 +37,13 @@ void main() async {
   );
 
   SyncService.initialize(
-    localDb: LocalDatabaseService.instance,
+    localDb: LocalDatabaseService.instance(),
     firebase: firebaseService,
     currentUserId: currentUser.id,
   );
-  await SyncService.instance.saveUser(currentUser);
+  await SyncService.instance().saveUser(currentUser);
 
-  SyncService.instance.startRealtimeSync();
+  SyncService.instance().startRealtimeSync();
 
   logger.i('Sync service initialized and real-time sync started');
   runApp(MyApp(currentUser: currentUser));

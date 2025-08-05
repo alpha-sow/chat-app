@@ -22,6 +22,23 @@ class HiveMessage extends HiveObject {
     this.readByIds = const [],
   });
 
+  factory HiveMessage.fromMessage(Message message, String discussionId) {
+    return HiveMessage(
+      messageId: message.id,
+      discussionId: discussionId,
+      senderId: message.senderId,
+      content: message.content,
+      typeIndex: message.type.index,
+      timestamp: message.timestamp,
+      edited: message.edited,
+      editedAt: message.editedAt,
+      reactionsJson: _encodeReactions(message.reactions),
+      replyToId: message.replyToId,
+      replyIds: message.replies.map((Message r) => r.id).toList(),
+      readByIds: message.readBy?.toList() ?? [],
+    );
+  }
+
   @HiveField(0)
   String messageId;
 
@@ -57,23 +74,6 @@ class HiveMessage extends HiveObject {
 
   @HiveField(11)
   List<String> readByIds;
-
-  static HiveMessage fromMessage(Message message, String discussionId) {
-    return HiveMessage(
-      messageId: message.id,
-      discussionId: discussionId,
-      senderId: message.senderId,
-      content: message.content,
-      typeIndex: message.type.index,
-      timestamp: message.timestamp,
-      edited: message.edited,
-      editedAt: message.editedAt,
-      reactionsJson: _encodeReactions(message.reactions),
-      replyToId: message.replyToId,
-      replyIds: message.replies.map((Message r) => r.id).toList(),
-      readByIds: message.readBy?.toList() ?? [],
-    );
-  }
 
   Message toMessage() {
     return Message(
@@ -130,6 +130,19 @@ class HiveDiscussion extends HiveObject {
     this.typeIndex = 0,
   });
 
+  factory HiveDiscussion.fromDiscussion(Discussion discussion) {
+    return HiveDiscussion(
+      discussionId: discussion.id,
+      title: discussion.title,
+      participantIds: discussion.participants.toList(),
+      createdAt: discussion.createdAt,
+      lastActivity: discussion.lastActivity,
+      isActive: discussion.isActive,
+      lastMessageJson: _encodeMessage(discussion.lastMessage),
+      typeIndex: discussion.type.index,
+    );
+  }
+
   @HiveField(0)
   String discussionId;
 
@@ -153,19 +166,6 @@ class HiveDiscussion extends HiveObject {
 
   @HiveField(7)
   int typeIndex;
-
-  static HiveDiscussion fromDiscussion(Discussion discussion) {
-    return HiveDiscussion(
-      discussionId: discussion.id,
-      title: discussion.title,
-      participantIds: discussion.participants.toList(),
-      createdAt: discussion.createdAt,
-      lastActivity: discussion.lastActivity,
-      isActive: discussion.isActive,
-      lastMessageJson: _encodeMessage(discussion.lastMessage),
-      typeIndex: discussion.type.index,
-    );
-  }
 
   Discussion toDiscussion() {
     return Discussion(
@@ -213,6 +213,20 @@ class HiveUser extends HiveObject {
     this.metadataJson,
   });
 
+  factory HiveUser.fromUser(User user) {
+    return HiveUser(
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      avatarUrl: user.avatarUrl,
+      isOnline: user.isOnline,
+      status: user.status,
+      lastSeen: user.lastSeen,
+      metadataJson: user.metadata.isNotEmpty ? jsonEncode(user.metadata) : null,
+    );
+  }
+
   @HiveField(0)
   String userId;
 
@@ -239,20 +253,6 @@ class HiveUser extends HiveObject {
 
   @HiveField(8)
   String? metadataJson;
-
-  static HiveUser fromUser(User user) {
-    return HiveUser(
-      userId: user.id,
-      name: user.name,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      avatarUrl: user.avatarUrl,
-      isOnline: user.isOnline,
-      status: user.status,
-      lastSeen: user.lastSeen,
-      metadataJson: user.metadata.isNotEmpty ? jsonEncode(user.metadata) : null,
-    );
-  }
 
   User toUser() {
     return User(

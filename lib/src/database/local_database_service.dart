@@ -11,16 +11,17 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// and Hive models, and provides both synchronous and asynchronous operations.
 class LocalDatabaseService {
   LocalDatabaseService._();
+  
+  /// Gets the singleton instance of the database service.
+  factory LocalDatabaseService.instance() {
+    _instance ??= LocalDatabaseService._();
+    return _instance!;
+  }
+  
   static LocalDatabaseService? _instance;
   static Box<HiveMessage>? _messagesBox;
   static Box<HiveDiscussion>? _discussionsBox;
   static Box<HiveUser>? _usersBox;
-
-  /// Gets the singleton instance of the database service.
-  static LocalDatabaseService get instance {
-    _instance ??= LocalDatabaseService._();
-    return _instance!;
-  }
 
   /// Initializes the Hive database with required adapters and boxes.
   ///

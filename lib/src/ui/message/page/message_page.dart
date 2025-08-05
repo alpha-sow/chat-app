@@ -55,7 +55,7 @@ class _MessagePageState extends State<MessagePage> {
       });
 
       if (text.isNotEmpty) {
-        await MessageService.instance.sendMessage(
+        await MessageService.instance().sendMessage(
           discussionId: _discussion!.id,
           senderId: _currentUser.id,
           content: text,
@@ -66,13 +66,13 @@ class _MessagePageState extends State<MessagePage> {
       if (_selectedImage != null) {
         try {
           final imageFile = File(_selectedImage!.path);
-          final downloadUrl = await StorageService.instance.uploadChatImage(
+          final downloadUrl = await StorageService.instance().uploadChatImage(
             file: imageFile,
             userId: _currentUser.id,
             discussionId: widget.discussion.id,
           );
 
-          await MessageService.instance.sendMessage(
+          await MessageService.instance().sendMessage(
             discussionId: _discussion!.id,
             senderId: _currentUser.id,
             content: downloadUrl,
@@ -82,7 +82,7 @@ class _MessagePageState extends State<MessagePage> {
         } on Exception catch (e) {
           logger.e('Error uploading image', error: e);
 
-          await MessageService.instance.sendMessage(
+          await MessageService.instance().sendMessage(
             discussionId: _discussion!.id,
             senderId: _currentUser.id,
             content: _selectedImage!.path,
@@ -95,13 +95,13 @@ class _MessagePageState extends State<MessagePage> {
       if (_recordedAudioPath != null) {
         try {
           final audioFile = File(_recordedAudioPath!);
-          final downloadUrl = await StorageService.instance.uploadChatAudio(
+          final downloadUrl = await StorageService.instance().uploadChatAudio(
             file: audioFile,
             userId: _currentUser.id,
             discussionId: widget.discussion.id,
           );
 
-          await MessageService.instance.sendMessage(
+          await MessageService.instance().sendMessage(
             discussionId: _discussion!.id,
             senderId: _currentUser.id,
             content: downloadUrl,
@@ -111,7 +111,7 @@ class _MessagePageState extends State<MessagePage> {
         } on Exception catch (e) {
           logger.e('Error uploading audio', error: e);
 
-          await MessageService.instance.sendMessage(
+          await MessageService.instance().sendMessage(
             discussionId: _discussion!.id,
             senderId: _currentUser.id,
             content: _recordedAudioPath!,
@@ -186,11 +186,11 @@ class _MessagePageState extends State<MessagePage> {
     );
     if ((shouldDelete ?? false) && _discussion != null) {
       for (final messageId in _selectedMessages) {
-        await SyncService.instance.deleteMessage(
+        await SyncService.instance().deleteMessage(
           messageId,
           widget.discussion.id,
         );
-        await MessageService.instance.deleteMessage(
+        await MessageService.instance().deleteMessage(
           messageId,
           widget.discussion.id,
         );
@@ -379,13 +379,24 @@ class _MessagePageState extends State<MessagePage> {
                                           Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Text(
-                                                '${message.timestamp.hour}:'
-                                                '${message.timestamp.minute.toString().padLeft(2, '0')}',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  color: Colors.grey[600],
-                                                ),
+                                              Builder(
+                                                builder: (context) {
+                                                  final hour = message.timestamp
+                                                      .hour
+                                                      .toString()
+                                                      .padLeft(2, '0');
+                                                  final minute = message
+                                                      .timestamp.minute
+                                                      .toString()
+                                                      .padLeft(2, '0');
+                                                  return Text(
+                                                    '$hour:$minute',
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                  );
+                                                },
                                               ),
                                               if (isCurrentUser &&
                                                   !_isSelectionMode) ...[

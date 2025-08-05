@@ -17,16 +17,17 @@ enum StorageFolder {
 
 class StorageService {
   StorageService._();
+  factory StorageService.instance() => _instance ??= StorageService._();
+  
   static StorageService? _instance;
-  static StorageService get instance => _instance ??= StorageService._();
-
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   /// Upload a file to Firebase Storage
   ///
   /// [file] - The file to upload
   /// [folder] - The folder to upload to
-  /// [fileName] - Optional custom filename, if not provided uses original filename
+  /// [fileName] - Optional custom filename, if not provided uses original
+  /// filename
   /// [userId] - User ID for organizing files by user
   ///
   /// Returns the download URL of the uploaded file
@@ -260,7 +261,8 @@ class StorageService {
   /// Delete all files for a user
   ///
   /// [userId] - The user ID
-  /// [folder] - The folder to delete from (optional, if not provided deletes from all folders)
+  /// [folder] - The folder to delete from (optional, if not provided deletes
+  /// from all folders)
   Future<void> deleteUserFiles({
     required String userId,
     StorageFolder? folder,

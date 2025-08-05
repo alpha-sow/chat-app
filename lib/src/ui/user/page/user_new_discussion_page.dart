@@ -52,7 +52,7 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
   Future<void> _deleteContact(User user) async {
     try {
       logger.w('Deleting contact: ${user.displayName} (${user.id})');
-      await UserService.instance.deleteUser(user.id);
+      await UserService.instance().deleteUser(user.id);
 
       if (mounted) {
         context.showBanner(
@@ -179,7 +179,7 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (context) => MessageTempPage(
-          discussion: DiscussionService.instance.tempWithUsers(
+          discussion: DiscussionService.instance().tempWithUsers(
             title: '',
             users: [_currentUser, user],
           ),

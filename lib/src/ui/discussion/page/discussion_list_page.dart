@@ -28,7 +28,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
 
   Future<void> _initSync() async {
     try {
-      await SyncService.instance.syncAll();
+      await SyncService.instance().syncAll();
     } on Exception catch (e) {
       logger.e('Error during initial sync', error: e);
     }
@@ -120,11 +120,16 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                 border: Border.all(color: Colors.blue[200]!),
                               ),
                               child: Text(
-                                '💡 Tips:\n• You are automatically included in all '
-                                'discussions\n• Select other participants to '
-                                'auto-generate titles\n• Example: "Chat with Alice" '
-                                'or "Alice & Bob"\n• Edit title manually for custom '
-                                'names\n• Tap to open chat, swipe left to delete',
+                                '💡 Tips:\n• You are automatically included in '
+                                'all discussions\n• Select other participants '
+                                'to auto-generate titles\n• Example: "Chat '
+                                'with '
+                                'Alice" or "Alice & Bob"\n• Edit title '
+                                'manually '
+                                'for '
+                                'custom names\n• Tap to open chat, swipe left '
+                                'to '
+                                'delete',
                                 style: TextStyle(
                                   color: Colors.blue[700],
                                   fontSize: 12,

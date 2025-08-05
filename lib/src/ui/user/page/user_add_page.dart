@@ -34,7 +34,7 @@ class _UserAddPageState extends State<UserAddPage> {
         type: AlertType.error,
       );
 
-      await UserService.instance.createUser(
+      await UserService.instance().createUser(
         name: _displayNameController.text.trim(),
         email: _emailController.text.trim().isEmpty
             ? null
@@ -86,7 +86,7 @@ class _UserAddPageState extends State<UserAddPage> {
             : _phoneController.text.trim(),
       );
 
-      await SyncService.instance.saveUser(contact);
+      await SyncService.instance().saveUser(contact);
 
       if (mounted) {
         context.showBanner(

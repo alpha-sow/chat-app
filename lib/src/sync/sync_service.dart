@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:chat_app_package/src/src.dart';
 
-/// Service that synchronizes local Isar database with Firebase Realtime Database.
+/// Service that synchronizes local Isar database with Firebase Realtime
+/// Database.
 ///
 /// This service provides bidirectional synchronization between local storage
 /// and remote Firebase, handling offline scenarios with operation queuing
@@ -18,6 +19,19 @@ class SyncService {
     _startConnectionMonitoring();
     _startPeriodicSync();
   }
+  
+  /// Gets the singleton instance of the sync service.
+  ///
+  /// Throws [StateError] if the service hasn't been initialized.
+  factory SyncService.instance() {
+    if (_instance == null) {
+      throw StateError(
+        'SyncService not initialized. Call SyncService.initialize() first.',
+      );
+    }
+    return _instance!;
+  }
+  
   static SyncService? _instance;
   final LocalDatabaseService _localDb;
   final RemoteDatabaseService _firebase;
@@ -30,21 +44,9 @@ class SyncService {
   bool _isOnline = false;
   bool _syncInProgress = false;
 
-  /// Gets the singleton instance of the sync service.
-  ///
-  /// Throws [StateError] if the service hasn't been initialized.
-  static SyncService get instance {
-    if (_instance == null) {
-      throw StateError(
-        'SyncService not initialized. Call SyncService.initialize() first.',
-      );
-    }
-    return _instance!;
-  }
-
   /// Initializes the sync service with required database instances.
   ///
-  /// Must be called before accessing the [instance]. This sets up the
+  /// Must be called before accessing the [instance()]. This sets up the
   /// singleton with local database and Firebase service instances.
   ///
   /// [localDb] The local Isar database service.
@@ -700,7 +702,8 @@ class SyncService {
           // Validate required fields before creating Message
           if (!_isValidMessageData(messageData)) {
             logger.w(
-              'Skipping invalid remote message ${messageEntry.key}: missing required fields',
+              'Skipping invalid remote message ${messageEntry.key}: missing '
+              'required fields',
             );
             continue;
           }

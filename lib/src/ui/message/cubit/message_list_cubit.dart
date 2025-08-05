@@ -11,7 +11,7 @@ class MassageListCubit extends Cubit<MessageListState> {
   MassageListCubit(String discussionId)
     : _discussionId = discussionId,
       super(const MessageListStateLoaded([])) {
-    _messageStreamSubscription = MessageService.instance
+    _messageStreamSubscription = MessageService.instance()
         .watchMessagesForDiscussion(_discussionId)
         .listen(
           (messages) {

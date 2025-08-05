@@ -5,15 +5,15 @@ import 'package:uuid/uuid.dart';
 
 class DiscussionService {
   DiscussionService._();
-  static DiscussionService? _instance;
-
-  static DiscussionService get instance {
+  
+  factory DiscussionService.instance() {
     _instance ??= DiscussionService._();
     return _instance!;
   }
-
-  LocalDatabaseService get _database => LocalDatabaseService.instance;
-  SyncService get _syncService => SyncService.instance;
+  
+  static DiscussionService? _instance;
+  LocalDatabaseService get _database => LocalDatabaseService.instance();
+  SyncService get _syncService => SyncService.instance();
 
   Stream<List<Discussion>> watchAllDiscussions() {
     return _database.watchAllDiscussions();
