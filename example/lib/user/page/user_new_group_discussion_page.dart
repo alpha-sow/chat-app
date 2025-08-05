@@ -151,6 +151,7 @@ class _UserNewGroupDiscussionPageState
     final discussion = await DiscussionService.instance.withUsers(
       title: title,
       users: _selectedUsers.toList(),
+      type: DiscussionType.group,
     );
 
     final welcomeMessages = [

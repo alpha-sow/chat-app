@@ -182,7 +182,7 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
       MaterialPageRoute<void>(
         builder: (context) => MessageTempPage(
           discussion: DiscussionService.instance.tempWithUsers(
-            title: user.displayName,
+            title: '',
             users: [_currentUser, user],
           ),
           currentUser: _currentUser,

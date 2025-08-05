@@ -127,6 +127,7 @@ class HiveDiscussion extends HiveObject {
     this.participantIds = const [],
     this.isActive = true,
     this.lastMessageJson,
+    this.typeIndex = 0,
   });
 
   @HiveField(0)
@@ -150,6 +151,9 @@ class HiveDiscussion extends HiveObject {
   @HiveField(6)
   String? lastMessageJson;
 
+  @HiveField(7)
+  int typeIndex;
+
   static HiveDiscussion fromDiscussion(Discussion discussion) {
     return HiveDiscussion(
       discussionId: discussion.id,
@@ -159,6 +163,7 @@ class HiveDiscussion extends HiveObject {
       lastActivity: discussion.lastActivity,
       isActive: discussion.isActive,
       lastMessageJson: _encodeMessage(discussion.lastMessage),
+      typeIndex: discussion.type.index,
     );
   }
 
@@ -171,6 +176,7 @@ class HiveDiscussion extends HiveObject {
       lastActivity: lastActivity,
       lastMessage: _decodeMessage(lastMessageJson),
       isActive: isActive,
+      type: DiscussionType.values[typeIndex],
     );
   }
 

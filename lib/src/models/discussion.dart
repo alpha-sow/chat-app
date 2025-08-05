@@ -5,6 +5,18 @@ import 'package:uuid/uuid.dart';
 part 'discussion.freezed.dart';
 part 'discussion.g.dart';
 
+/// Enum representing different types of discussions.
+enum DiscussionType {
+  /// One-on-one private conversation
+  direct,
+  /// Group conversation with multiple participants
+  group,
+  /// Public channel or broadcast
+  channel,
+  /// Temporary or ephemeral discussion
+  temporary,
+}
+
 /// Immutable model representing a chat discussion.
 ///
 /// A discussion contains metadata about a chat conversation including
@@ -22,6 +34,7 @@ sealed class Discussion with _$Discussion {
   /// [lastActivity] Timestamp of the last activity.
   /// [lastMessage] The most recent message in the discussion.
   /// [isActive] Whether the discussion is active (default: true).
+  /// [type] Type of discussion (default: DiscussionType.direct).
   const factory Discussion({
     required String id,
     required String title,
@@ -30,6 +43,7 @@ sealed class Discussion with _$Discussion {
     required DateTime lastActivity,
     Message? lastMessage,
     @Default(true) bool isActive,
+    @Default(DiscussionType.direct) DiscussionType type,
   }) = _Discussion;
 
   const Discussion._();
@@ -42,12 +56,14 @@ sealed class Discussion with _$Discussion {
   /// [id] Unique identifier for the discussion.
   /// [title] Display title of the discussion.
   /// [participants] Optional list of initial participant IDs.
+  /// [type] Type of discussion (default: DiscussionType.direct).
   ///
   /// Returns a Discussion with current timestamps and empty messages.
   factory Discussion.initial({
     required String id,
     required String title,
     List<String>? participants,
+    DiscussionType type = DiscussionType.direct,
   }) {
     final now = DateTime.now();
     return Discussion(
@@ -56,6 +72,7 @@ sealed class Discussion with _$Discussion {
       participants: Set<String>.from(participants ?? []),
       createdAt: now,
       lastActivity: now,
+      type: type,
     );
   }
 

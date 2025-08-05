@@ -22,6 +22,7 @@ class DiscussionService {
   Future<Discussion> withUsers({
     required String title,
     required List<User> users,
+    DiscussionType type = DiscussionType.direct,
   }) async {
     final discussion = Discussion(
       id: const Uuid().v4(),
@@ -29,6 +30,7 @@ class DiscussionService {
       participants: {...users.map((user) => user.id)},
       createdAt: DateTime.now(),
       lastActivity: DateTime.now(),
+      type: type,
     );
     await _syncService.saveDiscussion(discussion);
     return discussion;
