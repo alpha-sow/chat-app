@@ -2,6 +2,7 @@ export 'database/database.dart';
 export 'discussion_service.dart';
 export 'message_service.dart';
 export 'models/models.dart';
+export 'navigation/global_navigator.dart';
 export 'sync/sync.dart';
 export 'ui/ui.dart';
 export 'user_service.dart';
