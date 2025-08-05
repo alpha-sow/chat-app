@@ -1,0 +1,62 @@
+name: Deploy to Alphasow Repository
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    env:
+      PUB_TOKEN: ${{ secrets.PUB_TOKEN }}
+      PUB_HOSTED_URL: "https://repo.alphasow.dev/artifactory/api/pub/repo-pub"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.5"
+          channel: "stable"
+      - name: Setup pub credentials
+        run: dart pub token add "https://repo.alphasow.dev/artifactory/api/pub/repo-pub" --env-var PUB_TOKEN
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run analyzer
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install semantic-release
+        run: |
+          npm install -g semantic-release
+          npm install -g @semantic-release/changelog
+          npm install -g @semantic-release/git
+          npm install -g @semantic-release/exec
+
+      - name: Semantic Release
+        run: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check publish warnings
+        run: flutter pub publish --dry-run
+
+      - name: Publish to Alphasow Repository
+        run: flutter pub publish --force
