@@ -1,6 +1,4 @@
 import 'package:chat_app_package/chat_app_package.dart';
-import 'package:chat_flutter_app/discussion/cubit/discussion_user_cubit.dart';
-import 'package:chat_flutter_app/discussion/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

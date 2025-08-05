@@ -1,5 +1,4 @@
 import 'package:chat_app_package/chat_app_package.dart';
-import 'package:chat_flutter_app/discussion/widgets/discussion_constants.dart';
 import 'package:flutter/material.dart';
 
 class LastMessageSubtitle extends StatelessWidget {

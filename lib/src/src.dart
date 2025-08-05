@@ -3,5 +3,6 @@ export 'discussion_service.dart';
 export 'message_service.dart';
 export 'models/models.dart';
 export 'sync/sync.dart';
+export 'ui/ui.dart';
 export 'user_service.dart';
 export 'utils/utils.dart';

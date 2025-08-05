@@ -1,7 +1,5 @@
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
-import 'package:chat_flutter_app/discussion/widgets/widgets.dart';
-import 'package:chat_flutter_app/message/message.dart';
 import 'package:flutter/material.dart';
 
 class DiscussionLoadedTile extends StatelessWidget {

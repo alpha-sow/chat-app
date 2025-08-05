@@ -2,9 +2,6 @@ import 'dart:async';
 
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
-import 'package:chat_flutter_app/discussion/discussion.dart';
-import 'package:chat_flutter_app/discussion/widgets/widgets.dart';
-import 'package:chat_flutter_app/user/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
