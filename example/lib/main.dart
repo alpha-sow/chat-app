@@ -29,9 +29,9 @@ void main() async {
   final firebaseService = RemoteDatabaseService();
 
   final currentUser = User.create(
-    id: '1754395752823',
-    name: 'Alpha',
-    email: 'alpha@example.com',
+    id: '1754396919307',
+    name: 'Ben',
+    email: 'ben@example.com',
     avatarUrl: faker.image.loremPicsum(width: 100, height: 100),
   );
   logger.i(
