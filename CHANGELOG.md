@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/alpha-sow/chat-app/compare/v1.0.0...v1.0.1) (2025-08-05)
+
+
+### Bug Fixes
+
+* update freezed_annotation and freezed dependencies to latest versions ([331f030](https://github.com/alpha-sow/chat-app/commit/331f030624b1258da0ac867cb12c56e456d9e812))
+
 # 1.0.0 (2025-08-05)
 
 
