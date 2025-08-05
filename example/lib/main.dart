@@ -55,7 +55,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlphasowUiApp(
-      navigatorKey: globalNavigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Chat App',
       theme: ThemeData(

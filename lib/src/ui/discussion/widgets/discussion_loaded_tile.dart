@@ -37,7 +37,7 @@ class DiscussionLoadedTile extends StatelessWidget {
   }
 
   void _navigateToMessages(BuildContext context) {
-    globalNavigatorKey.currentState?.push(
+    Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (context) => MessagePage(
           discussion: discussion,
