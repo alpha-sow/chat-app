@@ -1,7 +1,11 @@
 name: chat_app_package
 description: A starting point for Dart libraries or applications.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+homepage: https://github.com/alpha-sow/alphasow-ui/blob/main/README.md
+repository: https://github.com/alpha-sow/alphasow-ui
+documentation: https://github.com/alpha-sow/alphasow-ui/blob/main/README.md
+publish_to: https://repo.alphasow.dev/artifactory/api/pub/repo-pub
+
 environment:
   sdk: ^3.8.1
   flutter: ">=3.24.0"
