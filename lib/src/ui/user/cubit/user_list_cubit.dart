@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
-import 'package:chat_app_package/chat_app_package.dart';
+import 'package:dayder_chat/dayder_chat.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'user_list_state.dart';

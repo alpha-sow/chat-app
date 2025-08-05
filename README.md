@@ -74,7 +74,7 @@ This project follows a modular architecture with:
 ### Basic Implementation
 
 ```dart
-import 'package:chat_app_package/chat_app_package.dart';
+import 'package:dayder_chat/dayder_chat.dart';
 
 // Initialize the database service
 await DatabaseService.instance.initialize();

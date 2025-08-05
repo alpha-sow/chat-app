@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:chat_app_package/chat_app_package.dart';
+import 'package:dayder_chat/dayder_chat.dart';
 import 'package:flutter/material.dart';
 
 class MessageContentWidget extends StatelessWidget {

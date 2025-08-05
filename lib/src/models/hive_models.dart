@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:chat_app_package/src/src.dart';
+import 'package:dayder_chat/src/src.dart';
 import 'package:hive/hive.dart';
 
 part 'hive_models.g.dart';

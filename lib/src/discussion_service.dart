@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:chat_app_package/chat_app_package.dart';
+import 'package:dayder_chat/dayder_chat.dart';
 import 'package:uuid/uuid.dart';
 
 class DiscussionService {

@@ -1,4 +1,4 @@
-import 'package:chat_app_package/src/src.dart';
+import 'package:dayder_chat/src/src.dart';
 
 /// Represents a sync operation to be executed
 class SyncOperation {

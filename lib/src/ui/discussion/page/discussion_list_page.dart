@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:alphasow_ui/alphasow_ui.dart';
-import 'package:chat_app_package/chat_app_package.dart';
+import 'package:dayder_chat/dayder_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

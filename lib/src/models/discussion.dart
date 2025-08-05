@@ -1,4 +1,4 @@
-import 'package:chat_app_package/src/models/message.dart';
+import 'package:dayder_chat/src/models/message.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 

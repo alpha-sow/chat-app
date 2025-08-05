@@ -1,5 +1,5 @@
-import 'package:chat_app_package/chat_app_package.dart';
 import 'package:chat_flutter_app/main.dart';
+import 'package:dayder_chat/dayder_chat.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

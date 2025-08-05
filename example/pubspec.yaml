@@ -10,7 +10,7 @@ environment:
 
 dependencies:
   alphasow_ui: ^1.16.1
-  chat_app_package:
+  dayder_chat:
     path: ../
   firebase_core: ^4.0.0
   flutter:
