@@ -1,6 +1,6 @@
 import 'package:alphasow_ui/alphasow_ui.dart';
 import 'package:chat_app_package/chat_app_package.dart';
-import 'package:chat_flutter_app/discussion/page/discussion_list_page.dart';
+import 'package:chat_flutter_app/discussion/discussion.dart';
 import 'package:chat_flutter_app/firebase_options.dart';
 import 'package:chat_flutter_app/utils/utils.dart';
 import 'package:firebase_core/firebase_core.dart';
