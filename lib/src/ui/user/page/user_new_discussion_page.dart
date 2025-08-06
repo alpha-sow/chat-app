@@ -3,31 +3,21 @@ import 'package:dayder_chat/dayder_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class UserNewDiscussionPage extends StatefulWidget {
+class UserNewDiscussionPage extends StatelessWidget {
   const UserNewDiscussionPage({required this.currentUser, super.key});
 
   final User currentUser;
 
-  @override
-  State<UserNewDiscussionPage> createState() => _UserNewDiscussionPageState();
-}
-
-class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
-  late User _currentUser;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentUser = widget.currentUser;
-  }
-
-  Future<void> _addContact() async {
+  Future<void> _addContact(BuildContext context) async {
     await Navigator.of(context).push<User>(
       MaterialPageRoute(builder: (context) => const UserAddPage()),
     );
   }
 
-  Future<bool?> _showDeleteContactConfirmation(String contactName) {
+  Future<bool?> _showDeleteContactConfirmation({
+    required String contactName,
+    required BuildContext context,
+  }) {
     return context.showAsActionBottomSheet(
       title: const Text('Delete Contact'),
       actions: [
@@ -49,12 +39,15 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
     );
   }
 
-  Future<void> _deleteContact(User user) async {
+  Future<void> _deleteContact({
+    required BuildContext context,
+    required User user,
+  }) async {
     try {
       logger.w('Deleting contact: ${user.displayName} (${user.id})');
       await UserService.instance().deleteUser(user.id);
 
-      if (mounted) {
+      if (context.mounted) {
         context.showBanner(
           message: 'Contact "${user.displayName}" deleted',
           type: AlertType.success,
@@ -63,24 +56,13 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
     } on Exception catch (e) {
       logger.e('Error deleting contact', error: e);
 
-      if (mounted) {
+      if (context.mounted) {
         context.showBanner(
           message: 'Failed to delete contact: $e',
           type: AlertType.error,
         );
       }
     }
-  }
-
-  Future<void> _createGroupDiscussion(List<User> users) async {
-    await Navigator.of(context).push<Map<String, dynamic>>(
-      MaterialPageRoute(
-        builder: (context) => UserNewGroupDiscussionPage(
-          availableUsers: users,
-          currentUser: _currentUser,
-        ),
-      ),
-    );
   }
 
   @override
@@ -111,13 +93,23 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
                           tiles: [
                             AsListTile(
                               title: const Text('Add Contact'),
-                              onTap: _addContact,
+                              onTap: () => _addContact(context),
                               leading: AsAvatar.icon(icon: Icons.person_add),
                             ),
                             AsListTile(
                               leading: AsAvatar.icon(icon: Icons.group),
                               title: const Text('New Group'),
-                              onTap: () => _createGroupDiscussion(data),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (context) =>
+                                        UserNewGroupDiscussionPage(
+                                          availableUsers: data,
+                                          currentUser: currentUser,
+                                        ),
+                                  ),
+                                );
+                              },
                             ),
                             ...data.map(
                               (user) => Dismissible(
@@ -137,11 +129,15 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
                                 ),
                                 confirmDismiss: (direction) async {
                                   return _showDeleteContactConfirmation(
-                                    user.displayName,
+                                    contactName: user.displayName,
+                                    context: context,
                                   );
                                 },
                                 onDismissed: (direction) async {
-                                  await _deleteContact(user);
+                                  await _deleteContact(
+                                    user: user,
+                                    context: context,
+                                  );
                                 },
                                 child: AsListTile(
                                   leading: UserAvatar(user),
@@ -159,7 +155,22 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
                                             user.phoneNumber!.isNotEmpty
                                       ? Text(user.phoneNumber!)
                                       : null,
-                                  onTap: () => _starChatWithUser(user),
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (context) => MessageTempPage(
+                                          discussion:
+                                              DiscussionService.instance()
+                                                  .tempWithUsers(
+                                                    title: '',
+                                                    users: [currentUser, user],
+                                                  ),
+                                          currentUser: currentUser,
+                                          otherUser: user,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),
@@ -170,21 +181,6 @@ class _UserNewDiscussionPageState extends State<UserNewDiscussionPage> {
               UserListStateError(:final e) => Center(child: Text('$e')),
             };
           },
-        ),
-      ),
-    );
-  }
-
-  Future<void> _starChatWithUser(User user) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) => MessageTempPage(
-          discussion: DiscussionService.instance().tempWithUsers(
-            title: '',
-            users: [_currentUser, user],
-          ),
-          currentUser: _currentUser,
-          otherUser: user,
         ),
       ),
     );
