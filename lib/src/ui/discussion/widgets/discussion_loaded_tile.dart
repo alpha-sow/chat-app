@@ -28,10 +28,7 @@ class DiscussionLoadedTile extends StatelessWidget {
       subtitle: LastMessageSubtitle(
         message: discussion.lastMessage,
       ),
-      trailing: Icon(
-        Icons.adaptive.arrow_forward,
-        color: DiscussionConstants.trailingIconColor,
-      ),
+      trailing: Icon(Icons.adaptive.arrow_forward),
       onTap: () => _navigateToMessages(context),
     );
   }
