@@ -5,36 +5,15 @@ import 'package:dayder_chat/dayder_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class DiscussionListPage extends StatefulWidget {
+class DiscussionListPage extends StatelessWidget {
   const DiscussionListPage({required this.currentUser, super.key});
 
   final User currentUser;
 
-  @override
-  State<DiscussionListPage> createState() => _DiscussionListPageState();
-}
-
-class _DiscussionListPageState extends State<DiscussionListPage> {
-  @override
-  void initState() {
-    super.initState();
-    _initSync();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  Future<void> _initSync() async {
-    try {
-      await SyncService.instance().syncAll();
-    } on Exception catch (e) {
-      logger.e('Error during initial sync', error: e);
-    }
-  }
-
-  Future<bool?> _showDeleteDiscussionConfirmation(String discussionTitle) {
+  Future<bool?> _showDeleteDiscussionConfirmation({
+    required BuildContext context,
+    required String discussionTitle,
+  }) {
     return context.showAsActionBottomSheet(
       title: Text('Delete the discussion "$discussionTitle"?'),
       actions: [
@@ -63,7 +42,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (context) =>
-                      UserNewDiscussionPage(currentUser: widget.currentUser),
+                      UserNewDiscussionPage(currentUser: currentUser),
                 ),
               );
             },
@@ -120,16 +99,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                 border: Border.all(color: Colors.blue[200]!),
                               ),
                               child: Text(
-                                '💡 Tips:\n• You are automatically included in '
-                                'all discussions\n• Select other participants '
-                                'to auto-generate titles\n• Example: "Chat '
-                                'with '
-                                'Alice" or "Alice & Bob"\n• Edit title '
-                                'manually '
-                                'for '
-                                'custom names\n• Tap to open chat, swipe left '
-                                'to '
-                                'delete',
+                                infoDiscussionEmpty,
                                 style: TextStyle(
                                   color: Colors.blue[700],
                                   fontSize: 12,
@@ -161,7 +131,8 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                     .read<DiscussionListCubit>();
                                 final shouldDelete =
                                     await _showDeleteDiscussionConfirmation(
-                                      discussion.title,
+                                      context: context,
+                                      discussionTitle: discussion.title,
                                     );
                                 if (shouldDelete ?? false) {
                                   await cubit.deleteDiscussion(discussion.id);
@@ -169,7 +140,7 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
                                 return shouldDelete;
                               },
                               child: DiscussionListTileWidget(
-                                currentUser: widget.currentUser,
+                                currentUser: currentUser,
                                 discussion: discussion,
                               ),
                             );
@@ -182,5 +153,18 @@ class _DiscussionListPageState extends State<DiscussionListPage> {
         ),
       ),
     );
+  }
+
+  String get infoDiscussionEmpty {
+    return '💡 Tips:\n• You are automatically included in '
+        'all discussions\n• Select other participants '
+        'to auto-generate titles\n• Example: "Chat '
+        'with '
+        'Alice" or "Alice & Bob"\n• Edit title '
+        'manually '
+        'for '
+        'custom names\n• Tap to open chat, swipe left '
+        'to '
+        'delete';
   }
 }
