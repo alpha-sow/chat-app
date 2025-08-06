@@ -17,14 +17,6 @@ class DiscussionAvatar extends StatelessWidget {
         ? discussion.title[0].toUpperCase()
         : (user?.displayName[0].toUpperCase() ?? '?');
 
-    return CircleAvatar(
-      backgroundColor: DiscussionConstants.avatarBackgroundColor,
-      child: Text(
-        displayText,
-        style: DiscussionConstants.avatarTextStyle.copyWith(
-          color: DiscussionConstants.avatarTextColor,
-        ),
-      ),
-    );
+    return CircleAvatar(child: Text(displayText));
   }
 }
