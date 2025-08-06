@@ -99,7 +99,8 @@ class DiscussionListPage extends StatelessWidget {
                                 border: Border.all(color: Colors.blue[200]!),
                               ),
                               child: Text(
-                                infoDiscussionEmpty,
+                                'Tap the "+" button to'
+                                ' create a new discussion.',
                                 style: TextStyle(
                                   color: Colors.blue[700],
                                   fontSize: 12,
@@ -153,18 +154,5 @@ class DiscussionListPage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String get infoDiscussionEmpty {
-    return '💡 Tips:\n• You are automatically included in '
-        'all discussions\n• Select other participants '
-        'to auto-generate titles\n• Example: "Chat '
-        'with '
-        'Alice" or "Alice & Bob"\n• Edit title '
-        'manually '
-        'for '
-        'custom names\n• Tap to open chat, swipe left '
-        'to '
-        'delete';
   }
 }
