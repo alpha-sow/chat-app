@@ -29,14 +29,29 @@ jobs:
           channel: "stable"
       - name: Setup pub credentials
         run: dart pub token add "https://repo.alphasow.dev/artifactory/api/pub/repo-pub" --env-var PUB_TOKEN
-      - name: Get dependencies
-        run: flutter pub get
+      - name: Get root dependencies
+        run: dart pub get
 
-      - name: Run analyzer
-        run: flutter analyze
+      - name: Get Flutter app dependencies
+        run: |
+          cd dayder_chat_app
+          flutter pub get
 
-      - name: Run tests
-        run: flutter test
+      - name: Run analyzer on root package
+        run: dart analyze
+
+      - name: Run analyzer on Flutter app
+        run: |
+          cd dayder_chat_app
+          flutter analyze
+
+      - name: Run root tests
+        run: dart test
+
+      - name: Run Flutter app tests
+        run: |
+          cd dayder_chat_app
+          flutter test
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
