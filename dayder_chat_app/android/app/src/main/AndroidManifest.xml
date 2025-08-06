@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="chat_flutter_app"
+        android:label="dayder_chat_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -1,6 +1,6 @@
 {
-  "name": "chat_flutter_app",
-  "short_name": "chat_flutter_app",
+  "name": "dayder_chat_app",
+  "short_name": "dayder_chat_app",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0175C2",

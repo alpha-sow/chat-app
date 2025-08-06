@@ -1,5 +1,5 @@
-import 'package:chat_flutter_app/main.dart';
 import 'package:dayder_chat/dayder_chat.dart';
+import 'package:dayder_chat_app/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -8,6 +8,6 @@ void main() {
 
     await tester.pumpWidget(MyApp(currentUser: testUser));
 
-    expect(find.text('chat App - Discussions'), findsOneWidget);
+    expect(find.text('Discussions'), findsOneWidget);
   });
 }
