@@ -84,29 +84,25 @@ class UserNewDiscussionPage extends StatelessWidget {
                           tiles: [
                             AsListTile(
                               title: const Text('Add Contact'),
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    builder: (context) => const UserAddPage(),
-                                  ),
-                                );
-                              },
+                              onTap: () => Navigator.of(context).push<void>(
+                                MaterialPageRoute<void>(
+                                  builder: (context) => const UserAddPage(),
+                                ),
+                              ),
                               leading: AsAvatar.icon(icon: Icons.person_add),
                             ),
                             AsListTile(
                               leading: AsAvatar.icon(icon: Icons.group),
                               title: const Text('New Group'),
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    builder: (context) =>
-                                        UserNewGroupDiscussionPage(
-                                          availableUsers: data,
-                                          currentUser: currentUser,
-                                        ),
-                                  ),
-                                );
-                              },
+                              onTap: () => Navigator.of(context).push<void>(
+                                MaterialPageRoute<void>(
+                                  builder: (context) =>
+                                      UserNewGroupDiscussionPage(
+                                        availableUsers: data,
+                                        currentUser: currentUser,
+                                      ),
+                                ),
+                              ),
                             ),
                             ...data.map(
                               (user) => Dismissible(
@@ -152,22 +148,19 @@ class UserNewDiscussionPage extends StatelessWidget {
                                             user.phoneNumber!.isNotEmpty
                                       ? Text(user.phoneNumber!)
                                       : null,
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute<void>(
-                                        builder: (context) => MessageTempPage(
-                                          discussion:
-                                              DiscussionService.instance()
-                                                  .tempWithUsers(
-                                                    title: '',
-                                                    users: [currentUser, user],
-                                                  ),
-                                          currentUser: currentUser,
-                                          otherUser: user,
-                                        ),
+                                  onTap: () => Navigator.of(context).push<void>(
+                                    MaterialPageRoute<void>(
+                                      builder: (context) => MessageTempPage(
+                                        discussion: DiscussionService.instance()
+                                            .tempWithUsers(
+                                              title: '',
+                                              users: [currentUser, user],
+                                            ),
+                                        currentUser: currentUser,
+                                        otherUser: user,
                                       ),
-                                    );
-                                  },
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
