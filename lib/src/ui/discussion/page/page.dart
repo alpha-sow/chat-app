@@ -1,1 +1,1 @@
-export 'discussion_list_page.dart';
+export 'discussion_list_view.dart';
