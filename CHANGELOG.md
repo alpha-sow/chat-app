@@ -1,3 +1,11 @@
+## [1.1.2](https://github.com/alpha-sow/chat-app/compare/v1.1.1...v1.1.2) (2025-08-06)
+
+
+### Bug Fixes
+
+* update alphasow_ui dependency to version 1.17.1 ([8fbf88d](https://github.com/alpha-sow/chat-app/commit/8fbf88dadbb775e61c272b47fa6f87fbf777d93c))
+* update empty discussion message to guide users on creating a new discussion ([7ecd6a7](https://github.com/alpha-sow/chat-app/commit/7ecd6a7656034f171522a9c17e4e2b8c304ac804))
+
 ## [1.1.1](https://github.com/alpha-sow/chat-app/compare/v1.1.0...v1.1.1) (2025-08-05)
 
 
