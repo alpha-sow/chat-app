@@ -12,7 +12,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  alphasow_ui: ^1.16.1
+  alphasow_ui: ^1.17.1
   bloc: ^9.0.0
   cached_network_image: ^3.4.1
   cupertino_icons: ^1.0.8
