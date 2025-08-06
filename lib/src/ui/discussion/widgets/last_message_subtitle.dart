@@ -1,8 +1,8 @@
 import 'package:dayder_chat/dayder_chat.dart';
 import 'package:flutter/material.dart';
 
-class LastMessageSubtitle extends StatelessWidget {
-  const LastMessageSubtitle({required this.message, super.key});
+class LastMessage extends StatelessWidget {
+  const LastMessage({required this.message, super.key});
 
   final Message? message;
 

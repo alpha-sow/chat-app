@@ -51,7 +51,7 @@ class _DiscussionTileState extends State<DiscussionTile> {
                     ? widget.discussion.title
                     : user.displayName,
               ),
-              subtitle: LastMessageSubtitle(
+              subtitle: LastMessage(
                 message: widget.discussion.lastMessage,
               ),
               trailing: Icon(Icons.adaptive.arrow_forward),
