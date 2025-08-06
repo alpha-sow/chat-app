@@ -140,9 +140,19 @@ class DiscussionListPage extends StatelessWidget {
                                 }
                                 return shouldDelete;
                               },
-                              child: _DiscussionListTileWidget(
-                                currentUser: currentUser,
+                              child: DiscussionTile(
+                                currentUserId: currentUser.id,
                                 discussion: discussion,
+                                onTap: (discussion) {
+                                  Navigator.of(context).push<void>(
+                                    MaterialPageRoute<void>(
+                                      builder: (context) => MessagePage(
+                                        discussion: discussion,
+                                        currentUser: currentUser,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             );
                           }).toList(),
@@ -152,63 +162,6 @@ class DiscussionListPage extends StatelessWidget {
             };
           },
         ),
-      ),
-    );
-  }
-}
-
-class _DiscussionListTileWidget extends StatelessWidget {
-  const _DiscussionListTileWidget({
-    required this.discussion,
-    required this.currentUser,
-  });
-
-  final User currentUser;
-  final Discussion discussion;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => DiscussionUserCubit(
-        discussion.participants.firstWhere(
-          (id) => id != currentUser.id,
-        ),
-      ),
-      child: BlocBuilder<DiscussionUserCubit, DiscussionUserState>(
-        builder: (context, withUserState) {
-          return switch (withUserState) {
-            DiscussionUserStateLoading() => const SizedBox.shrink(),
-            DiscussionUserStateLoaded(:final user) => AsListTile(
-              leading: CircleAvatar(
-                child: Text(
-                  discussion.type == DiscussionType.group
-                      ? discussion.title[0].toUpperCase()
-                      : (user.displayName[0].toUpperCase()),
-                ),
-              ),
-              title: Text(
-                discussion.type == DiscussionType.group
-                    ? discussion.title
-                    : user.displayName,
-              ),
-              subtitle: LastMessageSubtitle(
-                message: discussion.lastMessage,
-              ),
-              trailing: Icon(Icons.adaptive.arrow_forward),
-              onTap: () => Navigator.of(context).push<void>(
-                MaterialPageRoute<void>(
-                  builder: (context) => MessagePage(
-                    discussion: discussion,
-                    currentUser: currentUser,
-                  ),
-                ),
-              ),
-            ),
-            DiscussionUserStateError() => const DiscussionErrorTile(
-              errorMessage: 'Error loading user',
-            ),
-          };
-        },
       ),
     );
   }
