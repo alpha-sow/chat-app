@@ -8,12 +8,6 @@ class UserNewDiscussionPage extends StatelessWidget {
 
   final User currentUser;
 
-  Future<void> _addContact(BuildContext context) async {
-    await Navigator.of(context).push<User>(
-      MaterialPageRoute(builder: (context) => const UserAddPage()),
-    );
-  }
-
   Future<bool?> _showDeleteContactConfirmation({
     required String contactName,
     required BuildContext context,
@@ -44,7 +38,6 @@ class UserNewDiscussionPage extends StatelessWidget {
     required User user,
   }) async {
     try {
-      logger.w('Deleting contact: ${user.displayName} (${user.id})');
       await UserService.instance().deleteUser(user.id);
 
       if (context.mounted) {
@@ -54,8 +47,6 @@ class UserNewDiscussionPage extends StatelessWidget {
         );
       }
     } on Exception catch (e) {
-      logger.e('Error deleting contact', error: e);
-
       if (context.mounted) {
         context.showBanner(
           message: 'Failed to delete contact: $e',
@@ -93,7 +84,13 @@ class UserNewDiscussionPage extends StatelessWidget {
                           tiles: [
                             AsListTile(
                               title: const Text('Add Contact'),
-                              onTap: () => _addContact(context),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (context) => const UserAddPage(),
+                                  ),
+                                );
+                              },
                               leading: AsAvatar.icon(icon: Icons.person_add),
                             ),
                             AsListTile(
